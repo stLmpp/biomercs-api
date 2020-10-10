@@ -1,0 +1,6 @@
+{
+  "DB_CHARSET": "utf8mb4",
+  "DB_COLLATE": "utf8mb4_0900_as_cs",
+  "CONFIG_USE_HANDLE_ERROR": true,
+  "DEFAULT_PAGINATION_SIZE": 15
+}
