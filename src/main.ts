@@ -1,4 +1,5 @@
 import './polyfills/polyfills';
+import './config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
@@ -9,13 +10,8 @@ import * as compression from 'compression';
 import * as morgan from 'morgan';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { version } from '../package.json';
-import { config } from 'dotenv';
 import { useContainer } from 'class-validator';
 import { ValidationModule } from './validation/validation.module';
-
-if (!environment.production) {
-  config();
-}
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
@@ -40,6 +36,11 @@ async function bootstrap(): Promise<void> {
     const options = new DocumentBuilder()
       .setTitle('Api')
       .setVersion(version)
+      .addBearerAuth({
+        scheme: 'bearer',
+        type: 'http',
+        bearerFormat: 'JWT',
+      })
       .build();
     const document = SwaggerModule.createDocument(app, options, {});
     SwaggerModule.setup('help', app, document, {

@@ -3,9 +3,10 @@
   "DB_PORT": 3306,
   "DB_USERNAME": "root",
   "DB_PASSWORD": "mysql",
-  "DB_DATABASE": "teste",
+  "DB_DATABASE": "biomercs2",
   "DB_SYNCHRONIZE": true,
   "PORT": 3000,
   "HOST": "localhost",
-  "CONFIG_USE_HANDLE_ERROR": true
+  "CONFIG_USE_HANDLE_ERROR": true,
+  "CONFIG_USE_AUTH": true
 }
