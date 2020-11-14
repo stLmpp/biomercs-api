@@ -1,4 +1,4 @@
-import { CreateDateColumn, DeepPartial, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, DeepPartial, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 
 export abstract class BaseEntity {
@@ -13,6 +13,14 @@ export abstract class BaseEntity {
   @ApiHideProperty()
   @UpdateDateColumn({ nullable: true })
   lastUpdatedDate?: Date;
+
+  @ApiHideProperty()
+  @Column()
+  createdBy!: number;
+
+  @ApiHideProperty()
+  @Column({ nullable: true })
+  lastUpdatedBy?: number;
 
   extendDto(dto: DeepPartial<this>): this {
     Object.assign(this, dto);
