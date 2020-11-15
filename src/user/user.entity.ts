@@ -28,6 +28,9 @@ export class User extends BaseEntity {
   @Column({ nullable: true })
   rememberMe?: boolean;
 
+  @Column({ default: false })
+  admin!: boolean;
+
   token?: string;
 
   async validatePassword(password: string): Promise<boolean> {
