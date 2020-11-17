@@ -6,5 +6,6 @@
   "CONFIG_USE_AUTH": true,
   "CONFIG_USE_HANDLE_ERROR": true,
   "DEFAULT_PAGINATION_SIZE": 15,
-  "HEADER_RECAPTCHA_TOKEN": "Biomercs-reCAPTCHA-Token"
+  "HEADER_RECAPTCHA_TOKEN": "Biomercs-reCAPTCHA-Token",
+  "STEAM_OPENID_URL": "https://steamcommunity.com/openid"
 }

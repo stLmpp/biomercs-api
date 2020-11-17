@@ -82,6 +82,14 @@ class Env {
   get appVersion(): string {
     return version;
   }
+
+  get steamOpenIDUrl(): string {
+    return this.get('STEAM_OPENID_URL');
+  }
+
+  get steamKey(): string {
+    return this.get('STEAM_API_KEY');
+  }
 }
 
 export const environment = Env.create();

@@ -9,7 +9,6 @@ export class UserService {
   constructor(private userRepository: UserRepository) {}
 
   async add(dto: UserAddDto): Promise<User> {
-    dto.displayName ??= dto.username;
     return this.userRepository.save(new User().extendDto(dto));
   }
 
@@ -59,5 +58,9 @@ export class UserService {
       throw new NotFoundException('User not found');
     }
     return user;
+  }
+
+  async getBySteamid(steamid: string): Promise<User | undefined> {
+    return this.userRepository.getBySteamid(steamid);
   }
 }

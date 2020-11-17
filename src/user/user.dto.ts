@@ -13,11 +13,6 @@ export class UserAddDto {
   @IsNotEmpty()
   username!: string;
 
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  displayName?: string;
-
   @IsDefined()
   @IsString()
   @IsNotEmpty()
@@ -45,11 +40,6 @@ export class UserAddDto {
 
 export class UserUpdateDto {
   @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  displayName?: string;
-
-  @IsOptional()
   @IsDate()
   lastOnline?: Date;
 
@@ -70,10 +60,6 @@ export class UserGetDto {
   @IsOptional()
   @IsString()
   username?: string;
-
-  @IsOptional()
-  @IsString()
-  displayName?: string;
 
   @IsOptional()
   @IsEmail()

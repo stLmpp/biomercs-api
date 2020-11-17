@@ -10,35 +10,35 @@ declare module 'typeorm/query-builder/SelectQueryBuilder' {
   }
 }
 
-SelectQueryBuilder.prototype.andExists = function(subQuery) {
+SelectQueryBuilder.prototype.andExists = function (subQuery) {
   return this.andWhere(sbq => {
     const sb = subQuery(sbq.subQuery().select('1'));
     return `EXISTS ${sb.getQuery()}`;
   });
 };
 
-SelectQueryBuilder.prototype.orExists = function(subQuery) {
+SelectQueryBuilder.prototype.orExists = function (subQuery) {
   return this.orWhere(sbq => {
     const sb = subQuery(sbq.subQuery().select('1'));
     return `EXISTS ${sb.getQuery()}`;
   });
 };
 
-SelectQueryBuilder.prototype.andNotExists = function(subQuery) {
+SelectQueryBuilder.prototype.andNotExists = function (subQuery) {
   return this.andWhere(sbq => {
     const sb = subQuery(sbq.subQuery().select('1'));
     return `NOT EXISTS ${sb.getQuery()}`;
   });
 };
 
-SelectQueryBuilder.prototype.orNotExists = function(subQuery) {
+SelectQueryBuilder.prototype.orNotExists = function (subQuery) {
   return this.orWhere(sbq => {
     const sb = subQuery(sbq.subQuery().select('1'));
     return `NOT EXISTS ${sb.getQuery()}`;
   });
 };
 
-SelectQueryBuilder.prototype.fillAndWhere = function(alias, dto) {
+SelectQueryBuilder.prototype.fillAndWhere = function (alias, dto) {
   for (const [_key, item] of Object.entries(dto)) {
     const isMultiple = _key.startsWith('ids');
     let newKey = _key;

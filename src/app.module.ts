@@ -13,6 +13,9 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { environment } from './environment/environment';
 import { join } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { PlayerModule } from './player/player.module';
+import { SteamModule } from './steam/steam.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [
@@ -36,10 +39,15 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
         },
       },
     }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', '..', '..', 'biomercs-v2', 'dist', 'biomercs-v2'),
+    }),
     CoreModule,
     ValidationModule,
     UserModule,
     AuthModule,
+    PlayerModule,
+    SteamModule,
   ],
   controllers: [AppController],
   providers: [

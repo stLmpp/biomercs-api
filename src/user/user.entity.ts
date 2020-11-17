@@ -1,15 +1,13 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, OneToOne } from 'typeorm';
 import { BaseEntity } from '../shared/super/base-entity';
 import { ApiHideProperty } from '@nestjs/swagger';
 import { hash } from 'bcryptjs';
+import { Player } from '../player/player.entity';
 
 @Entity()
 export class User extends BaseEntity {
   @Column({ unique: true })
   username!: string;
-
-  @Column({ unique: true })
-  displayName!: string;
 
   @Column({ select: false })
   @ApiHideProperty()
@@ -30,6 +28,9 @@ export class User extends BaseEntity {
 
   @Column({ default: false })
   admin!: boolean;
+
+  @OneToOne(() => Player, player => player.user)
+  player!: Player;
 
   token?: string;
 

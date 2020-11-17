@@ -12,6 +12,8 @@ import { MailerService } from '@nestjs-modules/mailer';
 import { environment } from '../environment/environment';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
+import { PlayerService } from '../player/player.service';
+import { AuthGateway } from './auth.gateway';
 
 @Injectable()
 export class AuthService {
@@ -19,7 +21,9 @@ export class AuthService {
     private userService: UserService,
     private authConfirmationService: AuthConfirmationService,
     private mailerService: MailerService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private playerService: PlayerService,
+    private authGateway: AuthGateway
   ) {}
 
   @Transactional()
@@ -39,6 +43,7 @@ export class AuthService {
       salt,
     });
     const userCreated = await this.userService.add(dto);
+    await this.playerService.add({ idUser: userCreated.id, personaName: userCreated.username });
     await this.sendConfirmationCodeEmail(userCreated);
     return { email, message: 'User created! Please confirm your e-mail', idUser: userCreated.id };
   }
@@ -113,5 +118,19 @@ export class AuthService {
     }
     await this.authConfirmationService.add({ idUser, code, expirationDate: addDays(new Date(), 1) });
     return code;
+  }
+
+  async authSteam(steamid: string, uuid: string): Promise<User> {
+    const user = await this.userService.getBySteamid(steamid);
+    if (!user) {
+      throw new UnauthorizedException();
+    }
+    const { salt, password } = await this.userService.getPasswordAndSalt(user.id);
+    user.token = await this.getToken(new User().extendDto({ ...user, password, salt }));
+    user.lastOnline = new Date();
+    user.rememberMe = true;
+    await this.userService.update(user.id, { lastOnline: user.lastOnline, rememberMe: user.rememberMe });
+    this.authGateway.sendTokenSteam(uuid, user.token);
+    return user;
   }
 }

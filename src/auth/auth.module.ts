@@ -7,6 +7,9 @@ import { AuthService } from './auth.service';
 import { UserModule } from '../user/user.module';
 import { AuthConfirmationModule } from './auth-confirmation/auth-confirmation.module';
 import { AuthController } from './auth.controller';
+import { PlayerModule } from '../player/player.module';
+import { AuthGateway } from './auth.gateway';
+import { SteamModule } from '../steam/steam.module';
 
 @Module({
   imports: [
@@ -19,9 +22,11 @@ import { AuthController } from './auth.controller';
     }),
     UserModule,
     AuthConfirmationModule,
+    PlayerModule,
+    SteamModule,
   ],
-  providers: [JwtStrategy, AuthService],
-  exports: [AuthService, PassportModule, AuthService],
+  providers: [JwtStrategy, AuthService, AuthGateway],
+  exports: [AuthService, PassportModule],
   controllers: [AuthController],
 })
 @Global()

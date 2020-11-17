@@ -1,4 +1,15 @@
-import { Body, Controller, NotFoundException, Param, Post, UnauthorizedException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  Post,
+  Query,
+  Req,
+  Res,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthRegisterViewModel } from './auth.view-model';
@@ -8,11 +19,13 @@ import { User } from '../user/user.entity';
 import { ApiAuth } from './api-auth.decorator';
 import { AuthUser } from './auth-user.decorator';
 import { UserService } from '../user/user.service';
+import { SteamService } from '../steam/steam.service';
+import { Request, Response } from 'express';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService, private userService: UserService) {}
+  constructor(private authService: AuthService, private userService: UserService, private steamService: SteamService) {}
 
   @Post('register')
   async register(@Body() dto: AuthRegisterDto): Promise<AuthRegisterViewModel> {
@@ -49,5 +62,22 @@ export class AuthController {
     @Param(RouteParamEnum.confirmationCode) confirmationCode: number
   ): Promise<User> {
     return this.authService.confirmCode(idUser, confirmationCode);
+  }
+
+  @Post(`login-steam/:${RouteParamEnum.uuid}`)
+  async loginSteam(@Param(RouteParamEnum.uuid) uuid: string): Promise<string> {
+    return this.steamService.openIdUrl(`/auth/login-steam-return/${uuid}`);
+  }
+
+  @Get(`login-steam-return/:${RouteParamEnum.uuid}`)
+  async loginSteamReturn(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Query(RouteParamEnum.openidReturnTo) returnUrl: string,
+    @Param(RouteParamEnum.uuid) uuid: string
+  ): Promise<void> {
+    const steamProfile = await this.steamService.authenticate(req, returnUrl);
+    await this.authService.authSteam(steamProfile.steamid, uuid);
+    res.redirect('http://localhost:4200/auth/validate-login-steam');
   }
 }

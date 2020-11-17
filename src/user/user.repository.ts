@@ -12,4 +12,12 @@ export class UserRepository extends Repository<User> {
       return qb.getMany();
     }
   }
+
+  async getBySteamid(steamid: string): Promise<User | undefined> {
+    return this.createQueryBuilder('u')
+      .innerJoin('u.player', 'p')
+      .innerJoin('p.steamProfile', 's')
+      .andWhere('s.steamid = :steamid', { steamid })
+      .getOne();
+  }
 }
