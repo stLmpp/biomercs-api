@@ -39,18 +39,18 @@ SelectQueryBuilder.prototype.orNotExists = function (subQuery) {
 };
 
 SelectQueryBuilder.prototype.fillAndWhere = function (alias, dto) {
-  for (const [_key, item] of Object.entries(dto)) {
-    const isMultiple = _key.startsWith('ids');
-    let newKey = _key;
+  for (const [key, item] of Object.entries(dto)) {
+    const isMultiple = key.startsWith('ids');
+    let newKey = key;
     let operator = '=';
-    let param = `:${_key}`;
+    let param = `:${key}`;
     if (isMultiple) {
-      newKey = _key.replace('ids', 'id');
+      newKey = key.replace('ids', 'id');
       operator = 'in';
-      param = `(:...${_key})`;
+      param = `(:...${key})`;
     }
     this.andWhere(`${alias}.${newKey} ${operator} ${param}`, {
-      [_key]: item,
+      [key]: item,
     });
   }
   return this;

@@ -19,6 +19,75 @@ export class SteamService {
     @Inject(forwardRef(() => PlayerService)) private playerService: PlayerService
   ) {}
 
+  @Transactional()
+  async authenticateAndLinkUser(req: Request, idUser: number, returnUrl?: string): Promise<SteamProfile> {
+    const player = await this.playerService.findByIdUser(idUser);
+    if (!player) {
+      throw new NotFoundException('Player not found');
+    }
+    const rawSteamProfile = await this.authenticate(req, returnUrl);
+    const steamProfile =
+      (await this.checkIfSteamProfileIsAlreadyLinked(rawSteamProfile.steamid)) ??
+      (await this.add(rawSteamProfile, idUser));
+    await this.playerService.update(player.id, { idSteamProfile: steamProfile.id });
+    return steamProfile;
+  }
+
+  @Transactional()
+  async authenticateAndLinkPlayer(req: Request, idPlayer: number, returnUrl?: string): Promise<SteamProfile> {
+    const player = await this.playerService.findById(idPlayer);
+    if (!player) {
+      throw new NotFoundException('Player not found');
+    }
+    const rawSteamProfile = await this.authenticate(req, returnUrl);
+    const steamProfile =
+      (await this.checkIfSteamProfileIsAlreadyLinked(rawSteamProfile.steamid)) ??
+      (await this.add(rawSteamProfile, player.idUser));
+    await this.playerService.update(player.id, { idSteamProfile: steamProfile.id });
+    return steamProfile;
+  }
+
+  @Transactional()
+  async create(steamid: string, idUser: number): Promise<SteamProfile> {
+    const rawSteamProfile = await this.getPlayerSummary(steamid);
+    if (!rawSteamProfile) {
+      throw new NotFoundException('Steam profile not found');
+    }
+    const steamProfile =
+      (await this.checkIfSteamProfileIsAlreadyLinked(steamid)) ?? (await this.add(rawSteamProfile, idUser));
+    steamProfile.player = await this.playerService.add({
+      personaName: steamProfile.personaname,
+      idSteamProfile: steamProfile.id,
+    });
+    return steamProfile;
+  }
+
+  async updateSteamProfile(idSteamProfile: number): Promise<SteamProfile> {
+    const steamProfile = await this.steamProfileRepository.findOne(idSteamProfile);
+    if (!steamProfile?.steamid) {
+      throw new BadRequestException('Steam Profile does not exist');
+    }
+    await this.steamProfileRepository.update(idSteamProfile, {
+      ...(await this.getPlayerSummary(steamProfile.steamid)),
+    });
+    return await this.steamProfileRepository.findOneOrFail(idSteamProfile);
+  }
+
+  async getPlayerSummary(steamid: string): Promise<RawSteamProfile> {
+    return this.http
+      .get<{ response: { players: SteamProfile[] } }>(
+        `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002`,
+        {
+          params: {
+            key: environment.steamKey,
+            steamids: steamid,
+          },
+        }
+      )
+      .pipe(map(response => response?.data?.response?.players?.[0]))
+      .toPromise();
+  }
+
   getRelyingParty(returnUrl = '/steam/auth'): RelyingParty {
     return new RelyingParty('http://localhost:3000/api' + returnUrl, 'http://localhost:3000', true, true, []);
   }
@@ -83,74 +152,5 @@ export class SteamService {
       return steamProfile;
     }
     throw new BadRequestException('Steam profile already registered and linked with one player');
-  }
-
-  @Transactional()
-  async authenticateAndLinkUser(req: Request, idUser: number, returnUrl?: string): Promise<SteamProfile> {
-    const player = await this.playerService.findByIdUser(idUser);
-    if (!player) {
-      throw new NotFoundException('Player not found');
-    }
-    const rawSteamProfile = await this.authenticate(req, returnUrl);
-    const steamProfile =
-      (await this.checkIfSteamProfileIsAlreadyLinked(rawSteamProfile.steamid)) ??
-      (await this.add(rawSteamProfile, idUser));
-    await this.playerService.update(player.id, { idSteamProfile: steamProfile.id });
-    return steamProfile;
-  }
-
-  @Transactional()
-  async authenticateAndLinkPlayer(req: Request, idPlayer: number, returnUrl?: string): Promise<SteamProfile> {
-    const player = await this.playerService.findById(idPlayer);
-    if (!player) {
-      throw new NotFoundException('Player not found');
-    }
-    const rawSteamProfile = await this.authenticate(req, returnUrl);
-    const steamProfile =
-      (await this.checkIfSteamProfileIsAlreadyLinked(rawSteamProfile.steamid)) ??
-      (await this.add(rawSteamProfile, player.idUser));
-    await this.playerService.update(player.id, { idSteamProfile: steamProfile.id });
-    return steamProfile;
-  }
-
-  async updateSteamProfile(idSteamProfile: number): Promise<SteamProfile> {
-    const steamProfile = await this.steamProfileRepository.findOne(idSteamProfile);
-    if (!steamProfile?.steamid) {
-      throw new BadRequestException('Steam Profile does not exist');
-    }
-    await this.steamProfileRepository.update(idSteamProfile, {
-      ...(await this.getPlayerSummary(steamProfile.steamid)),
-    });
-    return await this.steamProfileRepository.findOneOrFail(idSteamProfile);
-  }
-
-  async getPlayerSummary(steamid: string): Promise<RawSteamProfile> {
-    return this.http
-      .get<{ response: { players: SteamProfile[] } }>(
-        `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002`,
-        {
-          params: {
-            key: environment.steamKey,
-            steamids: steamid,
-          },
-        }
-      )
-      .pipe(map(response => response?.data?.response?.players?.[0]))
-      .toPromise();
-  }
-
-  @Transactional()
-  async create(steamid: string, idUser: number): Promise<SteamProfile> {
-    const rawSteamProfile = await this.getPlayerSummary(steamid);
-    if (!rawSteamProfile) {
-      throw new NotFoundException('Steam profile not found');
-    }
-    const steamProfile =
-      (await this.checkIfSteamProfileIsAlreadyLinked(steamid)) ?? (await this.add(rawSteamProfile, idUser));
-    steamProfile.player = await this.playerService.add({
-      personaName: steamProfile.personaname,
-      idSteamProfile: steamProfile.id,
-    });
-    return steamProfile;
   }
 }

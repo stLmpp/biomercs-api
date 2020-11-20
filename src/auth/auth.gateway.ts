@@ -4,23 +4,23 @@ import { Logger } from '@nestjs/common';
 
 @WebSocketGateway()
 export class AuthGateway {
-  @WebSocketServer() server!: Server;
+  private _logger: Logger = new Logger('AuthGateway');
 
-  private logger: Logger = new Logger('AuthGateway');
+  @WebSocketServer() server!: Server;
 
   sendTokenSteam(uuid: string, token: string): void {
     this.server.emit('logged-steam', { uuid, token });
   }
 
   afterInit(server: Server): void {
-    this.logger.log('Init');
+    this._logger.log('Init');
   }
 
   handleDisconnect(client: Socket): void {
-    this.logger.log(`Client disconnected: ${client.id}`);
+    this._logger.log(`Client disconnected: ${client.id}`);
   }
 
   handleConnection(client: Socket, ...args: any[]): void {
-    this.logger.log(`Client connected: ${client.id}`);
+    this._logger.log(`Client connected: ${client.id}`);
   }
 }

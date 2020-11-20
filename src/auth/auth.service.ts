@@ -26,6 +26,30 @@ export class AuthService {
     private authGateway: AuthGateway
   ) {}
 
+  private async _sendConfirmationCodeEmail({ email, id }: User): Promise<void> {
+    const code = await this._generateConfirmationCode(id);
+    await this.mailerService.sendMail({
+      to: email,
+      from: environment.get('MAIL'),
+      subject: 'Biomercs - Confirmation code',
+      template: 'confirmation-code',
+      context: {
+        code,
+        version: environment.appVersion,
+        year: new Date().getFullYear(),
+      },
+    });
+  }
+
+  private async _generateConfirmationCode(idUser: number): Promise<number> {
+    const code = random(100000, 999999);
+    if (await this.authConfirmationService.exists(idUser, code)) {
+      return this._generateConfirmationCode(idUser);
+    }
+    await this.authConfirmationService.add({ idUser, code, expirationDate: addDays(new Date(), 1) });
+    return code;
+  }
+
   @Transactional()
   async register({ email, username, password }: AuthRegisterDto): Promise<AuthRegisterViewModel> {
     const user = await this.userService.getByEmailOrUsername(username, email);
@@ -44,7 +68,7 @@ export class AuthService {
     });
     const userCreated = await this.userService.add(dto);
     await this.playerService.add({ idUser: userCreated.id, personaName: userCreated.username });
-    await this.sendConfirmationCodeEmail(userCreated);
+    await this._sendConfirmationCodeEmail(userCreated);
     return { email, message: 'User created! Please confirm your e-mail', idUser: userCreated.id };
   }
 
@@ -55,7 +79,7 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
     await this.authConfirmationService.invalidateLastCode(idUser);
-    await this.sendConfirmationCodeEmail(user);
+    await this._sendConfirmationCodeEmail(user);
   }
 
   @Transactional()
@@ -94,30 +118,6 @@ export class AuthService {
       options.expiresIn = '180 days';
     }
     return await this.jwtService.signAsync({ id, password }, options);
-  }
-
-  private async sendConfirmationCodeEmail({ email, id }: User): Promise<void> {
-    const code = await this.generateConfirmationCode(id);
-    await this.mailerService.sendMail({
-      to: email,
-      from: environment.get('MAIL'),
-      subject: 'Biomercs - Confirmation code',
-      template: 'confirmation-code',
-      context: {
-        code,
-        version: environment.appVersion,
-        year: new Date().getFullYear(),
-      },
-    });
-  }
-
-  private async generateConfirmationCode(idUser: number): Promise<number> {
-    const code = random(100000, 999999);
-    if (await this.authConfirmationService.exists(idUser, code)) {
-      return this.generateConfirmationCode(idUser);
-    }
-    await this.authConfirmationService.add({ idUser, code, expirationDate: addDays(new Date(), 1) });
-    return code;
   }
 
   async authSteam(steamid: string, uuid: string): Promise<User> {

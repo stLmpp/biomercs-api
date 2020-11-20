@@ -30,10 +30,6 @@ export type Configs =
   | 'FILE_UPLOAD_PATH';
 
 class Env {
-  static create(): Env {
-    return new Env();
-  }
-
   config<T = any>(config: Configs): T {
     return getEnvVar('CONFIG_' + config);
   }
@@ -89,6 +85,10 @@ class Env {
 
   get steamKey(): string {
     return this.get('STEAM_API_KEY');
+  }
+
+  static create(): Env {
+    return new Env();
   }
 }
 
