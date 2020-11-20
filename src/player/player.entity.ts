@@ -24,7 +24,10 @@ export class Player extends BaseEntity {
   @Column({ nullable: true })
   idSteamProfile?: number;
 
-  @OneToOne(() => SteamProfile)
+  @OneToOne(() => SteamProfile, steamProfile => steamProfile.player)
   @JoinColumn()
   steamProfile?: SteamProfile;
+
+  @Column({ default: false })
+  noUser!: boolean;
 }

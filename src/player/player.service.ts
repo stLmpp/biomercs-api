@@ -11,7 +11,7 @@ export class PlayerService {
     @Inject(forwardRef(() => SteamService)) private steamService: SteamService
   ) {}
 
-  async add(dto: PlayerAddDto): Promise<Player> {
+  async add(dto: PlayerAddDto & { noUser?: boolean }): Promise<Player> {
     return this.playerRepository.save(new Player().extendDto(dto));
   }
 
@@ -35,6 +35,10 @@ export class PlayerService {
     const player = await this.findById(idPlayer);
     await this.playerRepository.update(idPlayer, dto);
     return new Player().extendDto({ ...player, ...dto });
+  }
+
+  async delete(idPlayer: number): Promise<void> {
+    await this.playerRepository.delete(idPlayer);
   }
 
   async linkSteamProfile(idPlayer: number): Promise<string> {
