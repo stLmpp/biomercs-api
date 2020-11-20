@@ -21,6 +21,7 @@ import { AuthUser } from './auth-user.decorator';
 import { UserService } from '../user/user.service';
 import { SteamService } from '../steam/steam.service';
 import { Request, Response } from 'express';
+import { environment } from '../environment/environment';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -78,6 +79,6 @@ export class AuthController {
   ): Promise<void> {
     const steamProfile = await this.steamService.authenticate(req, returnUrl);
     await this.authService.authSteam(steamProfile.steamid, uuid);
-    res.redirect('http://localhost:4200/auth/validate-login-steam');
+    res.redirect(environment.frontEndUrl + '/auth/validate-login-steam');
   }
 }

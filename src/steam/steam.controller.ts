@@ -9,6 +9,7 @@ import { User } from '../user/user.entity';
 import { RouteParamEnum } from '../shared/type/route-param.enum';
 import { OptionalQueryPipe } from '../shared/pipe/optional-query.pipe';
 import { ApiAdmin } from '../auth/api-admin.decorator';
+import { environment } from '../environment/environment';
 
 @ApiTags('Steam')
 @Controller('steam')
@@ -32,7 +33,7 @@ export class SteamController {
     } else {
       throw new BadRequestException('Needs an idUser or idPlayer to authenticate');
     }
-    res.redirect(`http://localhost:4200`);
+    res.redirect(environment.frontEndUrl);
   }
 
   @ApiAuth()

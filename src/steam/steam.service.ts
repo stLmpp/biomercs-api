@@ -101,7 +101,10 @@ export class SteamService {
   }
 
   getRelyingParty(returnUrl = '/steam/auth'): RelyingParty {
-    return new RelyingParty('http://localhost:3000/api' + returnUrl, 'http://localhost:3000', true, true, []);
+    if (!returnUrl.includes(environment.host)) {
+      returnUrl = environment.apiUrl + returnUrl;
+    }
+    return new RelyingParty(returnUrl, environment.apiUrl, true, true, []);
   }
 
   async openIdUrl(returnUrl: string): Promise<string>;
@@ -130,7 +133,7 @@ export class SteamService {
 
   async authenticate(req: Request, returnUrl?: string): Promise<RawSteamProfile> {
     return new Promise((resolve, reject) => {
-      const relyingParty = this.getRelyingParty((returnUrl ?? '').replace('http://localhost:3000/api', ''));
+      const relyingParty = this.getRelyingParty(returnUrl ?? '');
       relyingParty.verifyAssertion(req, async (error, result) => {
         if (error) return reject(error.message);
         if (!result?.authenticated || !result.claimedIdentifier) {

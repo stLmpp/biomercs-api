@@ -46,8 +46,24 @@ class Env {
     return getEnvVar('HOST');
   }
 
-  get port(): string {
+  get port(): number {
     return getEnvVar('PORT');
+  }
+
+  get apiUrl(): string {
+    return `${this.host}:${this.port}/api`;
+  }
+
+  get hostFrontEnd(): string {
+    return getEnvVar('FRONT_END_HOST');
+  }
+
+  get portFrontEnd(): number {
+    return getEnvVar('FRONT_END_PORT');
+  }
+
+  get frontEndUrl(): string {
+    return `${this.hostFrontEnd}:${this.portFrontEnd}`;
   }
 
   get database(): MysqlConnectionOptions {
