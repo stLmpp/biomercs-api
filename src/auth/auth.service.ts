@@ -132,7 +132,8 @@ export class AuthService {
   async authSteam(steamid: string, uuid: string): Promise<User> {
     const user = await this.userService.getBySteamid(steamid);
     if (!user) {
-      throw new UnauthorizedException();
+      this.authGateway.sendTokenSteam(uuid, '', 'This steam has no user linked to it');
+      throw new UnauthorizedException('This steam has no user linked to it');
     }
     const { salt, password } = await this.userService.getPasswordAndSalt(user.id);
     user.token = await this.getToken(new User().extendDto({ ...user, password, salt }));

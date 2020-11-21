@@ -51,7 +51,7 @@ class Env {
   }
 
   get apiUrl(): string {
-    return `${this.host}:${this.port}/api`;
+    return `http://${this.host}:${this.port}/api`;
   }
 
   get hostFrontEnd(): string {
@@ -63,7 +63,7 @@ class Env {
   }
 
   get frontEndUrl(): string {
-    return `${this.hostFrontEnd}:${this.portFrontEnd}`;
+    return `http://${this.hostFrontEnd}:${this.portFrontEnd}`;
   }
 
   get database(): MysqlConnectionOptions {

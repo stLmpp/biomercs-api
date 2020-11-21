@@ -8,8 +8,8 @@ export class AuthGateway {
 
   @WebSocketServer() server!: Server;
 
-  sendTokenSteam(uuid: string, token: string): void {
-    this.server.emit('logged-steam', { uuid, token });
+  sendTokenSteam(uuid: string, token: string, error?: string): void {
+    this.server.emit('logged-steam', { uuid, token, error });
   }
 
   afterInit(server: Server): void {

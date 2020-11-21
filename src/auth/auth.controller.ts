@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   NotFoundException,
   Param,
   Post,
@@ -10,7 +11,7 @@ import {
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthRegisterViewModel } from './auth.view-model';
 import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto } from './auth.dto';
@@ -33,11 +34,13 @@ export class AuthController {
     return this.authService.register(dto);
   }
 
+  @ApiOkResponse()
   @Post('login')
   async login(@Body() dto: AuthCredentialsDto): Promise<User> {
     return this.authService.login(dto);
   }
 
+  @HttpCode(200)
   @ApiAuth()
   @Post('auto-login')
   async autoLogin(@AuthUser() user: User): Promise<User> {
