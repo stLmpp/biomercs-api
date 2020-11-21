@@ -38,12 +38,15 @@ export class SteamController {
 
   @ApiAuth()
   @Put(`:${RouteParamEnum.idSteamProfile}/refresh`)
-  async refresh(@Param(RouteParamEnum.idSteamProfile) idSteamProfile: number): Promise<SteamProfile> {
-    return this.steamService.updateSteamProfile(idSteamProfile);
+  async refresh(
+    @Param(RouteParamEnum.idSteamProfile) idSteamProfile: number,
+    @AuthUser() { id }: User
+  ): Promise<SteamProfile> {
+    return this.steamService.updateSteamProfile(idSteamProfile, id);
   }
 
-  @ApiAuth()
   @ApiAdmin()
+  @ApiAuth()
   @Post(`create/:${RouteParamEnum.steamid}`)
   async create(@Param(RouteParamEnum.steamid) steamid: string, @AuthUser() { id }: User): Promise<SteamProfile> {
     return this.steamService.create(steamid, id);

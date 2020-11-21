@@ -3,6 +3,7 @@ import { PlayerRepository } from './player.repository';
 import { Player } from './player.entity';
 import { PlayerAddDto, PlayerUpdateDto } from './player.dto';
 import { SteamService } from '../steam/steam.service';
+import { updateLastUpdatedBy } from '../auth/last-updated-by.pipe';
 
 @Injectable()
 export class PlayerService {
@@ -49,7 +50,7 @@ export class PlayerService {
     return this.steamService.openIdUrl(player);
   }
 
-  async unlinkSteamProfile(idPlayer: number): Promise<Player> {
-    return this.update(idPlayer, { idSteamProfile: undefined });
+  async unlinkSteamProfile(idPlayer: number, idUser: number): Promise<Player> {
+    return this.update(idPlayer, updateLastUpdatedBy({ idSteamProfile: undefined }, idUser));
   }
 }

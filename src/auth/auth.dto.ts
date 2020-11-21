@@ -1,4 +1,5 @@
 import { IsBoolean, IsDefined, IsEmail, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsNumber } from '../validation/is-number';
 
 export class AuthRegisterDto {
   @IsString()
@@ -31,4 +32,15 @@ export class AuthCredentialsDto {
   @IsOptional()
   @IsBoolean()
   rememberMe?: boolean;
+}
+
+export class AuthChangePasswordDto {
+  @IsString()
+  @IsDefined()
+  @IsNotEmpty()
+  password!: string;
+
+  @IsNumber()
+  @IsDefined()
+  confirmationCode!: number;
 }

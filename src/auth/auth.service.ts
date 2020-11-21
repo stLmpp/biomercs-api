@@ -14,6 +14,8 @@ import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { PlayerService } from '../player/player.service';
 import { AuthGateway } from './auth.gateway';
+import { updateCreatedBy } from './created-by.pipe';
+import { updateLastUpdatedBy } from './last-updated-by.pipe';
 
 @Injectable()
 export class AuthService {
@@ -67,7 +69,9 @@ export class AuthService {
       salt,
     });
     const userCreated = await this.userService.add(dto);
-    await this.playerService.add({ idUser: userCreated.id, personaName: userCreated.username });
+    await this.playerService.add(
+      updateCreatedBy({ idUser: userCreated.id, personaName: userCreated.username }, userCreated.id)
+    );
     await this._sendConfirmationCodeEmail(userCreated);
     return { email, message: 'User created! Please confirm your e-mail', idUser: userCreated.id };
   }
@@ -94,7 +98,7 @@ export class AuthService {
     user.salt = salt;
     user.token = await this.getToken(user);
     user.lastOnline = new Date();
-    await this.userService.update(idUser, { lastOnline: user.lastOnline });
+    await this.userService.update(idUser, updateLastUpdatedBy({ lastOnline: user.lastOnline }, user.id));
     return user.removePasswordAndSalt();
   }
 
@@ -107,9 +111,21 @@ export class AuthService {
     }
     user.lastOnline = new Date();
     user.rememberMe = dto.rememberMe ?? false;
-    await this.userService.update(user.id, { lastOnline: user.lastOnline, rememberMe: user.rememberMe });
+    await this.userService.update(
+      user.id,
+      updateLastUpdatedBy({ lastOnline: user.lastOnline, rememberMe: user.rememberMe }, user.id)
+    );
     user.token = await this.getToken(user);
     return user.removePasswordAndSalt();
+  }
+
+  @Transactional()
+  async changePassword(idUser: number, confirmationCode: number, newPassword: string): Promise<User> {
+    await this.authConfirmationService.confirmCode(idUser, confirmationCode);
+    const { salt } = await this.userService.getPasswordAndSalt(idUser);
+    const newPasswordHash = await hash(newPassword, salt);
+    const user = await this.userService.updatePassword(idUser, newPasswordHash);
+    return this.login({ username: user.username, password: newPassword, rememberMe: true });
   }
 
   async getToken({ id, password, rememberMe }: User): Promise<string> {
@@ -129,8 +145,23 @@ export class AuthService {
     user.token = await this.getToken(new User().extendDto({ ...user, password, salt }));
     user.lastOnline = new Date();
     user.rememberMe = true;
-    await this.userService.update(user.id, { lastOnline: user.lastOnline, rememberMe: user.rememberMe });
+    await this.userService.update(
+      user.id,
+      updateLastUpdatedBy({ lastOnline: user.lastOnline, rememberMe: user.rememberMe }, user.id)
+    );
     this.authGateway.sendTokenSteam(uuid, user.token);
     return user;
+  }
+
+  async sendForgotPasswordConfirmationCode(email: string): Promise<number> {
+    const user = await this.userService.getByEmailOrUsername(undefined, email);
+    if (user) {
+      await this._sendConfirmationCodeEmail(user);
+    }
+    return user?.id ?? -1;
+  }
+
+  async confirmForgotPassword(idUser: number, code: number): Promise<boolean> {
+    return this.authConfirmationService.exists(idUser, code);
   }
 }

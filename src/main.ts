@@ -44,7 +44,7 @@ async function bootstrap(): Promise<void> {
       .build();
     const document = SwaggerModule.createDocument(app, options, {});
     SwaggerModule.setup('help', app, document, {
-      customCss: `.scheme-container { position: sticky; top: 0; z-index: 1; margin-bottom: 0; }`,
+      customCss: `.swagger-ui .scheme-container { position: sticky; top: 0; z-index: 1; margin-bottom: 0; padding: 0.25rem 0; }`,
     });
   }
 

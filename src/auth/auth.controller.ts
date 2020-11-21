@@ -13,7 +13,7 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthRegisterViewModel } from './auth.view-model';
-import { AuthCredentialsDto, AuthRegisterDto } from './auth.dto';
+import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto } from './auth.dto';
 import { RouteParamEnum } from '../shared/type/route-param.enum';
 import { User } from '../user/user.entity';
 import { ApiAuth } from './api-auth.decorator';
@@ -67,10 +67,10 @@ export class AuthController {
 
   @Post(`login-steam/:${RouteParamEnum.uuid}`)
   async loginSteam(@Param(RouteParamEnum.uuid) uuid: string): Promise<string> {
-    return this.steamService.openIdUrl(`/auth/login-steam-return/${uuid}`);
+    return this.steamService.openIdUrl(`/auth/login-steam/${uuid}/return`);
   }
 
-  @Get(`login-steam-return/:${RouteParamEnum.uuid}`)
+  @Get(`login-steam/:${RouteParamEnum.uuid}/return`)
   async loginSteamReturn(
     @Req() req: Request,
     @Res() res: Response,
@@ -80,5 +80,26 @@ export class AuthController {
     const steamProfile = await this.steamService.authenticate(req, returnUrl);
     await this.authService.authSteam(steamProfile.steamid, uuid);
     res.redirect(environment.frontEndUrl + '/auth/validate-login-steam');
+  }
+
+  @Post('forgot-password')
+  async sendForgotPasswordConfirmationCode(@Query(RouteParamEnum.email) email: string): Promise<number> {
+    return this.authService.sendForgotPasswordConfirmationCode(email);
+  }
+
+  @Post(`user/:${RouteParamEnum.idUser}/forgot-password/:${RouteParamEnum.confirmationCode}`)
+  async confirmForgotPassword(
+    @Param(RouteParamEnum.idUser) idUser: number,
+    @Param(RouteParamEnum.confirmationCode) confirmationCode: number
+  ): Promise<boolean> {
+    return this.authService.confirmForgotPassword(idUser, confirmationCode);
+  }
+
+  @Post(`user/:${RouteParamEnum.idUser}/change-password`)
+  async changePassword(
+    @Param(RouteParamEnum.idUser) idUser: number,
+    @Body() dto: AuthChangePasswordDto
+  ): Promise<User> {
+    return this.authService.changePassword(idUser, dto.confirmationCode, dto.password);
   }
 }

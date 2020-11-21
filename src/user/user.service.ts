@@ -1,15 +1,18 @@
-import { Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { UserAddDto, UserGetDto, UserUpdateDto } from './user.dto';
 import { User } from './user.entity';
 import { AuthCredentialsDto } from '../auth/auth.dto';
+import { FindConditions } from 'typeorm';
+import { updateCreatedBy } from '../auth/created-by.pipe';
+import { updateLastUpdatedBy } from '../auth/last-updated-by.pipe';
 
 @Injectable()
 export class UserService {
   constructor(private userRepository: UserRepository) {}
 
   async add(dto: UserAddDto): Promise<User> {
-    return this.userRepository.save(new User().extendDto(dto));
+    return this.userRepository.save(new User().extendDto(updateCreatedBy(dto, -1)));
   }
 
   async update(idUser: number, dto: UserUpdateDto): Promise<User> {
@@ -19,6 +22,15 @@ export class UserService {
     }
     await this.userRepository.update(idUser, dto);
     return new User().extendDto({ ...user, ...dto });
+  }
+
+  async updatePassword(idUser: number, password: string): Promise<User> {
+    const user = await this.userRepository.findOne(idUser);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    await this.userRepository.update(idUser, updateLastUpdatedBy({ password }, idUser));
+    return user;
   }
 
   async getById(idUser: number): Promise<User | undefined> {
@@ -31,8 +43,18 @@ export class UserService {
     return this.userRepository.get(dto, one);
   }
 
-  async getByEmailOrUsername(username: string, email: string): Promise<User | undefined> {
-    return this.userRepository.findOne({ where: [{ username }, { email }] });
+  async getByEmailOrUsername(username?: string, email?: string): Promise<User | undefined> {
+    if (!username && !email) {
+      throw new BadRequestException('Needs at least one parameter');
+    }
+    const where: FindConditions<User>[] = [];
+    if (username) {
+      where.push({ username });
+    }
+    if (email) {
+      where.push({ email });
+    }
+    return this.userRepository.findOne({ where });
   }
 
   async validateUserToLogin(dto: AuthCredentialsDto): Promise<User> {

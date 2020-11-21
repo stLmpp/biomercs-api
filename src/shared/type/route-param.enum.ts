@@ -5,6 +5,7 @@ export enum RouteParamEnum {
 
   steamid = 'steamid',
 
+  email = 'email',
   orderBy = 'orderBy',
   orderByDirection = 'orderByDirection',
   confirmationCode = 'confirmationCode',
