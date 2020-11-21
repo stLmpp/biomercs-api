@@ -4,8 +4,6 @@ import { ApiAuth } from '../auth/api-auth.decorator';
 import { RouteParamEnum } from '../shared/type/route-param.enum';
 import { PlayerService } from './player.service';
 import { Player } from './player.entity';
-import { AuthUser } from '../auth/auth-user.decorator';
-import { User } from '../user/user.entity';
 
 @ApiAuth()
 @ApiTags('Player')
@@ -19,11 +17,8 @@ export class PlayerController {
   }
 
   @Put(`:${RouteParamEnum.idPlayer}/unlink-steam`)
-  async unlinkSteamProfile(
-    @Param(RouteParamEnum.idPlayer) idPlayer: number,
-    @AuthUser() { id }: User
-  ): Promise<Player> {
-    return this.playerService.unlinkSteamProfile(idPlayer, id);
+  async unlinkSteamProfile(@Param(RouteParamEnum.idPlayer) idPlayer: number): Promise<Player> {
+    return this.playerService.unlinkSteamProfile(idPlayer);
   }
 
   @Get(`:${RouteParamEnum.idPlayer}`)

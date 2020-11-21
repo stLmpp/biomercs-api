@@ -56,7 +56,8 @@
     "rxjs": "~6.6.3",
     "swagger-ui-express": "~4.1.4",
     "typeorm": "~0.2.29",
-    "typeorm-transactional-cls-hooked": "~0.1.12"
+    "typeorm-transactional-cls-hooked": "~0.1.12",
+    "uuid": "^8.3.1"
   },
   "devDependencies": {
     "@nestjs/cli": "~7.5.3",
@@ -77,11 +78,13 @@
     "@types/passport-jwt": "~3.0.3",
     "@types/socket.io": "^2.1.11",
     "@types/supertest": "~2.0.10",
+    "@types/uuid": "^8.3.0",
     "@typescript-eslint/eslint-plugin": "~4.8.0",
     "@typescript-eslint/parser": "~4.8.0",
     "eslint": "~7.13.0",
     "eslint-config-prettier": "~6.15.0",
     "eslint-plugin-import": "~2.22.1",
+    "eslint-plugin-prefer-arrow": "1.2.2",
     "jest": "26.0.1",
     "prettier": "~2.1.2",
     "supertest": "~4.0.2",
@@ -89,8 +92,7 @@
     "ts-loader": "~6.2.2",
     "ts-node": "~8.10.2",
     "tsconfig-paths": "~3.9.0",
-    "typescript": "~4.0.5",
-    "eslint-plugin-prefer-arrow": "1.2.2"
+    "typescript": "~4.0.5"
   },
   "jest": {
     "moduleFileExtensions": [

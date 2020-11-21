@@ -50,7 +50,13 @@ export class SteamProfile extends BaseEntity implements RawSteamProfile {
   personastateflags!: number;
 
   @Column({ nullable: true })
+  gameextrainfo?: string;
+
+  @Column({ nullable: true })
   loccountrycode?: string;
+
+  @Column({ nullable: true })
+  gameid?: string;
 
   @OneToOne(() => Player, player => player.steamProfile)
   player?: Player;
@@ -72,5 +78,7 @@ export interface RawSteamProfile {
   primaryclanid?: string;
   timecreated?: number;
   personastateflags: number;
+  gameextrainfo?: string;
+  gameid?: string;
   loccountrycode?: string;
 }

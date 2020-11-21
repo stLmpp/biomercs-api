@@ -12,6 +12,8 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { version } from '../package.json';
 import { useContainer } from 'class-validator';
 import { ValidationModule } from './validation/validation.module';
+import { registerRequestContext } from './async-hooks';
+import { AUTH_USER_CONTEXT_TOKEN } from './auth/auth-user-context-token';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
@@ -30,6 +32,9 @@ async function bootstrap(): Promise<void> {
   );
   app.use(compression());
   app.use(morgan('combined'));
+  app.useGlobalInterceptors(
+    registerRequestContext(AUTH_USER_CONTEXT_TOKEN, context => context.switchToHttp().getRequest().user)
+  );
 
   if (!environment.production) {
     app.enableCors();

@@ -16,6 +16,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { PlayerModule } from './player/player.module';
 import { SteamModule } from './steam/steam.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { AuthSubscriber } from './auth/auth-subscriber';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
       provide: APP_FILTER,
       useClass: HandleErrorFilter,
     },
+    AuthSubscriber,
   ],
 })
 export class AppModule {}

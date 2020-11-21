@@ -4,15 +4,13 @@ import { UserAddDto, UserGetDto, UserUpdateDto } from './user.dto';
 import { User } from './user.entity';
 import { AuthCredentialsDto } from '../auth/auth.dto';
 import { FindConditions } from 'typeorm';
-import { updateCreatedBy } from '../auth/created-by.pipe';
-import { updateLastUpdatedBy } from '../auth/last-updated-by.pipe';
 
 @Injectable()
 export class UserService {
   constructor(private userRepository: UserRepository) {}
 
   async add(dto: UserAddDto): Promise<User> {
-    return this.userRepository.save(new User().extendDto(updateCreatedBy(dto, -1)));
+    return this.userRepository.save(new User().extendDto(dto));
   }
 
   async update(idUser: number, dto: UserUpdateDto): Promise<User> {
@@ -29,7 +27,7 @@ export class UserService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    await this.userRepository.update(idUser, updateLastUpdatedBy({ password }, idUser));
+    await this.userRepository.update(idUser, { password });
     return user;
   }
 

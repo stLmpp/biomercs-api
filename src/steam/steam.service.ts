@@ -10,8 +10,6 @@ import { isString } from 'lodash';
 import { PlayerService } from '../player/player.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { Player } from '../player/player.entity';
-import { updateCreatedBy } from '../auth/created-by.pipe';
-import { updateLastUpdatedBy } from '../auth/last-updated-by.pipe';
 
 @Injectable()
 export class SteamService {
@@ -37,21 +35,15 @@ export class SteamService {
         } else {
           // TODO merge player scores
           await this.playerService.delete(steamProfile.player.id);
-          await this.playerService.update(player.id, updateLastUpdatedBy({ idSteamProfile: steamProfile.id }, -1));
+          await this.playerService.update(player.id, { idSteamProfile: steamProfile.id });
         }
       } else {
-        await this.playerService.update(
-          player.id,
-          updateLastUpdatedBy({ idSteamProfile: steamProfile.id }, player.idUser)
-        );
+        await this.playerService.update(player.id, { idSteamProfile: steamProfile.id });
         steamProfile.player = player;
       }
     } else {
-      steamProfile = await this.add(rawSteamProfile, player.idUser);
-      await this.playerService.update(
-        player.id,
-        updateLastUpdatedBy({ idSteamProfile: steamProfile.id }, player.idUser)
-      );
+      steamProfile = await this.add(rawSteamProfile);
+      await this.playerService.update(player.id, { idSteamProfile: steamProfile.id });
     }
     return steamProfile;
   }
@@ -67,40 +59,26 @@ export class SteamService {
   }
 
   @Transactional()
-  async create(steamid: string, idUser: number): Promise<SteamProfile> {
+  async create(steamid: string): Promise<SteamProfile> {
     const rawSteamProfile = await this.getPlayerSummary(steamid);
     if (!rawSteamProfile) {
       throw new NotFoundException('Steam profile not found');
     }
-    const steamProfile =
-      (await this.checkIfSteamProfileIsAlreadyLinked(steamid)) ?? (await this.add(rawSteamProfile, idUser));
-    steamProfile.player = await this.playerService.add(
-      updateCreatedBy(
-        {
-          personaName: steamProfile.personaname,
-          idSteamProfile: steamProfile.id,
-          noUser: true,
-        },
-        idUser
-      )
-    );
+    const steamProfile = (await this.checkIfSteamProfileIsAlreadyLinked(steamid)) ?? (await this.add(rawSteamProfile));
+    steamProfile.player = await this.playerService.add({
+      personaName: steamProfile.personaname,
+      idSteamProfile: steamProfile.id,
+      noUser: true,
+    });
     return steamProfile;
   }
 
-  async updateSteamProfile(idSteamProfile: number, idUser: number): Promise<SteamProfile> {
+  async updateSteamProfile(idSteamProfile: number): Promise<SteamProfile> {
     const steamProfile = await this.steamProfileRepository.findOne(idSteamProfile);
     if (!steamProfile?.steamid) {
       throw new BadRequestException('Steam Profile does not exist');
     }
-    await this.steamProfileRepository.update(
-      idSteamProfile,
-      updateLastUpdatedBy(
-        {
-          ...(await this.getPlayerSummary(steamProfile.steamid)),
-        },
-        idUser
-      )
-    );
+    await this.steamProfileRepository.update(idSteamProfile, await this.getPlayerSummary(steamProfile.steamid));
     return await this.steamProfileRepository.findOneOrFail(idSteamProfile);
   }
 
@@ -172,8 +150,8 @@ export class SteamService {
     });
   }
 
-  async add(dto: RawSteamProfile, idUser?: number): Promise<SteamProfile> {
-    return this.steamProfileRepository.save(new SteamProfile().extendDto({ ...dto, createdBy: idUser ?? -1 }));
+  async add(dto: RawSteamProfile): Promise<SteamProfile> {
+    return this.steamProfileRepository.save(new SteamProfile().extendDto(dto));
   }
 
   async checkIfSteamProfileIsAlreadyLinked(steamid: string): Promise<SteamProfile | undefined> {

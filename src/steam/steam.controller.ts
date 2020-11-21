@@ -4,8 +4,6 @@ import { SteamService } from './steam.service';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { SteamProfile } from './steam-profile.entity';
 import { ApiAuth } from '../auth/api-auth.decorator';
-import { AuthUser } from '../auth/auth-user.decorator';
-import { User } from '../user/user.entity';
 import { RouteParamEnum } from '../shared/type/route-param.enum';
 import { OptionalQueryPipe } from '../shared/pipe/optional-query.pipe';
 import { ApiAdmin } from '../auth/api-admin.decorator';
@@ -38,17 +36,14 @@ export class SteamController {
 
   @ApiAuth()
   @Put(`:${RouteParamEnum.idSteamProfile}/refresh`)
-  async refresh(
-    @Param(RouteParamEnum.idSteamProfile) idSteamProfile: number,
-    @AuthUser() { id }: User
-  ): Promise<SteamProfile> {
-    return this.steamService.updateSteamProfile(idSteamProfile, id);
+  async refresh(@Param(RouteParamEnum.idSteamProfile) idSteamProfile: number): Promise<SteamProfile> {
+    return this.steamService.updateSteamProfile(idSteamProfile);
   }
 
   @ApiAdmin()
   @ApiAuth()
   @Post(`create/:${RouteParamEnum.steamid}`)
-  async create(@Param(RouteParamEnum.steamid) steamid: string, @AuthUser() { id }: User): Promise<SteamProfile> {
-    return this.steamService.create(steamid, id);
+  async create(@Param(RouteParamEnum.steamid) steamid: string): Promise<SteamProfile> {
+    return this.steamService.create(steamid);
   }
 }

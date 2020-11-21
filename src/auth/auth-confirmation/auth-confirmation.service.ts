@@ -4,7 +4,6 @@ import { AuthConfirmationAddDto } from './auth-confirmation.dto';
 import { AuthConfirmation } from './auth-confirmation.entity';
 import { FindConditions, MoreThanOrEqual } from 'typeorm';
 import { isBefore } from 'date-fns';
-import { updateCreatedBy } from '../created-by.pipe';
 
 @Injectable()
 export class AuthConfirmationService {
@@ -18,7 +17,7 @@ export class AuthConfirmationService {
     if (exists) {
       throw new BadRequestException('User already waiting for confirmation!');
     }
-    return this.authConfirmationRepository.save(new AuthConfirmation().extendDto(updateCreatedBy(dto, dto.idUser)));
+    return this.authConfirmationRepository.save(new AuthConfirmation().extendDto(dto));
   }
 
   async invalidateCode(idUser: number, code: number): Promise<void> {
