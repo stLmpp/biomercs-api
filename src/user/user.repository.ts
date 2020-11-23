@@ -20,4 +20,11 @@ export class UserRepository extends Repository<User> {
       .andWhere('s.steamid = :steamid', { steamid })
       .getOne();
   }
+
+  async findByAuthCode(code: number): Promise<User | undefined> {
+    return this.createQueryBuilder('u')
+      .innerJoin('u.authConfirmations', 'ac')
+      .andWhere('ac.code = :code', { code })
+      .getOne();
+  }
 }

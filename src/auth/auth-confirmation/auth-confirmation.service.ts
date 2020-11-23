@@ -21,10 +21,7 @@ export class AuthConfirmationService {
   }
 
   async invalidateCode(idUser: number, code: number): Promise<void> {
-    await this.authConfirmationRepository.update(
-      { idUser, code, lastUpdatedBy: idUser },
-      { expirationDate: new Date() }
-    );
+    await this.authConfirmationRepository.update({ idUser, code }, { expirationDate: new Date() });
   }
 
   async invalidateLastCode(idUser: number): Promise<void> {

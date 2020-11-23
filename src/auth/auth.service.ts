@@ -1,6 +1,12 @@
-import { ConflictException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UserService } from '../user/user.service';
-import { AuthCredentialsDto, AuthRegisterDto } from './auth.dto';
+import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto } from './auth.dto';
 import { UserAddDto } from '../user/user.dto';
 import { genSalt, hash } from 'bcryptjs';
 import { AuthRegisterViewModel } from './auth.view-model';
@@ -113,22 +119,27 @@ export class AuthService {
   }
 
   @Transactional()
-  async changePassword(idUser: number, confirmationCode: number, newPassword: string): Promise<User> {
-    await this.authConfirmationService.confirmCode(idUser, confirmationCode);
-    const { salt } = await this.userService.getPasswordAndSalt(idUser);
-    const newPasswordHash = await hash(newPassword, salt);
-    const user = await this.userService.updatePassword(idUser, newPasswordHash);
-    return this.login({ username: user.username, password: newPassword, rememberMe: true });
-  }
-
-  async getToken({ id, password, rememberMe }: User): Promise<string> {
-    const options: JwtSignOptions = {};
-    if (rememberMe) {
-      options.expiresIn = '180 days';
+  async changeForgottenPassword(dto: AuthChangePasswordDto): Promise<User> {
+    let user = await this.userService.findByAuthCode(dto.confirmationCode);
+    if (!user) {
+      throw new BadRequestException('Confirmation code does not exists');
     }
-    return await this.jwtService.signAsync({ id, password }, options);
+    await this.authConfirmationService.confirmCode(user.id, dto.confirmationCode);
+    const { salt } = await this.userService.getPasswordAndSalt(user.id);
+    const newPasswordHash = await hash(dto.password, salt);
+    user = await this.userService.updatePassword(user.id, newPasswordHash);
+    return this.login({ username: user.username, password: dto.password, rememberMe: true });
   }
 
+  @Transactional()
+  async sendForgotPasswordConfirmationCode(email: string): Promise<void> {
+    const user = await this.userService.getByEmailOrUsername(undefined, email);
+    if (user) {
+      await this._sendConfirmationCodeEmail(user);
+    }
+  }
+
+  @Transactional()
   async authSteam(steamid: string, uuid: string): Promise<User> {
     const user = await this.userService.getBySteamid(steamid);
     if (!user) {
@@ -144,12 +155,12 @@ export class AuthService {
     return user;
   }
 
-  async sendForgotPasswordConfirmationCode(email: string): Promise<number> {
-    const user = await this.userService.getByEmailOrUsername(undefined, email);
-    if (user) {
-      await this._sendConfirmationCodeEmail(user);
+  async getToken({ id, password, rememberMe }: User): Promise<string> {
+    const options: JwtSignOptions = {};
+    if (rememberMe) {
+      options.expiresIn = '180 days';
     }
-    return user?.id ?? -1;
+    return await this.jwtService.signAsync({ id, password }, options);
   }
 
   async confirmForgotPassword(idUser: number, code: number): Promise<boolean> {

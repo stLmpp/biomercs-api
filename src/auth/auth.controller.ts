@@ -47,7 +47,7 @@ export class AuthController {
     if (user.id === -1) {
       throw new UnauthorizedException();
     }
-    const newUser = await this.userService.getById(user.id);
+    const newUser = await this.userService.update(user.id, { lastOnline: new Date() });
     if (!newUser) {
       throw new NotFoundException('User not found');
     }
@@ -86,23 +86,12 @@ export class AuthController {
   }
 
   @Post('forgot-password')
-  async sendForgotPasswordConfirmationCode(@Query(RouteParamEnum.email) email: string): Promise<number> {
+  async sendForgotPasswordConfirmationCode(@Query(RouteParamEnum.email) email: string): Promise<void> {
     return this.authService.sendForgotPasswordConfirmationCode(email);
   }
 
-  @Post(`user/:${RouteParamEnum.idUser}/forgot-password/:${RouteParamEnum.confirmationCode}`)
-  async confirmForgotPassword(
-    @Param(RouteParamEnum.idUser) idUser: number,
-    @Param(RouteParamEnum.confirmationCode) confirmationCode: number
-  ): Promise<boolean> {
-    return this.authService.confirmForgotPassword(idUser, confirmationCode);
-  }
-
-  @Post(`user/:${RouteParamEnum.idUser}/change-password`)
-  async changePassword(
-    @Param(RouteParamEnum.idUser) idUser: number,
-    @Body() dto: AuthChangePasswordDto
-  ): Promise<User> {
-    return this.authService.changePassword(idUser, dto.confirmationCode, dto.password);
+  @Post(`forgot-password/change-password`)
+  async changeForgottenPassword(@Body() dto: AuthChangePasswordDto): Promise<User> {
+    return this.authService.changeForgottenPassword(dto);
   }
 }

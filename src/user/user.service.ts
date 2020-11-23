@@ -83,4 +83,8 @@ export class UserService {
   async getBySteamid(steamid: string): Promise<User | undefined> {
     return this.userRepository.getBySteamid(steamid);
   }
+
+  async findByAuthCode(code: number): Promise<User | undefined> {
+    return this.userRepository.findByAuthCode(code);
+  }
 }

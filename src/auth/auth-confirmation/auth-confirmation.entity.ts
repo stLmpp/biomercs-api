@@ -13,7 +13,7 @@ export class AuthConfirmation extends BaseEntity {
   @Column()
   idUser!: number;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, user => user.authConfirmations)
   @JoinColumn()
   user!: User;
 }

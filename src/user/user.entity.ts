@@ -1,8 +1,9 @@
-import { Column, Entity, OneToOne } from 'typeorm';
+import { Column, Entity, OneToMany, OneToOne } from 'typeorm';
 import { BaseEntity } from '../shared/super/base-entity';
 import { ApiHideProperty } from '@nestjs/swagger';
 import { hash } from 'bcryptjs';
 import { Player } from '../player/player.entity';
+import { AuthConfirmation } from '../auth/auth-confirmation/auth-confirmation.entity';
 
 @Entity()
 export class User extends BaseEntity {
@@ -31,6 +32,9 @@ export class User extends BaseEntity {
 
   @OneToOne(() => Player, player => player.user)
   player!: Player;
+
+  @OneToMany(() => AuthConfirmation, authConfirmation => authConfirmation.user)
+  authConfirmations!: AuthConfirmation[];
 
   token?: string;
 
