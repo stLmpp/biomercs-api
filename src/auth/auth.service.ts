@@ -6,7 +6,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from '../user/user.service';
-import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto } from './auth.dto';
+import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto, AuthRegisterSteamDto } from './auth.dto';
 import { UserAddDto } from '../user/user.dto';
 import { genSalt, hash } from 'bcryptjs';
 import { AuthRegisterViewModel } from './auth.view-model';
@@ -20,6 +20,7 @@ import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { PlayerService } from '../player/player.service';
 import { AuthGateway } from './auth.gateway';
+import { SteamService } from '../steam/steam.service';
 
 @Injectable()
 export class AuthService {
@@ -29,7 +30,8 @@ export class AuthService {
     private mailerService: MailerService,
     private jwtService: JwtService,
     private playerService: PlayerService,
-    private authGateway: AuthGateway
+    private authGateway: AuthGateway,
+    private steamService: SteamService
   ) {}
 
   private async _sendConfirmationCodeEmail({ email, id }: User): Promise<void> {
@@ -56,9 +58,8 @@ export class AuthService {
     return code;
   }
 
-  @Transactional()
-  async register({ email, username, password }: AuthRegisterDto): Promise<AuthRegisterViewModel> {
-    const user = await this.userService.getByEmailOrUsername(username, email);
+  private async _registerUser({ username, password, email }: AuthRegisterDto): Promise<User> {
+    let user = await this.userService.getByEmailOrUsername(username, email);
     if (user) {
       throw new ConflictException('User or e-mail already registered');
     }
@@ -72,10 +73,29 @@ export class AuthService {
       rememberMe: false,
       salt,
     });
-    const userCreated = await this.userService.add(dto);
-    await this.playerService.add({ idUser: userCreated.id, personaName: userCreated.username });
-    await this._sendConfirmationCodeEmail(userCreated);
-    return { email, message: 'User created! Please confirm your e-mail', idUser: userCreated.id };
+    user = await this.userService.add(dto);
+    user.player = await this.playerService.add({ idUser: user.id, personaName: user.username });
+    return user;
+  }
+
+  private async _login(dto: AuthCredentialsDto): Promise<User> {
+    const user = await this.userService.validateUserToLogin(dto);
+    const hasConfirmationPending = await this.authConfirmationService.exists(user.id);
+    if (hasConfirmationPending) {
+      throw new UnauthorizedException('Account not confirmed');
+    }
+    user.lastOnline = new Date();
+    user.rememberMe = dto.rememberMe ?? false;
+    await this.userService.update(user.id, { lastOnline: user.lastOnline, rememberMe: user.rememberMe });
+    user.token = await this.getToken(user);
+    return user.removePasswordAndSalt();
+  }
+
+  @Transactional()
+  async register(dto: AuthRegisterDto): Promise<AuthRegisterViewModel> {
+    const user = await this._registerUser(dto);
+    await this._sendConfirmationCodeEmail(user);
+    return { email: user.email, message: 'User created! Please confirm your e-mail', idUser: user.id };
   }
 
   @Transactional()
@@ -106,16 +126,7 @@ export class AuthService {
 
   @Transactional()
   async login(dto: AuthCredentialsDto): Promise<User> {
-    const user = await this.userService.validateUserToLogin(dto);
-    const hasConfirmationPending = await this.authConfirmationService.exists(user.id);
-    if (hasConfirmationPending) {
-      throw new UnauthorizedException('Account not confirmed');
-    }
-    user.lastOnline = new Date();
-    user.rememberMe = dto.rememberMe ?? false;
-    await this.userService.update(user.id, { lastOnline: user.lastOnline, rememberMe: user.rememberMe });
-    user.token = await this.getToken(user);
-    return user.removePasswordAndSalt();
+    return this._login(dto);
   }
 
   @Transactional()
@@ -140,11 +151,11 @@ export class AuthService {
   }
 
   @Transactional()
-  async authSteam(steamid: string, uuid: string): Promise<User> {
+  async authSteam(steamid: string, uuid: string): Promise<void> {
     const user = await this.userService.getBySteamid(steamid);
     if (!user) {
-      this.authGateway.sendTokenSteam(uuid, '', 'This steam has no user linked to it');
-      throw new UnauthorizedException('This steam has no user linked to it');
+      this.authGateway.sendTokenSteam(uuid, steamid, 'This steam has no user linked to it');
+      return;
     }
     const { salt, password } = await this.userService.getPasswordAndSalt(user.id);
     user.token = await this.getToken(new User().extendDto({ ...user, password, salt }));
@@ -152,7 +163,14 @@ export class AuthService {
     user.rememberMe = true;
     await this.userService.update(user.id, { lastOnline: user.lastOnline, rememberMe: user.rememberMe });
     this.authGateway.sendTokenSteam(uuid, user.token);
-    return user;
+  }
+
+  @Transactional()
+  async registerSteam({ email, steamid }: AuthRegisterSteamDto): Promise<User> {
+    const steamProfile = await this.steamService.create(steamid);
+    const password = '' + random(100_000_000_000, 999_999_999_999);
+    const user = await this._registerUser({ email, username: steamProfile.personaname, password });
+    return await this._login({ username: user.username, password, rememberMe: true });
   }
 
   async getToken({ id, password, rememberMe }: User): Promise<string> {

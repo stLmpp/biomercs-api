@@ -165,4 +165,8 @@ export class SteamService {
     }
     throw new BadRequestException('Steam profile already registered and linked with one player');
   }
+
+  async findBySteamid(steamid: string): Promise<SteamProfile> {
+    return this.steamProfileRepository.findOneOrFail({ where: { steamid } });
+  }
 }

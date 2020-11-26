@@ -44,3 +44,15 @@ export class AuthChangePasswordDto {
   @IsDefined()
   confirmationCode!: number;
 }
+
+export class AuthRegisterSteamDto {
+  @IsString()
+  @IsDefined()
+  @IsNotEmpty()
+  email!: string;
+
+  @IsString()
+  @IsDefined()
+  @IsNotEmpty()
+  steamid!: string;
+}

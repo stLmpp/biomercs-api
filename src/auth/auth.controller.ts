@@ -14,7 +14,7 @@ import {
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthRegisterViewModel } from './auth.view-model';
-import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto } from './auth.dto';
+import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto, AuthRegisterSteamDto } from './auth.dto';
 import { RouteParamEnum } from '../shared/type/route-param.enum';
 import { User } from '../user/user.entity';
 import { ApiAuth } from './api-auth.decorator';
@@ -22,7 +22,6 @@ import { AuthUser } from './auth-user.decorator';
 import { UserService } from '../user/user.service';
 import { SteamService } from '../steam/steam.service';
 import { Request, Response } from 'express';
-import { environment } from '../environment/environment';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -68,12 +67,12 @@ export class AuthController {
     return this.authService.confirmCode(idUser, confirmationCode);
   }
 
-  @Post(`login-steam/:${RouteParamEnum.uuid}`)
+  @Post(`steam/login/:${RouteParamEnum.uuid}`)
   async loginSteam(@Param(RouteParamEnum.uuid) uuid: string): Promise<string> {
-    return this.steamService.openIdUrl(`/auth/login-steam/${uuid}/return`);
+    return this.steamService.openIdUrl(`/auth/steam/login/${uuid}/return`);
   }
 
-  @Get(`login-steam/:${RouteParamEnum.uuid}/return`)
+  @Get(`steam/login/:${RouteParamEnum.uuid}/return`)
   async loginSteamReturn(
     @Req() req: Request,
     @Res() res: Response,
@@ -82,7 +81,12 @@ export class AuthController {
   ): Promise<void> {
     const steamProfile = await this.steamService.authenticate(req, returnUrl);
     await this.authService.authSteam(steamProfile.steamid, uuid);
-    res.redirect(environment.frontEndUrl + '/auth/validate-login-steam');
+    res.send('Logged succesfully!');
+  }
+
+  @Post(`steam/register`)
+  async registerSteam(@Body() dto: AuthRegisterSteamDto): Promise<User> {
+    return this.authService.registerSteam(dto);
   }
 
   @Post('forgot-password')
