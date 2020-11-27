@@ -3,6 +3,7 @@ import { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOpti
 import { version } from '../../package.json';
 import { isArray } from 'lodash';
 import { KeyValue } from '../shared/inteface/key-value.interface';
+import { genSalt } from 'bcryptjs';
 
 function _getEnvVar(property: string): any {
   try {
@@ -30,6 +31,8 @@ export type Configs =
   | 'FILE_UPLOAD_PATH';
 
 class Env {
+  private _salt!: string;
+
   config<T = any>(config: Configs): T {
     return getEnvVar('CONFIG_' + config);
   }
@@ -40,6 +43,13 @@ class Env {
 
   get<T = any>(key: string): T {
     return getEnvVar(key);
+  }
+
+  async envSalt(): Promise<string> {
+    if (!this._salt) {
+      this._salt = await genSalt();
+    }
+    return this._salt;
   }
 
   get host(): string {

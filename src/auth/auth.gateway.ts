@@ -14,8 +14,8 @@ export class AuthGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   @WebSocketServer() server!: Server;
 
-  sendTokenSteam(uuid: string, token: string, error?: string): void {
-    this.server.emit('logged-steam', { token, error, uuid });
+  sendTokenSteam(uuid: string, token: string, error?: string, steamid?: string): void {
+    this.server.emit('logged-steam', { token, error, uuid, steamid });
   }
 
   afterInit(): void {

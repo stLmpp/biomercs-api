@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   HttpCode,
   NotFoundException,
   Param,
@@ -15,7 +16,7 @@ import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthRegisterViewModel } from './auth.view-model';
 import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto, AuthRegisterSteamDto } from './auth.dto';
-import { RouteParamEnum } from '../shared/type/route-param.enum';
+import { HeaderParams, Params } from '../shared/type/params';
 import { User } from '../user/user.entity';
 import { ApiAuth } from './api-auth.decorator';
 import { AuthUser } from './auth-user.decorator';
@@ -54,30 +55,30 @@ export class AuthController {
     return newUser.removePasswordAndSalt();
   }
 
-  @Post(`user/:${RouteParamEnum.idUser}/resend-code`)
-  async resendConfirmationCode(@Param(RouteParamEnum.idUser) idUser: number): Promise<void> {
+  @Post(`user/:${Params.idUser}/resend-code`)
+  async resendConfirmationCode(@Param(Params.idUser) idUser: number): Promise<void> {
     return this.authService.resendConfirmationCode(idUser);
   }
 
-  @Post(`user/:${RouteParamEnum.idUser}/confirm-code/:${RouteParamEnum.confirmationCode}`)
+  @Post(`user/:${Params.idUser}/confirm-code/:${Params.confirmationCode}`)
   async confirmCode(
-    @Param(RouteParamEnum.idUser) idUser: number,
-    @Param(RouteParamEnum.confirmationCode) confirmationCode: number
+    @Param(Params.idUser) idUser: number,
+    @Param(Params.confirmationCode) confirmationCode: number
   ): Promise<User> {
     return this.authService.confirmCode(idUser, confirmationCode);
   }
 
-  @Post(`steam/login/:${RouteParamEnum.uuid}`)
-  async loginSteam(@Param(RouteParamEnum.uuid) uuid: string): Promise<string> {
+  @Post(`steam/login/:${Params.uuid}`)
+  async loginSteam(@Param(Params.uuid) uuid: string): Promise<string> {
     return this.steamService.openIdUrl(`/auth/steam/login/${uuid}/return`);
   }
 
-  @Get(`steam/login/:${RouteParamEnum.uuid}/return`)
+  @Get(`steam/login/:${Params.uuid}/return`)
   async loginSteamReturn(
     @Req() req: Request,
     @Res() res: Response,
-    @Query(RouteParamEnum.openidReturnTo) returnUrl: string,
-    @Param(RouteParamEnum.uuid) uuid: string
+    @Query(Params.openidReturnTo) returnUrl: string,
+    @Param(Params.uuid) uuid: string
   ): Promise<void> {
     const steamProfile = await this.steamService.authenticate(req, returnUrl);
     await this.authService.authSteam(steamProfile.steamid, uuid);
@@ -85,12 +86,23 @@ export class AuthController {
   }
 
   @Post(`steam/register`)
-  async registerSteam(@Body() dto: AuthRegisterSteamDto): Promise<User> {
-    return this.authService.registerSteam(dto);
+  async registerSteam(
+    @Body() dto: AuthRegisterSteamDto,
+    @Headers(HeaderParams.authorizationSteam) auth: string
+  ): Promise<AuthRegisterViewModel> {
+    return this.authService.registerSteam(dto, auth);
+  }
+
+  @Post(`steam/:${Params.steamid}/validate-token`)
+  async validateSteamToken(
+    @Param(Params.steamid) steamid: string,
+    @Headers(HeaderParams.authorizationSteam) token: string
+  ): Promise<boolean> {
+    return this.authService.validateSteamToken(steamid, token);
   }
 
   @Post('forgot-password')
-  async sendForgotPasswordConfirmationCode(@Query(RouteParamEnum.email) email: string): Promise<void> {
+  async sendForgotPasswordConfirmationCode(@Query(Params.email) email: string): Promise<void> {
     return this.authService.sendForgotPasswordConfirmationCode(email);
   }
 

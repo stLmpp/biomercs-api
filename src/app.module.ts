@@ -15,7 +15,6 @@ import { join } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { PlayerModule } from './player/player.module';
 import { SteamModule } from './steam/steam.module';
-import { ServeStaticModule } from '@nestjs/serve-static';
 import { AuthSubscriber } from './auth/auth-subscriber';
 
 @Module({
@@ -40,9 +39,9 @@ import { AuthSubscriber } from './auth/auth-subscriber';
         },
       },
     }),
-    ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', '..', '..', 'biomercs-v2', 'dist', 'biomercs-v2'),
-    }),
+    // ServeStaticModule.forRoot({
+    //   rootPath: join(__dirname, '..', '..', '..', 'biomercs-v2', 'dist', 'biomercs-v2'),
+    // }),
     CoreModule,
     ValidationModule,
     UserModule,

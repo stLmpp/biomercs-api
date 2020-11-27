@@ -1,4 +1,4 @@
-export enum RouteParamEnum {
+export enum Params {
   idUser = 'idUser',
   idPlayer = 'idPlayer',
   idSteamProfile = 'idSteamProfile',
@@ -11,4 +11,8 @@ export enum RouteParamEnum {
   confirmationCode = 'confirmationCode',
   openidReturnTo = 'openid.return_to',
   uuid = 'uuid',
+}
+
+export enum HeaderParams {
+  authorizationSteam = 'authorization-steam',
 }

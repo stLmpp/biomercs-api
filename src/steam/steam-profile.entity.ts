@@ -59,7 +59,7 @@ export class SteamProfile extends BaseEntity implements RawSteamProfile {
   gameid?: string;
 
   @OneToOne(() => Player, player => player.steamProfile)
-  player?: Player;
+  player!: Player;
 }
 
 export interface RawSteamProfile {

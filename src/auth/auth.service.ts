@@ -8,7 +8,7 @@ import {
 import { UserService } from '../user/user.service';
 import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto, AuthRegisterSteamDto } from './auth.dto';
 import { UserAddDto } from '../user/user.dto';
-import { genSalt, hash } from 'bcryptjs';
+import { compare, genSalt, hash } from 'bcryptjs';
 import { AuthRegisterViewModel } from './auth.view-model';
 import { random } from 'lodash';
 import { AuthConfirmationService } from './auth-confirmation/auth-confirmation.service';
@@ -74,7 +74,7 @@ export class AuthService {
       salt,
     });
     user = await this.userService.add(dto);
-    user.player = await this.playerService.add({ idUser: user.id, personaName: user.username });
+    await this._sendConfirmationCodeEmail(user);
     return user;
   }
 
@@ -94,7 +94,7 @@ export class AuthService {
   @Transactional()
   async register(dto: AuthRegisterDto): Promise<AuthRegisterViewModel> {
     const user = await this._registerUser(dto);
-    await this._sendConfirmationCodeEmail(user);
+    await this.playerService.add({ idUser: user.id, personaName: user.username });
     return { email: user.email, message: 'User created! Please confirm your e-mail', idUser: user.id };
   }
 
@@ -154,7 +154,12 @@ export class AuthService {
   async authSteam(steamid: string, uuid: string): Promise<void> {
     const user = await this.userService.getBySteamid(steamid);
     if (!user) {
-      this.authGateway.sendTokenSteam(uuid, steamid, 'This steam has no user linked to it');
+      this.authGateway.sendTokenSteam(
+        uuid,
+        await hash(steamid, await environment.envSalt()),
+        'This steam has no user linked to it',
+        steamid
+      );
       return;
     }
     const { salt, password } = await this.userService.getPasswordAndSalt(user.id);
@@ -166,11 +171,17 @@ export class AuthService {
   }
 
   @Transactional()
-  async registerSteam({ email, steamid }: AuthRegisterSteamDto): Promise<User> {
+  async registerSteam({ email, steamid }: AuthRegisterSteamDto, auth: string): Promise<AuthRegisterViewModel> {
+    const envSalt = await environment.envSalt();
+    const hashed = await hash(steamid, envSalt);
+    if (hashed !== auth) {
+      throw new UnauthorizedException();
+    }
     const steamProfile = await this.steamService.create(steamid);
     const password = '' + random(100_000_000_000, 999_999_999_999);
     const user = await this._registerUser({ email, username: steamProfile.personaname, password });
-    return await this._login({ username: user.username, password, rememberMe: true });
+    await this.playerService.update(steamProfile.player.id, { idUser: user.id });
+    return { email: user.email, message: 'User created! Please confirm your e-mail', idUser: user.id };
   }
 
   async getToken({ id, password, rememberMe }: User): Promise<string> {
@@ -181,7 +192,9 @@ export class AuthService {
     return await this.jwtService.signAsync({ id, password }, options);
   }
 
-  async confirmForgotPassword(idUser: number, code: number): Promise<boolean> {
-    return this.authConfirmationService.exists(idUser, code);
+  async validateSteamToken(steamid: string, token: string): Promise<boolean> {
+    const envSalt = await environment.envSalt();
+    const hashed = await hash(steamid, envSalt);
+    return hashed === token;
   }
 }

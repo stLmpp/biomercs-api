@@ -1,16 +1,14 @@
 import { applyDecorators } from '@nestjs/common';
 import { ApiQuery } from '@nestjs/swagger';
-import { RouteParamEnum } from '../type/route-param.enum';
+import { Params } from '../type/params';
 
 export function ApiOrderBy(required = false): any {
-  return applyDecorators(
-    ApiQuery({ name: RouteParamEnum.orderBy, description: 'Ordernar por', required, type: String })
-  );
+  return applyDecorators(ApiQuery({ name: Params.orderBy, description: 'Ordernar por', required, type: String }));
 }
 
 export function ApiOrderByDirection(required = false): any {
   return applyDecorators(
-    ApiQuery({ name: RouteParamEnum.orderByDirection, description: 'Ordenação', required, enum: ['ASC', 'DESC'] })
+    ApiQuery({ name: Params.orderByDirection, description: 'Ordenação', required, enum: ['ASC', 'DESC'] })
   );
 }
 
