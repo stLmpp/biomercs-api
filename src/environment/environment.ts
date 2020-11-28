@@ -85,12 +85,19 @@ class Env {
       'DB_DATABASE',
       'DB_SYNCHRONIZE',
       'DB_CHARSET',
-    ]).reduce((dbConfig, { key, value }) => {
-      return {
-        ...dbConfig,
-        [key.replace('DB_', '').toLowerCase()]: value,
-      };
-    }, {}) as MysqlConnectionOptions;
+    ]).reduce(
+      (dbConfig, { key, value }) => {
+        return {
+          ...dbConfig,
+          [key.replace('DB_', '').toLowerCase()]: value,
+        };
+      },
+      {
+        extra: {
+          collate: this.get('DB_COLLATE'),
+        },
+      }
+    ) as MysqlConnectionOptions;
   }
 
   get production(): boolean {

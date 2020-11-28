@@ -23,6 +23,10 @@ export class PlayerAddDto {
   @IsString()
   @IsOptional()
   aboutMe?: string;
+
+  @IsOptional()
+  @IsNumber()
+  idRegion?: number;
 }
 
 export class PlayerUpdateDto {
@@ -47,4 +51,8 @@ export class PlayerUpdateDto {
   @IsString()
   @IsOptional()
   aboutMe?: string;
+
+  @IsOptional()
+  @IsNumber()
+  idRegion?: number;
 }

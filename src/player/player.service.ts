@@ -3,15 +3,20 @@ import { PlayerRepository } from './player.repository';
 import { Player } from './player.entity';
 import { PlayerAddDto, PlayerUpdateDto } from './player.dto';
 import { SteamService } from '../steam/steam.service';
+import { RegionService } from '../region/region.service';
 
 @Injectable()
 export class PlayerService {
   constructor(
     private playerRepository: PlayerRepository,
-    @Inject(forwardRef(() => SteamService)) private steamService: SteamService
+    @Inject(forwardRef(() => SteamService)) private steamService: SteamService,
+    private regionService: RegionService
   ) {}
 
   async add(dto: PlayerAddDto & { noUser?: boolean }): Promise<Player> {
+    if (!dto.idRegion) {
+      dto.idRegion = await this.regionService.findDefaultIdRegion();
+    }
     return this.playerRepository.save(new Player().extendDto(dto));
   }
 

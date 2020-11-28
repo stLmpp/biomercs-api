@@ -9,8 +9,5 @@ export const DB_TYPEORM_CONFIG: TypeOrmModuleOptions = {
   logging: !environment.production ? 'all' : false,
   bigNumberStrings: false,
   namingStrategy: new NamingStategy(),
-  extra: {
-    collate: environment.get('DB_COLLATE'),
-  },
   dropSchema: false,
 };

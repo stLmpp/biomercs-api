@@ -16,6 +16,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
 import { PlayerModule } from './player/player.module';
 import { SteamModule } from './steam/steam.module';
 import { AuthSubscriber } from './auth/auth-subscriber';
+import { RegionModule } from './region/region.module';
 
 @Module({
   imports: [
@@ -48,6 +49,7 @@ import { AuthSubscriber } from './auth/auth-subscriber';
     AuthModule,
     PlayerModule,
     SteamModule,
+    RegionModule,
   ],
   controllers: [AppController],
   providers: [

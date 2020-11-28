@@ -1,7 +1,8 @@
-import { Column, Entity, JoinColumn, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
 import { User } from '../user/user.entity';
 import { BaseEntity } from '../shared/super/base-entity';
 import { SteamProfile } from '../steam/steam-profile.entity';
+import { Region } from '../region/region.entity';
 
 @Entity()
 export class Player extends BaseEntity {
@@ -30,4 +31,11 @@ export class Player extends BaseEntity {
 
   @Column({ default: false })
   noUser!: boolean;
+
+  @Column()
+  idRegion!: number;
+
+  @ManyToOne(() => Region)
+  @JoinColumn()
+  region!: Region;
 }
