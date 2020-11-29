@@ -1,5 +1,5 @@
 {
-  "name": "nest-typeorm-mysql",
+  "name": "biomercs-v2-api",
   "version": "0.0.1",
   "description": "",
   "author": "",
@@ -46,7 +46,7 @@
     "lodash": "~4.17.20",
     "morgan": "~1.10.0",
     "mysql": "~2.18.1",
-    "nestjs-typeorm-paginate": "~2.2.3",
+    "nestjs-typeorm-paginate": "~2.2.4",
     "nodemailer": "~6.4.16",
     "openid": "^2.0.7",
     "passport": "~0.4.1",
@@ -56,7 +56,7 @@
     "rxjs": "~6.6.3",
     "swagger-ui-express": "~4.1.5",
     "typeorm": "~0.2.29",
-    "typeorm-transactional-cls-hooked": "~0.1.15",
+    "typeorm-transactional-cls-hooked": "~0.1.17",
     "uuid": "^8.3.1"
   },
   "devDependencies": {
@@ -86,7 +86,7 @@
     "eslint-plugin-import": "~2.22.1",
     "eslint-plugin-prefer-arrow": "1.2.2",
     "jest": "26.0.1",
-    "prettier": "~2.2.0",
+    "prettier": "~2.2.1",
     "supertest": "~4.0.2",
     "ts-jest": "26.1.0",
     "ts-loader": "~6.2.2",

@@ -5715,10 +5715,10 @@ neo-async@^2.6.0, neo-async@^2.6.2:
   resolved "https://registry.yarnpkg.com/neo-async/-/neo-async-2.6.2.tgz#b4aafb93e3aeb2d8174ca53cf163ab7d7308305f"
   integrity sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==
 
-nestjs-typeorm-paginate@~2.2.3:
-  version "2.2.3"
-  resolved "https://registry.yarnpkg.com/nestjs-typeorm-paginate/-/nestjs-typeorm-paginate-2.2.3.tgz#74b1562233a242607070fd808052a2942c5e31db"
-  integrity sha512-AaBrJyrPjUBjYjCR4ejp+COP9BlHIZNKX6s1wfoWscYdN7yisREcgDMg+wxFPHatu/LnraRwBVYiB7trN9Q/lQ==
+nestjs-typeorm-paginate@~2.2.4:
+  version "2.2.4"
+  resolved "https://registry.yarnpkg.com/nestjs-typeorm-paginate/-/nestjs-typeorm-paginate-2.2.4.tgz#86a5167aabc63aaab285b5aedb39fd25fce4f0ae"
+  integrity sha512-6VN8Y5kJuZGz/H7aLh3Jlemv5fiaJZURtXSQOZVKgjt20MWWzYRI60+OX0kzvycBAcNm+GtbUqyPh9Wm6Rn1fg==
 
 netmask@^1.0.6:
   version "1.0.6"
@@ -6310,10 +6310,10 @@ prelude-ls@~1.1.2:
   resolved "https://registry.yarnpkg.com/prelude-ls/-/prelude-ls-1.1.2.tgz#21932a549f5e52ffd9a827f570e04be62a97da54"
   integrity sha1-IZMqVJ9eUv/ZqCf1cOBL5iqX2lQ=
 
-prettier@~2.2.0:
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.2.0.tgz#8a03c7777883b29b37fb2c4348c66a78e980418b"
-  integrity sha512-yYerpkvseM4iKD/BXLYUkQV5aKt4tQPqaGW6EsZjzyu0r7sVZZNPJW4Y8MyKmicp6t42XUPcBVA+H6sB3gqndw==
+prettier@~2.2.1:
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-2.2.1.tgz#795a1a78dd52f073da0cd42b21f9c91381923ff5"
+  integrity sha512-PqyhM2yCjg/oKkFPtTGUojv7gnZAoG80ttl45O6x2Ug/rMJw4wcc9k6aaf2hibP7BGVCCM33gZoGjyvt9mm16Q==
 
 pretty-format@^25.2.1, pretty-format@^25.5.0:
   version "25.5.0"
@@ -7916,10 +7916,10 @@ typedarray@^0.0.6:
   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
 
-typeorm-transactional-cls-hooked@~0.1.15:
-  version "0.1.15"
-  resolved "https://registry.yarnpkg.com/typeorm-transactional-cls-hooked/-/typeorm-transactional-cls-hooked-0.1.15.tgz#1110dddab68c25aff23dd32a96668d8f653fe6a0"
-  integrity sha512-UCdj30XRUugHCbyympmD3fQm1RqyXL7DRBisB1pc2PjbgpH9QiUYj1uRIbcynAxo+cnRR3KcqdZOSzMcIghX0A==
+typeorm-transactional-cls-hooked@~0.1.17:
+  version "0.1.17"
+  resolved "https://registry.yarnpkg.com/typeorm-transactional-cls-hooked/-/typeorm-transactional-cls-hooked-0.1.17.tgz#7d7743836f487c3ba6fc777780e6c0e9a9101326"
+  integrity sha512-iuDh0/vsQBVvQmjZ5KKZHhlbsgQLD8uUKZypzaMFOh9/N99j9fxgz4NCLBCDl4K30vCi7SROpiuEXAPtMxy+ew==
   dependencies:
     "@types/cls-hooked" "^4.2.1"
     cls-hooked "^4.2.2"
