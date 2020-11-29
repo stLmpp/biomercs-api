@@ -13,7 +13,6 @@ import { genSalt, hash } from 'bcryptjs';
 import { AuthRegisterViewModel, AuthSteamLoginSocketErrorType } from './auth.view-model';
 import { isNumber, random } from 'lodash';
 import { AuthConfirmationService } from './auth-confirmation/auth-confirmation.service';
-import { addDays } from 'date-fns';
 import { User } from '../user/user.entity';
 import { MailerService } from '@nestjs-modules/mailer';
 import { environment } from '../environment/environment';
@@ -51,12 +50,7 @@ export class AuthService {
   }
 
   private async _generateConfirmationCode(idUser: number): Promise<number> {
-    const code = random(100000, 999999);
-    if (await this.authConfirmationService.hasConfirmationPending(idUser, code)) {
-      return this._generateConfirmationCode(idUser);
-    }
-    await this.authConfirmationService.add({ idUser, code, expirationDate: addDays(new Date(), 1) });
-    return code;
+    return this.authConfirmationService.generateConfirmationCode(idUser);
   }
 
   private async _registerUser({ username, password, email }: AuthRegisterDto): Promise<User> {

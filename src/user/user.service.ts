@@ -55,6 +55,20 @@ export class UserService {
     return this.userRepository.findOne({ where });
   }
 
+  async anyByEmailOrUsername(username?: string, email?: string): Promise<boolean> {
+    if (!username && !email) {
+      throw new BadRequestException('Needs at least one parameter');
+    }
+    const where: FindConditions<User>[] = [];
+    if (username) {
+      where.push({ username });
+    }
+    if (email) {
+      where.push({ email });
+    }
+    return this.userRepository.exists(where);
+  }
+
   async validateUserToLogin(dto: AuthCredentialsDto): Promise<User> {
     const user = await this.userRepository.findOne({
       where: [{ username: dto.username }, { email: dto.username }],

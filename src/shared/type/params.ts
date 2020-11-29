@@ -11,6 +11,7 @@ export enum Params {
   confirmationCode = 'confirmationCode',
   openidReturnTo = 'openid.return_to',
   uuid = 'uuid',
+  username = 'username',
 }
 
 export enum HeaderParams {

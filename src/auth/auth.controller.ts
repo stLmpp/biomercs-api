@@ -12,7 +12,7 @@ import {
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
-import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
+import { ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthRegisterViewModel } from './auth.view-model';
 import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto, AuthRegisterSteamDto } from './auth.dto';
@@ -68,6 +68,14 @@ export class AuthController {
     return this.authService.confirmCode(idUser, confirmationCode);
   }
 
+  @ApiQuery({ name: Params.email, required: false })
+  @ApiQuery({ name: Params.username, required: false })
+  @Get(`user/exists`)
+  async userExists(@Query(Params.email) email?: string, @Query(Params.username) username?: string): Promise<boolean> {
+    return this.userService.anyByEmailOrUsername(username, email);
+  }
+
+  @HttpCode(200)
   @Post(`steam/login/:${Params.uuid}`)
   async loginSteam(@Param(Params.uuid) uuid: string): Promise<string> {
     return this.steamService.openIdUrl(`/auth/steam/login/${uuid}/return`);
@@ -82,7 +90,7 @@ export class AuthController {
   ): Promise<void> {
     const steamProfile = await this.steamService.authenticate(req, returnUrl);
     await this.authService.authSteam(steamProfile.steamid, uuid);
-    res.send('Logged succesfully!');
+    res.send(`Logged succesfully! You can close this window, if it's not closed automatically`);
   }
 
   @Post(`steam/register`)
@@ -93,6 +101,7 @@ export class AuthController {
     return this.authService.registerSteam(dto, auth);
   }
 
+  @HttpCode(200)
   @Post(`steam/:${Params.steamid}/validate-token`)
   async validateSteamToken(
     @Param(Params.steamid) steamid: string,
@@ -101,6 +110,7 @@ export class AuthController {
     return this.authService.validateSteamToken(steamid, token);
   }
 
+  @HttpCode(200)
   @Post('forgot-password')
   async sendForgotPasswordConfirmationCode(@Query(Params.email) email: string): Promise<void> {
     return this.authService.sendForgotPasswordConfirmationCode(email);

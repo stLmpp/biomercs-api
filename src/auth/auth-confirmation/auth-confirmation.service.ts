@@ -1,9 +1,10 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, PreconditionFailedException } from '@nestjs/common';
 import { AuthConfirmationRepository } from './auth-confirmation.repository';
 import { AuthConfirmationAddDto } from './auth-confirmation.dto';
 import { AuthConfirmation } from './auth-confirmation.entity';
 import { FindConditions, MoreThanOrEqual } from 'typeorm';
-import { addHours, isBefore } from 'date-fns';
+import { addDays, addHours, isBefore } from 'date-fns';
+import { random } from 'lodash';
 
 @Injectable()
 export class AuthConfirmationService {
@@ -32,12 +33,16 @@ export class AuthConfirmationService {
   }
 
   async confirmCode(idUser: number, code: number): Promise<void> {
+    const hasConfirmationCode = await this.hasConfirmationPending(idUser);
+    if (!hasConfirmationCode) {
+      throw new NotFoundException('User is not waiting for confirmation');
+    }
     const authConfirmation = await this.authConfirmationRepository.findOne({ where: { idUser, code } });
     if (!authConfirmation) {
-      throw new NotFoundException('Confirmation code not found');
+      throw new BadRequestException('Wrong code');
     }
     if (isBefore(authConfirmation.expirationDate, new Date())) {
-      throw new ForbiddenException('Confirmation code is expired');
+      throw new BadRequestException('Confirmation code expired');
     }
     await this.invalidateCode(idUser, code);
   }
@@ -48,6 +53,15 @@ export class AuthConfirmationService {
       options.code = code;
     }
     return this.authConfirmationRepository.exists(options);
+  }
+
+  async generateConfirmationCode(idUser: number): Promise<number> {
+    if (await this.hasConfirmationPending(idUser)) {
+      throw new PreconditionFailedException({ message: 'User waiting for confirmation', extra: idUser });
+    }
+    const code = random(100000, 999999);
+    await this.add({ idUser, code, expirationDate: addDays(new Date(), 1) });
+    return code;
   }
 
   async getByIdUser(idUser: number): Promise<AuthConfirmation | undefined> {
