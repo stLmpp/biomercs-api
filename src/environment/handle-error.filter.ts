@@ -6,13 +6,12 @@ import {
   ConflictException,
   HttpException,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { environment } from './environment';
 import { MysqlError } from 'mysql';
-import { isError } from 'lodash';
-import { flattenObject } from '../util/flatten-object';
-import { Response } from 'express';
+import { isObject } from 'lodash';
 
 @Catch()
 export class HandleErrorFilter extends BaseExceptionFilter {
@@ -21,22 +20,38 @@ export class HandleErrorFilter extends BaseExceptionFilter {
       super.catch(exception, host);
       return;
     }
+    const applicationRef = this.applicationRef ?? this.httpAdapterHost?.httpAdapter;
+    if (!applicationRef) {
+      super.catch(exception, host);
+      if (!environment.production) {
+        Logger.error(exception);
+      }
+      return;
+    }
     let error: HttpException;
     if (this.isSqlError(exception)) {
       error = this.handleSqlError(exception);
-    } else if (this.isLogicError(exception)) {
-      error = this.handleLogicError(exception);
+    } else if (this.isThrownError(exception)) {
+      error = this.handleThrownError(exception);
     } else {
       super.catch(exception, host);
+      if (!environment.production) {
+        Logger.error(exception);
+      }
       return;
     }
-    host
-      .switchToHttp()
-      .getResponse<Response>()
-      .status(error?.getStatus?.() ?? 500)
-      .json((error as any)?.response ? flattenObject(error, 'response') : error);
-    // TODO better than this
-    throw error;
+    const response = error.getResponse();
+    const status = error.getStatus();
+    let errorObj: Record<string, any> = { status };
+    if (isObject(response)) {
+      errorObj = { ...errorObj, ...response };
+    } else {
+      errorObj.message = response;
+    }
+    if (!environment.production) {
+      Logger.error(errorObj);
+    }
+    applicationRef.reply(host.getArgByIndex(1), errorObj, status);
   }
 
   handleSqlError(exception: MysqlError): HttpException {
@@ -52,7 +67,7 @@ export class HandleErrorFilter extends BaseExceptionFilter {
       case 1451:
         return new ConflictException({
           ...errorObj,
-          error: `Can't finish operation because of relationship`,
+          message: `Can't finish operation because of relationship`,
         });
       case 1048:
       case 1054:
@@ -68,30 +83,11 @@ export class HandleErrorFilter extends BaseExceptionFilter {
     return !!exception?.sql;
   }
 
-  isLogicError(exception: any): exception is Error {
-    return !(exception instanceof HttpException) && isError(exception);
+  isThrownError(exception: any): exception is HttpException {
+    return exception instanceof HttpException;
   }
 
-  handleLogicError({ name, message, stack, ...rest }: Error): HttpException {
-    const errorObj: { [key: string]: any } = {
-      error: message,
-      ...rest,
-    };
-    if (!environment.production) {
-      errorObj.stack = this.handleStack(stack);
-    }
-    switch (name) {
-      case 'EntityNotFound':
-        return new NotFoundException(errorObj);
-      default:
-        return new InternalServerErrorException(errorObj);
-    }
-  }
-
-  handleStack(stack?: string): string {
-    const root = process.cwd();
-    const regexpRoot = new RegExp(root.split('\\').join('\\\\'), 'g');
-    const regexpDistRoot = new RegExp(`${root}\\dist\\src`.split('\\').join('\\\\'), 'g');
-    return stack?.replace?.(regexpDistRoot, '**DIST_ROOT**')?.replace?.(regexpRoot, '**ROOT**') ?? 'NO STACK';
+  handleThrownError(exception: HttpException): HttpException {
+    return exception;
   }
 }

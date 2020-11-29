@@ -3,14 +3,15 @@ import {
   ConflictException,
   Injectable,
   NotFoundException,
+  PreconditionFailedException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from '../user/user.service';
 import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto, AuthRegisterSteamDto } from './auth.dto';
 import { UserAddDto } from '../user/user.dto';
-import { compare, genSalt, hash } from 'bcryptjs';
-import { AuthRegisterViewModel } from './auth.view-model';
-import { random } from 'lodash';
+import { genSalt, hash } from 'bcryptjs';
+import { AuthRegisterViewModel, AuthSteamLoginSocketErrorType } from './auth.view-model';
+import { isNumber, random } from 'lodash';
 import { AuthConfirmationService } from './auth-confirmation/auth-confirmation.service';
 import { addDays } from 'date-fns';
 import { User } from '../user/user.entity';
@@ -51,7 +52,7 @@ export class AuthService {
 
   private async _generateConfirmationCode(idUser: number): Promise<number> {
     const code = random(100000, 999999);
-    if (await this.authConfirmationService.exists(idUser, code)) {
+    if (await this.authConfirmationService.hasConfirmationPending(idUser, code)) {
       return this._generateConfirmationCode(idUser);
     }
     await this.authConfirmationService.add({ idUser, code, expirationDate: addDays(new Date(), 1) });
@@ -78,19 +79,6 @@ export class AuthService {
     return user;
   }
 
-  private async _login(dto: AuthCredentialsDto): Promise<User> {
-    const user = await this.userService.validateUserToLogin(dto);
-    const hasConfirmationPending = await this.authConfirmationService.exists(user.id);
-    if (hasConfirmationPending) {
-      throw new UnauthorizedException('Account not confirmed');
-    }
-    user.lastOnline = new Date();
-    user.rememberMe = dto.rememberMe ?? false;
-    await this.userService.update(user.id, { lastOnline: user.lastOnline, rememberMe: user.rememberMe });
-    user.token = await this.getToken(user);
-    return user.removePasswordAndSalt();
-  }
-
   @Transactional()
   async register(dto: AuthRegisterDto): Promise<AuthRegisterViewModel> {
     const user = await this._registerUser(dto);
@@ -99,12 +87,12 @@ export class AuthService {
   }
 
   @Transactional()
-  async resendConfirmationCode(idUser: number): Promise<void> {
-    const user = await this.userService.getById(idUser);
+  async resendConfirmationCode(userOrIdUser: number | User): Promise<void> {
+    const user = isNumber(userOrIdUser) ? await this.userService.getById(userOrIdUser) : userOrIdUser;
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    await this.authConfirmationService.invalidateLastCode(idUser);
+    await this.authConfirmationService.invalidateLastCode(user.id);
     await this._sendConfirmationCodeEmail(user);
   }
 
@@ -122,11 +110,6 @@ export class AuthService {
     user.lastOnline = new Date();
     await this.userService.update(idUser, { lastOnline: user.lastOnline });
     return user.removePasswordAndSalt();
-  }
-
-  @Transactional()
-  async login(dto: AuthCredentialsDto): Promise<User> {
-    return this._login(dto);
   }
 
   @Transactional()
@@ -154,12 +137,25 @@ export class AuthService {
   async authSteam(steamid: string, uuid: string): Promise<void> {
     const user = await this.userService.getBySteamid(steamid);
     if (!user) {
-      this.authGateway.sendTokenSteam(
+      this.authGateway.sendTokenSteam({
         uuid,
-        await hash(steamid, await environment.envSalt()),
-        'This steam has no user linked to it',
-        steamid
-      );
+        token: await hash(steamid, await environment.envSalt()),
+        error: 'This steam has no user linked to it',
+        steamid,
+        errorType: AuthSteamLoginSocketErrorType.userNotFound,
+      });
+      return;
+    }
+    if (await this.authConfirmationService.hasConfirmationPending(user.id)) {
+      await this.resendConfirmationCode(user);
+      this.authGateway.sendTokenSteam({
+        uuid,
+        errorType: AuthSteamLoginSocketErrorType.userNotConfirmed,
+        error: 'Account already exists, but it needs to be confirmed.',
+        steamid,
+        token: await hash(steamid, await environment.envSalt()),
+        idUser: user.id,
+      });
       return;
     }
     const { salt, password } = await this.userService.getPasswordAndSalt(user.id);
@@ -167,7 +163,7 @@ export class AuthService {
     user.lastOnline = new Date();
     user.rememberMe = true;
     await this.userService.update(user.id, { lastOnline: user.lastOnline, rememberMe: user.rememberMe });
-    this.authGateway.sendTokenSteam(uuid, user.token);
+    this.authGateway.sendTokenSteam({ uuid, token: user.token });
   }
 
   @Transactional()
@@ -182,6 +178,24 @@ export class AuthService {
     const user = await this._registerUser({ email, username: steamProfile.personaname, password });
     await this.playerService.update(steamProfile.player.id, { idUser: user.id });
     return { email: user.email, message: 'User created! Please confirm your e-mail', idUser: user.id };
+  }
+
+  /**
+   * @description Not transactional because the e-mail must be sent.
+   * Also there's no need for this method to be transactional, since there's only one update that matters
+   */
+  async login(dto: AuthCredentialsDto): Promise<User> {
+    const user = await this.userService.validateUserToLogin(dto);
+    const hasConfirmationPending = await this.authConfirmationService.hasConfirmationPending(user.id);
+    if (hasConfirmationPending) {
+      await this.resendConfirmationCode(user);
+      throw new PreconditionFailedException({ message: 'Account not confirmed', extra: user.id });
+    }
+    user.lastOnline = new Date();
+    user.rememberMe = dto.rememberMe ?? false;
+    await this.userService.update(user.id, { lastOnline: user.lastOnline, rememberMe: user.rememberMe });
+    user.token = await this.getToken(user);
+    return user.removePasswordAndSalt();
   }
 
   async getToken({ id, password, rememberMe }: User): Promise<string> {

@@ -3,7 +3,7 @@ import { AuthConfirmationRepository } from './auth-confirmation.repository';
 import { AuthConfirmationAddDto } from './auth-confirmation.dto';
 import { AuthConfirmation } from './auth-confirmation.entity';
 import { FindConditions, MoreThanOrEqual } from 'typeorm';
-import { isBefore } from 'date-fns';
+import { addHours, isBefore } from 'date-fns';
 
 @Injectable()
 export class AuthConfirmationService {
@@ -21,7 +21,7 @@ export class AuthConfirmationService {
   }
 
   async invalidateCode(idUser: number, code: number): Promise<void> {
-    await this.authConfirmationRepository.update({ idUser, code }, { expirationDate: new Date() });
+    await this.authConfirmationRepository.update({ idUser, code }, { expirationDate: addHours(new Date(), -1) });
   }
 
   async invalidateLastCode(idUser: number): Promise<void> {
@@ -42,12 +42,12 @@ export class AuthConfirmationService {
     await this.invalidateCode(idUser, code);
   }
 
-  async exists(idUser: number, code?: number): Promise<boolean> {
+  async hasConfirmationPending(idUser: number, code?: number): Promise<boolean> {
     const options: FindConditions<AuthConfirmation> = { idUser, expirationDate: MoreThanOrEqual(new Date()) };
     if (code) {
       options.code = code;
     }
-    return await this.authConfirmationRepository.exists(options);
+    return this.authConfirmationRepository.exists(options);
   }
 
   async getByIdUser(idUser: number): Promise<AuthConfirmation | undefined> {

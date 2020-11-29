@@ -7,6 +7,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
+import { AuthSteamLoginSocketViewModel } from './auth.view-model';
 
 @WebSocketGateway({ namespace: '/auth' })
 export class AuthGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
@@ -14,8 +15,8 @@ export class AuthGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   @WebSocketServer() server!: Server;
 
-  sendTokenSteam(uuid: string, token: string, error?: string, steamid?: string): void {
-    this.server.emit('logged-steam', { token, error, uuid, steamid });
+  sendTokenSteam(viewModel: AuthSteamLoginSocketViewModel): void {
+    this.server.emit('logged-steam', viewModel);
   }
 
   afterInit(): void {
