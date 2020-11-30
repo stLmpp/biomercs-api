@@ -21,6 +21,16 @@ export class PlayerController {
     return this.playerService.unlinkSteamProfile(idPlayer);
   }
 
+  @Get(`persona-name/:${Params.personaName}/id`)
+  async findIdByPersonaName(@Param(Params.personaName) personaName: string): Promise<number> {
+    return this.playerService.findIdByPersonaName(personaName);
+  }
+
+  @Get(`user/:${Params.idUser}/id`)
+  async findIdByIdUser(@Param(Params.idUser) idUser: number): Promise<number> {
+    return this.playerService.findIdByIdUser(idUser);
+  }
+
   @Get(`:${Params.idPlayer}`)
   async findById(@Param(Params.idPlayer) idPlayer: number): Promise<Player> {
     return this.playerService.findById(idPlayer);

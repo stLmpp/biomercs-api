@@ -5,6 +5,8 @@ export enum Params {
 
   steamid = 'steamid',
 
+  personaName = 'personaName',
+
   email = 'email',
   orderBy = 'orderBy',
   orderByDirection = 'orderByDirection',

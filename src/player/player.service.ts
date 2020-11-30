@@ -57,4 +57,12 @@ export class PlayerService {
   async unlinkSteamProfile(idPlayer: number): Promise<Player> {
     return this.update(idPlayer, { idSteamProfile: undefined });
   }
+
+  async findIdByPersonaName(personaName: string): Promise<number> {
+    return (await this.playerRepository.findOneOrFail({ select: ['id'], where: { personaName } })).id;
+  }
+
+  async findIdByIdUser(idUser: number): Promise<number> {
+    return (await this.playerRepository.findOneOrFail({ select: ['id'], where: { idUser } })).id;
+  }
 }
