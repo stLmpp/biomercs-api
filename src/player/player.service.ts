@@ -29,7 +29,7 @@ export class PlayerService {
   }
 
   async findById(idPlayer: number): Promise<Player> {
-    const player = await this.playerRepository.findOne(idPlayer);
+    const player = await this.playerRepository.findOne(idPlayer, { relations: ['region'] });
     if (!player) {
       throw new NotFoundException('Player not found');
     }
@@ -37,8 +37,11 @@ export class PlayerService {
   }
 
   async update(idPlayer: number, dto: PlayerUpdateDto): Promise<Player> {
-    const player = await this.findById(idPlayer);
+    const player = await this.playerRepository.findOneOrFail(idPlayer);
     await this.playerRepository.update(idPlayer, dto);
+    if (dto.idRegion && player.idRegion !== dto.idRegion) {
+      player.region = await this.regionService.findById(dto.idRegion);
+    }
     return new Player().extendDto({ ...player, ...dto });
   }
 

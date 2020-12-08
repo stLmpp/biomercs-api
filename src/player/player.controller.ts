@@ -1,9 +1,10 @@
-import { Controller, Get, Param, Put } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { PlayerService } from './player.service';
 import { Player } from './player.entity';
 import { Params } from '../shared/type/params';
+import { PlayerUpdateDto } from './player.dto';
 
 @ApiAuth()
 @ApiTags('Player')
@@ -34,5 +35,10 @@ export class PlayerController {
   @Get(`:${Params.idPlayer}`)
   async findById(@Param(Params.idPlayer) idPlayer: number): Promise<Player> {
     return this.playerService.findById(idPlayer);
+  }
+
+  @Patch(`:${Params.idPlayer}`)
+  async update(@Param(Params.idPlayer) idPlayer: number, @Body() dto: PlayerUpdateDto): Promise<Player> {
+    return this.playerService.update(idPlayer, dto);
   }
 }
