@@ -1,5 +1,6 @@
 import { DefaultNamingStrategy, Table } from 'typeorm';
 import { RandomGenerator } from 'typeorm/util/RandomGenerator';
+import { camelCase } from 'lodash';
 
 export class NamingStategy extends DefaultNamingStrategy {
   joinColumnName(relationName: string, referencedColumnName: string): string {
@@ -19,5 +20,13 @@ export class NamingStategy extends DefaultNamingStrategy {
   tableName(targetName: string, userSpecifiedName: string | undefined): string {
     targetName = targetName.replace(/Entity$/, '');
     return super.tableName(targetName, userSpecifiedName);
+  }
+
+  joinTableName(firstTableName: string, secondTableName: string): string {
+    return `${firstTableName}_${secondTableName}`;
+  }
+
+  joinTableColumnName(tableName: string, propertyName: string): string {
+    return camelCase(`${propertyName}_${tableName}`);
   }
 }

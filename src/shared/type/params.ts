@@ -1,12 +1,15 @@
 export enum Params {
-  idUser = 'idUser',
+  // IDS
+  idGame = 'idGame',
+  idMiniGame = 'idMiniGame',
+  idPlatform = 'idPlatform',
   idPlayer = 'idPlayer',
   idSteamProfile = 'idSteamProfile',
+  idUser = 'idUser',
 
+  // OTHERS
   steamid = 'steamid',
-
   personaName = 'personaName',
-
   email = 'email',
   orderBy = 'orderBy',
   orderByDirection = 'orderByDirection',

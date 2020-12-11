@@ -17,6 +17,10 @@ import { PlayerModule } from './player/player.module';
 import { SteamModule } from './steam/steam.module';
 import { AuthSubscriber } from './auth/auth-subscriber';
 import { RegionModule } from './region/region.module';
+import { GameModule } from './game/game.module';
+import { PlatformGameMiniGameModule } from './platform-game-mode/platform-game-mini-game.module';
+import { MiniGameModule } from './mini-game/mini-game.module';
+import { GameMiniGameModule } from './game-mini-game/game-mini-game.module';
 
 @Module({
   imports: [
@@ -50,6 +54,10 @@ import { RegionModule } from './region/region.module';
     PlayerModule,
     SteamModule,
     RegionModule,
+    GameModule,
+    MiniGameModule,
+    GameMiniGameModule,
+    PlatformGameMiniGameModule,
   ],
   controllers: [AppController],
   providers: [
