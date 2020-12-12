@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
-import { Game } from '../game/game.entity';
-import { BaseEntity } from '../shared/super/base-entity';
-import { MiniGame } from '../mini-game/mini-game.entity';
+import { Game } from '../game.entity';
+import { BaseEntity } from '../../shared/super/base-entity';
+import { MiniGame } from '../../mini-game/mini-game.entity';
 
 @Unique(['idGame', 'idMiniGame'])
 @Entity()

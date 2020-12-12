@@ -1,9 +1,12 @@
 export enum Params {
   // IDS
+  idCharacter = 'idCharacter',
   idGame = 'idGame',
+  idMode = 'idMode',
   idMiniGame = 'idMiniGame',
   idPlatform = 'idPlatform',
   idPlayer = 'idPlayer',
+  idStage = 'idStage',
   idSteamProfile = 'idSteamProfile',
   idUser = 'idUser',
 

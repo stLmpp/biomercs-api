@@ -1,0 +1,37 @@
+import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
+import { ModeService } from './mode.service';
+import { Mode } from './mode.entity';
+import { ModeAddDto, ModeUpdateDto } from './mode.dto';
+import { Params } from '../shared/type/params';
+import { ApiAdmin } from '../auth/api-admin.decorator';
+import { ApiAuth } from '../auth/api-auth.decorator';
+
+@ApiAuth()
+@ApiTags('Mode')
+@Controller('mode')
+export class ModeController {
+  constructor(private modeService: ModeService) {}
+
+  @ApiAdmin()
+  @Post()
+  async add(@Body() dto: ModeAddDto): Promise<Mode> {
+    return this.modeService.add(dto);
+  }
+
+  @ApiAdmin()
+  @Patch(`:${Params.idMode}`)
+  async update(@Param(Params.idMode) idMode: number, @Body() dto: ModeUpdateDto): Promise<Mode> {
+    return this.modeService.update(idMode, dto);
+  }
+
+  @Get()
+  async findAll(): Promise<Mode[]> {
+    return this.modeService.findAll();
+  }
+
+  @Get(`:${Params.idMode}`)
+  async findById(@Param(Params.idMode) idMode: number): Promise<Mode> {
+    return this.modeService.findById(idMode);
+  }
+}

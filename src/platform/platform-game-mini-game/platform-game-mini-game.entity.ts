@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
-import { BaseEntity } from '../shared/super/base-entity';
-import { Platform } from '../platform/platform.entity';
-import { GameMiniGame } from '../game-mini-game/game-mini-game.entity';
+import { BaseEntity } from '../../shared/super/base-entity';
+import { Platform } from '../platform.entity';
+import { GameMiniGame } from '../../game/game-mini-game/game-mini-game.entity';
 
 @Entity()
 export class PlatformGameMiniGame extends BaseEntity {

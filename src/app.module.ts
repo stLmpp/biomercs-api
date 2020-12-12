@@ -18,9 +18,10 @@ import { SteamModule } from './steam/steam.module';
 import { AuthSubscriber } from './auth/auth-subscriber';
 import { RegionModule } from './region/region.module';
 import { GameModule } from './game/game.module';
-import { PlatformGameMiniGameModule } from './platform-game-mode/platform-game-mini-game.module';
 import { MiniGameModule } from './mini-game/mini-game.module';
-import { GameMiniGameModule } from './game-mini-game/game-mini-game.module';
+import { ModeModule } from './mode/mode.module';
+import { StageModule } from './stage/stage.module';
+import { CharacterModule } from './character/character.module';
 
 @Module({
   imports: [
@@ -56,8 +57,9 @@ import { GameMiniGameModule } from './game-mini-game/game-mini-game.module';
     RegionModule,
     GameModule,
     MiniGameModule,
-    GameMiniGameModule,
-    PlatformGameMiniGameModule,
+    ModeModule,
+    StageModule,
+    CharacterModule,
   ],
   controllers: [AppController],
   providers: [

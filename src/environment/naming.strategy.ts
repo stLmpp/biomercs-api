@@ -29,4 +29,8 @@ export class NamingStategy extends DefaultNamingStrategy {
   joinTableColumnName(tableName: string, propertyName: string): string {
     return camelCase(`${propertyName}_${tableName}`);
   }
+
+  joinTableInverseColumnName(tableName: string, propertyName: string): string {
+    return camelCase(`${propertyName}_${tableName}`);
+  }
 }
