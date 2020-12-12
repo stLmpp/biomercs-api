@@ -1,6 +1,7 @@
 export enum Params {
   // IDS
   idCharacter = 'idCharacter',
+  idCharacterCostume = 'idCharacterCostume',
   idGame = 'idGame',
   idMode = 'idMode',
   idMiniGame = 'idMiniGame',

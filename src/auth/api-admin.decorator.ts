@@ -7,7 +7,7 @@ import {
   Injectable,
   UseGuards,
 } from '@nestjs/common';
-import { ApiForbiddenResponse } from '@nestjs/swagger';
+import { ApiForbiddenResponse, ApiOperation } from '@nestjs/swagger';
 import { Observable } from 'rxjs';
 import { getUserFromContext } from './auth-user.decorator';
 
@@ -25,7 +25,11 @@ export class AdminGuard implements CanActivate {
 
 export function ApiAdmin(): any {
   const decorators = environment.config('USE_AUTH')
-    ? [UseGuards(AdminGuard), ApiForbiddenResponse({ description: 'Access denied' })]
+    ? [
+        UseGuards(AdminGuard),
+        ApiForbiddenResponse({ description: 'Access denied' }),
+        ApiOperation({ description: 'Requires admin privileges' }),
+      ]
     : [];
   return applyDecorators(...decorators);
 }

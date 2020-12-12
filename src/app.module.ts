@@ -22,6 +22,7 @@ import { MiniGameModule } from './mini-game/mini-game.module';
 import { ModeModule } from './mode/mode.module';
 import { StageModule } from './stage/stage.module';
 import { CharacterModule } from './character/character.module';
+import { PlatformModule } from './platform/platform.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { CharacterModule } from './character/character.module';
     ModeModule,
     StageModule,
     CharacterModule,
+    PlatformModule,
   ],
   controllers: [AppController],
   providers: [

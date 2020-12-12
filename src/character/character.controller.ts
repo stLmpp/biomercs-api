@@ -6,12 +6,15 @@ import { CharacterAddDto, CharacterUpdateDto } from './character.dto';
 import { Params } from '../shared/type/params';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ApiAuth } from '../auth/api-auth.decorator';
+import { CharacterCostume } from './character-costume/character-costume.entity';
+import { CharacterCostumeAddDto } from './character-costume/character-costume.dto';
+import { CharacterCostumeService } from './character-costume/character-costume.service';
 
 @ApiAuth()
 @ApiTags('Character')
 @Controller('character')
 export class CharacterController {
-  constructor(private characterService: CharacterService) {}
+  constructor(private characterService: CharacterService, private characterCostumeService: CharacterCostumeService) {}
 
   @ApiAdmin()
   @Post()
@@ -23,6 +26,15 @@ export class CharacterController {
   @Patch(`:${Params.idCharacter}`)
   async update(@Param(Params.idCharacter) idCharacter: number, @Body() dto: CharacterUpdateDto): Promise<Character> {
     return this.characterService.update(idCharacter, dto);
+  }
+
+  @ApiAdmin()
+  @Post(`:${Params.idCharacter}/costume`)
+  async addCostume(
+    @Param(Params.idCharacter) idCharacter: number,
+    @Body() dto: CharacterCostumeAddDto
+  ): Promise<CharacterCostume> {
+    return this.characterCostumeService.add(idCharacter, dto);
   }
 
   @Get()
