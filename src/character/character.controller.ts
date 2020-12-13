@@ -37,9 +37,14 @@ export class CharacterController {
     return this.characterCostumeService.add(idCharacter, dto);
   }
 
-  @Get()
-  async findAll(): Promise<Character[]> {
-    return this.characterService.findAll();
+  @Get(`platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}/mode/:${Params.idMode}`)
+  async findByIdPlatformGameMiniGameMode(
+    @Param(Params.idPlatform) idPlatform: number,
+    @Param(Params.idGame) idGame: number,
+    @Param(Params.idMiniGame) idMiniGame: number,
+    @Param(Params.idMode) idMode: number
+  ): Promise<Character[]> {
+    return this.characterService.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode);
   }
 
   @Get(`:${Params.idCharacter}`)

@@ -11,10 +11,6 @@ export class StageService {
     return this.stageRepository.findOneOrFail(idStage);
   }
 
-  async findAll(): Promise<Stage[]> {
-    return this.stageRepository.find();
-  }
-
   async add(dto: StageAddDto): Promise<Stage> {
     return this.stageRepository.save(new Stage().extendDto(dto));
   }
@@ -22,5 +18,14 @@ export class StageService {
   async update(idStage: number, dto: StageUpdateDto): Promise<Stage> {
     await this.stageRepository.update(idStage, dto);
     return this.stageRepository.findOneOrFail(idStage);
+  }
+
+  async findByIdPlatformGameMiniGameMode(
+    idPlatform: number,
+    idGame: number,
+    idMiniGame: number,
+    idMode: number
+  ): Promise<Stage[]> {
+    return this.stageRepository.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode);
   }
 }

@@ -25,9 +25,14 @@ export class StageController {
     return this.stageService.update(idStage, dto);
   }
 
-  @Get()
-  async findAll(): Promise<Stage[]> {
-    return this.stageService.findAll();
+  @Get(`platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}/mode/:${Params.idMode}`)
+  async findByIdPlatformGameMiniGameMode(
+    @Param(Params.idPlatform) idPlatform: number,
+    @Param(Params.idGame) idGame: number,
+    @Param(Params.idMiniGame) idMiniGame: number,
+    @Param(Params.idMode) idMode: number
+  ): Promise<Stage[]> {
+    return this.stageService.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode);
   }
 
   @Get(`:${Params.idStage}`)

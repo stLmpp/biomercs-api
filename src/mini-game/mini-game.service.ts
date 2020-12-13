@@ -11,10 +11,6 @@ export class MiniGameService {
     return this.miniGameRepository.findOneOrFail(idMiniGame);
   }
 
-  async findAll(): Promise<MiniGame[]> {
-    return this.miniGameRepository.find();
-  }
-
   async add(dto: MiniGameAddDto): Promise<MiniGame> {
     return this.miniGameRepository.save(new MiniGame().extendDto(dto));
   }
@@ -22,5 +18,9 @@ export class MiniGameService {
   async update(idMiniGame: number, dto: MiniGameUpdateDto): Promise<MiniGame> {
     await this.miniGameRepository.update(idMiniGame, dto);
     return this.miniGameRepository.findOneOrFail(idMiniGame);
+  }
+
+  async findByIdPlatformGame(idPlatform: number, idGame: number): Promise<MiniGame[]> {
+    return this.miniGameRepository.findByIdPlatformGame(idPlatform, idGame);
   }
 }

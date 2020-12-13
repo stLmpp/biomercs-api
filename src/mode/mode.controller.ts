@@ -25,9 +25,13 @@ export class ModeController {
     return this.modeService.update(idMode, dto);
   }
 
-  @Get()
-  async findAll(): Promise<Mode[]> {
-    return this.modeService.findAll();
+  @Get(`platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}`)
+  async findByIdPlatformGameMiniGame(
+    @Param(Params.idPlatform) idPlatform: number,
+    @Param(Params.idGame) idGame: number,
+    @Param(Params.idMiniGame) idMiniGame: number
+  ): Promise<Mode[]> {
+    return this.modeService.findByIdPlatformGameMiniGame(idPlatform, idGame, idMiniGame);
   }
 
   @Get(`:${Params.idMode}`)

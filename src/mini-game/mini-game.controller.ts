@@ -25,9 +25,12 @@ export class MiniGameController {
     return this.miniGameService.update(idMiniGame, dto);
   }
 
-  @Get()
-  async findAll(): Promise<MiniGame[]> {
-    return this.miniGameService.findAll();
+  @Get(`platform/:${Params.idPlatform}/game/:${Params.idGame}`)
+  async findByIdPlatformGame(
+    @Param(Params.idPlatform) idPlatform: number,
+    @Param(Params.idGame) idGame: number
+  ): Promise<MiniGame[]> {
+    return this.miniGameService.findByIdPlatformGame(idPlatform, idGame);
   }
 
   @Get(`:${Params.idMiniGame}`)

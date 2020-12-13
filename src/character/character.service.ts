@@ -11,10 +11,6 @@ export class CharacterService {
     return this.characterRepository.findOneOrFail(idCharacter);
   }
 
-  async findAll(): Promise<Character[]> {
-    return this.characterRepository.find();
-  }
-
   async add(dto: CharacterAddDto): Promise<Character> {
     return this.characterRepository.save(new Character().extendDto(dto));
   }
@@ -22,5 +18,14 @@ export class CharacterService {
   async update(idCharacter: number, dto: CharacterUpdateDto): Promise<Character> {
     await this.characterRepository.update(idCharacter, dto);
     return this.characterRepository.findOneOrFail(idCharacter);
+  }
+
+  async findByIdPlatformGameMiniGameMode(
+    idPlatform: number,
+    idGame: number,
+    idMiniGame: number,
+    idMode: number
+  ): Promise<Character[]> {
+    return this.characterRepository.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode);
   }
 }

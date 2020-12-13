@@ -45,9 +45,9 @@ export class GameController {
     await this.gameMiniGameService.unlink(idGame, idMiniGame);
   }
 
-  @Get()
-  async findAll(): Promise<Game[]> {
-    return this.gameService.findAll();
+  @Get(`platform/:${Params.idPlatform}`)
+  async findByIdPlatform(@Param(Params.idPlatform) idPlatform: number): Promise<Game[]> {
+    return this.gameService.findByIdPlatform(idPlatform);
   }
 
   @Get(`:${Params.idGame}`)

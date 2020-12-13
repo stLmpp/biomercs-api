@@ -11,10 +11,6 @@ export class ModeService {
     return this.modeRepository.findOneOrFail(idMode);
   }
 
-  async findAll(): Promise<Mode[]> {
-    return this.modeRepository.find();
-  }
-
   async add(dto: ModeAddDto): Promise<Mode> {
     return this.modeRepository.save(new Mode().extendDto(dto));
   }
@@ -22,5 +18,9 @@ export class ModeService {
   async update(idMode: number, dto: ModeUpdateDto): Promise<Mode> {
     await this.modeRepository.update(idMode, dto);
     return this.modeRepository.findOneOrFail(idMode);
+  }
+
+  async findByIdPlatformGameMiniGame(idPlatform: number, idGame: number, idMiniGame: number): Promise<Mode[]> {
+    return this.modeRepository.findByIdPlatformGameMiniGame(idPlatform, idGame, idMiniGame);
   }
 }

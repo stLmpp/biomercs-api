@@ -11,10 +11,6 @@ export class GameService {
     return this.gameRepository.findOneOrFail(idGame);
   }
 
-  async findAll(): Promise<Game[]> {
-    return this.gameRepository.find();
-  }
-
   async add(dto: GameAddDto): Promise<Game> {
     return this.gameRepository.save(new Game().extendDto(dto));
   }
@@ -22,5 +18,9 @@ export class GameService {
   async update(idGame: number, dto: GameUpdateDto): Promise<Game> {
     await this.gameRepository.update(idGame, dto);
     return this.gameRepository.findOneOrFail(idGame);
+  }
+
+  async findByIdPlatform(idPlatform: number): Promise<Game[]> {
+    return this.gameRepository.findByIdPlatform(idPlatform);
   }
 }
