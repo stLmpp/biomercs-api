@@ -54,4 +54,56 @@ export class PlatformGameMiniGameModeStageService {
       idStage
     );
   }
+
+  async findByPlatformGameMiniGameModeStageWith(
+    idPlatform: number,
+    idGame: number,
+    idMiniGame: number,
+    idMode: number,
+    idStage: number
+  ): Promise<PlatformGameMiniGameModeStage> {
+    return this.platformGameMiniGameModeStageRepository.findByPlatformGameMiniGameModeStage(
+      idPlatform,
+      idGame,
+      idMiniGame,
+      idMode,
+      idStage
+    );
+  }
+
+  async findRandom({
+    game,
+    miniGame,
+    mode,
+    platform,
+  }: {
+    platform?: string;
+    game?: string;
+    miniGame?: string;
+    mode?: string;
+  } = {}): Promise<PlatformGameMiniGameModeStage> {
+    const qb = this.platformGameMiniGameModeStageRepository
+      .createQueryBuilder('pgmms')
+      .innerJoinAndSelect('pgmms.platformGameMiniGameMode', 'pgmm')
+      .innerJoinAndSelect('pgmm.mode', 'm')
+      .innerJoinAndSelect('pgmm.platformGameMiniGame', 'pgm')
+      .innerJoinAndSelect('pgm.gameMiniGame', 'gm')
+      .innerJoin('gm.game', 'g')
+      .innerJoin('gm.miniGame', 'mg')
+      .innerJoin('pgm.platform', 'p')
+      .orderBy('rand()');
+    if (game) {
+      qb.andWhere('g.shortName = :game', { game });
+    }
+    if (miniGame) {
+      qb.andWhere('mg.name = :miniGame', { miniGame });
+    }
+    if (mode) {
+      qb.andWhere('m.name = :mode', { mode });
+    }
+    if (platform) {
+      qb.andWhere('p.shortName = :platform', { platform });
+    }
+    return qb.getOneOrFail();
+  }
 }

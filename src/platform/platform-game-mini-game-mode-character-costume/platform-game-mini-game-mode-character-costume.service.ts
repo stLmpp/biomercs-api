@@ -60,4 +60,12 @@ export class PlatformGameMiniGameModeCharacterCostumeService {
       idCharacterCostume
     );
   }
+
+  async findRandom(idPlatformGameMiniGameMode: number): Promise<PlatformGameMiniGameModeCharacterCostume> {
+    return this.platformGameMiniGameModeCharacterCostumeRepository
+      .createQueryBuilder('pgmmcc')
+      .andWhere('pgmmcc.idPlatformGameMiniGameMode = :idPlatformGameMiniGameMode', { idPlatformGameMiniGameMode })
+      .orderBy('rand()')
+      .getOneOrFail();
+  }
 }

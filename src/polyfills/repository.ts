@@ -1,5 +1,5 @@
 import { FindConditions, FindOneOptions, Repository } from 'typeorm';
-import { isNumber, isString } from 'lodash';
+import { isNumber, isString } from '@stlmpp/utils';
 
 declare module 'typeorm/repository/Repository' {
   interface Repository<Entity> {
@@ -12,7 +12,7 @@ declare module 'typeorm/repository/Repository' {
   }
 }
 
-Repository.prototype.exists = async function(where: any) {
+Repository.prototype.exists = async function (where: any) {
   if (isNumber(where) || isString(where)) {
     return !!(await this.findOne(where, { select: ['id'] }));
   } else {

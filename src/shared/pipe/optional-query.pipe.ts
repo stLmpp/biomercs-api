@@ -1,5 +1,5 @@
 import { Injectable, PipeTransform } from '@nestjs/common';
-import { isNumber } from 'lodash';
+import { isNumber } from '@stlmpp/utils';
 
 @Injectable()
 export class OptionalQueryPipe implements PipeTransform {

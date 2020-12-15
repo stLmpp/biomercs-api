@@ -68,4 +68,8 @@ export class PlayerService {
   async findIdByIdUser(idUser: number): Promise<number> {
     return (await this.playerRepository.findOneOrFail({ select: ['id'], where: { idUser } })).id;
   }
+
+  async findRandom(): Promise<Player> {
+    return this.playerRepository.createQueryBuilder('p').orderBy('rand()').getOneOrFail();
+  }
 }

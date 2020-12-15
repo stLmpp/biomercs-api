@@ -19,7 +19,7 @@ export class PlatformGameMiniGameModeCharacterCostumeRepository extends Reposito
         .andWhere('gm.idGame = :idGame', { idGame })
         .andWhere('gm.idMiniGame = :idMiniGame', { idMiniGame })
         .andWhere('pgmm.idMode = :idMode', { idMode })
-        .andWhere('pgmmcc.idCharacterCustome = :idCharacterCostume', { idCharacterCostume })
+        .andWhere('pgmmcc.idCharacterCostume = :idCharacterCostume', { idCharacterCostume })
         .getOneOrFail()
     ).id;
   }

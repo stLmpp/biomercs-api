@@ -23,6 +23,8 @@ import { ModeModule } from './mode/mode.module';
 import { StageModule } from './stage/stage.module';
 import { CharacterModule } from './character/character.module';
 import { PlatformModule } from './platform/platform.module';
+import { ScoreModule } from './score/score.module';
+import { MapperModule } from './mapper/mapper.module';
 
 @Module({
   imports: [
@@ -62,6 +64,8 @@ import { PlatformModule } from './platform/platform.module';
     StageModule,
     CharacterModule,
     PlatformModule,
+    ScoreModule,
+    MapperModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,6 +1,6 @@
 import { applyDecorators } from '@nestjs/common';
 import { Transform } from 'class-transformer';
-import { isNil } from 'lodash';
+import { isNil } from '@stlmpp/utils';
 import { IsNumber as _IsNumber } from 'class-validator';
 
 export function IsNumber(): PropertyDecorator {

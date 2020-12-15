@@ -1,7 +1,7 @@
 import { get } from 'config';
 import { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOptions';
 import { version } from '../../package.json';
-import { isArray } from 'lodash';
+import { isArray } from '@stlmpp/utils';
 import { KeyValue } from '../shared/inteface/key-value.interface';
 import { genSalt } from 'bcryptjs';
 

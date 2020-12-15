@@ -4,7 +4,7 @@ import { AuthConfirmationAddDto } from './auth-confirmation.dto';
 import { AuthConfirmation } from './auth-confirmation.entity';
 import { FindConditions, MoreThanOrEqual } from 'typeorm';
 import { addDays, addHours, isBefore } from 'date-fns';
-import { random } from 'lodash';
+import { random } from '../../util/util';
 
 @Injectable()
 export class AuthConfirmationService {

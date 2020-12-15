@@ -11,7 +11,8 @@ import {
 } from '@nestjs/common';
 import { environment } from './environment';
 import { MysqlError } from 'mysql';
-import { isObject } from 'lodash';
+import { isObject } from '@stlmpp/utils';
+import { EntityNotFoundError } from 'typeorm/error/EntityNotFoundError';
 
 @Catch()
 export class HandleErrorFilter extends BaseExceptionFilter {
@@ -29,7 +30,9 @@ export class HandleErrorFilter extends BaseExceptionFilter {
       return;
     }
     let error: HttpException;
-    if (this.isSqlError(exception)) {
+    if (this.isEntityNotFoundError(exception)) {
+      error = this.handleEntityNotFoundError(exception);
+    } else if (this.isSqlError(exception)) {
       error = this.handleSqlError(exception);
     } else if (this.isThrownError(exception)) {
       error = this.handleThrownError(exception);
@@ -79,8 +82,16 @@ export class HandleErrorFilter extends BaseExceptionFilter {
     }
   }
 
+  handleEntityNotFoundError(error: EntityNotFoundError): HttpException {
+    return new NotFoundException(error.message);
+  }
+
   isSqlError(exception: any): exception is MysqlError {
     return !!exception?.sql;
+  }
+
+  isEntityNotFoundError(exception: any): exception is EntityNotFoundError {
+    return exception instanceof EntityNotFoundError;
   }
 
   isThrownError(exception: any): exception is HttpException {

@@ -1,6 +1,6 @@
 import { DefaultNamingStrategy, Table } from 'typeorm';
 import { RandomGenerator } from 'typeorm/util/RandomGenerator';
-import { camelCase } from 'lodash';
+import { camelCase } from '../util/util';
 
 export class NamingStategy extends DefaultNamingStrategy {
   joinColumnName(relationName: string, referencedColumnName: string): string {

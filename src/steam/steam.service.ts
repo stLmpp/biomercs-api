@@ -6,7 +6,7 @@ import { SteamProfileRepository } from './steam-profile.repository';
 import { User } from '../user/user.entity';
 import { environment } from '../environment/environment';
 import { RelyingParty } from 'openid';
-import { isString } from 'lodash';
+import { isString } from '@stlmpp/utils';
 import { PlayerService } from '../player/player.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { Player } from '../player/player.entity';

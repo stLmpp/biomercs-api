@@ -11,7 +11,7 @@ import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto, AuthRegiste
 import { UserAddDto } from '../user/user.dto';
 import { genSalt, hash } from 'bcryptjs';
 import { AuthRegisterViewModel, AuthSteamLoginSocketErrorType } from './auth.view-model';
-import { isNumber, random } from 'lodash';
+import { isNumber } from '@stlmpp/utils';
 import { AuthConfirmationService } from './auth-confirmation/auth-confirmation.service';
 import { User } from '../user/user.entity';
 import { MailerService } from '@nestjs-modules/mailer';
@@ -21,6 +21,7 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { PlayerService } from '../player/player.service';
 import { AuthGateway } from './auth.gateway';
 import { SteamService } from '../steam/steam.service';
+import { random } from '../util/util';
 
 @Injectable()
 export class AuthService {

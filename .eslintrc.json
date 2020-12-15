@@ -111,6 +111,10 @@
         "selector": "function",
         "format": ["camelCase", "PascalCase"],
         "leadingUnderscore": "allow"
+      },
+      {
+        "selector": "enumMember",
+        "format": ["camelCase", "PascalCase"]
       }
     ],
     "@typescript-eslint/member-ordering": [

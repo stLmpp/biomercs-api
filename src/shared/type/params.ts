@@ -8,6 +8,8 @@ export enum Params {
   idPlatform = 'idPlatform',
   idPlayer = 'idPlayer',
   idStage = 'idStage',
+  idScore = 'idScore',
+  idScoreApprovalMotive = 'idScoreApprovalMotive',
   idSteamProfile = 'idSteamProfile',
   idUser = 'idUser',
 
@@ -21,6 +23,7 @@ export enum Params {
   openidReturnTo = 'openid.return_to',
   uuid = 'uuid',
   username = 'username',
+  action = 'action',
 }
 
 export enum HeaderParams {
