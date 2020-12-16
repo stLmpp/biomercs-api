@@ -7,8 +7,7 @@ export class PlatformGameMiniGameModeStageRepository extends Repository<Platform
     idPlatform: number,
     idGame: number,
     idMiniGame: number,
-    idMode: number,
-    idStage: number
+    idMode: number
   ): SelectQueryBuilder<PlatformGameMiniGameModeStage> {
     return this.createQueryBuilder('pgmms')
       .innerJoin('pgmms.platformGameMiniGameMode', 'pgmm')
@@ -17,8 +16,21 @@ export class PlatformGameMiniGameModeStageRepository extends Repository<Platform
       .andWhere('pgm.idPlatform = :idPlatform', { idPlatform })
       .andWhere('gm.idGame = :idGame', { idGame })
       .andWhere('gm.idMiniGame = :idMiniGame', { idMiniGame })
-      .andWhere('pgmm.idMode = :idMode', { idMode })
-      .andWhere('pgmms.idStage = :idStage', { idStage });
+      .andWhere('pgmm.idMode = :idMode', { idMode });
+  }
+  private _createQueryBuilderRelationsWithStage(
+    idPlatform: number,
+    idGame: number,
+    idMiniGame: number,
+    idMode: number,
+    idStage: number
+  ): SelectQueryBuilder<PlatformGameMiniGameModeStage> {
+    return this._createQueryBuilderRelations(
+      idPlatform,
+      idGame,
+      idMiniGame,
+      idMode
+    ).andWhere('pgmms.idStage = :idStage', { idStage });
   }
 
   async findIdByPlatformGameMiniGameModeStage(
@@ -29,7 +41,7 @@ export class PlatformGameMiniGameModeStageRepository extends Repository<Platform
     idStage: number
   ): Promise<number> {
     return (
-      await this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode, idStage)
+      await this._createQueryBuilderRelationsWithStage(idPlatform, idGame, idMiniGame, idMode, idStage)
         .select('pgmms.id')
         .getOneOrFail()
     ).id;
@@ -42,6 +54,15 @@ export class PlatformGameMiniGameModeStageRepository extends Repository<Platform
     idMode: number,
     idStage: number
   ): Promise<PlatformGameMiniGameModeStage> {
-    return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode, idStage).getOneOrFail();
+    return this._createQueryBuilderRelationsWithStage(idPlatform, idGame, idMiniGame, idMode, idStage).getOneOrFail();
+  }
+
+  async findByPlatformGameMiniGameMode(
+    idPlatform: number,
+    idGame: number,
+    idMiniGame: number,
+    idMode: number
+  ): Promise<PlatformGameMiniGameModeStage[]> {
+    return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode).getMany();
   }
 }

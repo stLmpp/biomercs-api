@@ -4,8 +4,9 @@ import { ApiAuth } from '../auth/api-auth.decorator';
 import { ScoreService } from './score.service';
 import { ScoreAddDto } from './score.dto';
 import { Params } from '../shared/type/params';
-import { ScoreViewModel } from './score.view-model';
+import { ScoreViewModel } from './view-model/score.view-model';
 import { Score } from './score.entity';
+import { ScoreTableViewModel } from './view-model/score-table.view-model';
 
 @ApiAuth()
 @ApiTags('Score')
@@ -47,6 +48,18 @@ export class ScoreController {
     return Promise.all(
       Array.from({ length: q }).map(() => this.scoreService.insert({ miniGame, platform, mode, game }))
     );
+  }
+
+  @Get(
+    `platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}/mode/:${Params.idMode}/score-table`
+  )
+  async findScoreTable(
+    @Param(Params.idPlatform) idPlatform: number,
+    @Param(Params.idGame) idGame: number,
+    @Param(Params.idMiniGame) idMiniGame: number,
+    @Param(Params.idMode) idMode: number
+  ): Promise<ScoreTableViewModel[]> {
+    return this.scoreService.findScoreTable(idPlatform, idGame, idMiniGame, idMode);
   }
 
   @Get(`:${Params.idScore}`)

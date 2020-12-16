@@ -11,10 +11,11 @@ import { ModeModule } from '../mode/mode.module';
 import { MapperModule } from '../mapper/mapper.module';
 import { MapperService } from '../mapper/mapper.service';
 import { Score } from './score.entity';
-import { ScorePlayerViewModel, ScoreViewModel } from './score.view-model';
+import { ScorePlayerViewModel, ScoreViewModel } from './view-model/score.view-model';
 import { ScorePlayer } from './score-player/score-player.entity';
 import { PlatformGameMiniGameModeCharacterCostumeModule } from '../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.module';
 import { PlayerModule } from '../player/player.module';
+import { StageModule } from '../stage/stage.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { PlayerModule } from '../player/player.module';
     MapperModule,
     PlatformGameMiniGameModeCharacterCostumeModule,
     PlayerModule,
+    StageModule,
   ],
   providers: [ScoreService],
   controllers: [ScoreController],

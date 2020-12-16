@@ -1,5 +1,5 @@
-import { ScoreStatusEnum } from './score-status.enum';
-import { Property } from '../mapper/mapper.service';
+import { ScoreStatusEnum } from '../score-status.enum';
+import { Property } from '../../mapper/mapper.service';
 
 export class ScorePlayerViewModel {
   @Property() idScore!: number;

@@ -7,12 +7,13 @@ import { ModeService } from '../mode/mode.service';
 import { ScoreStatusEnum } from './score-status.enum';
 import { ScorePlayerService } from './score-player/score-player.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
-import { ScoreViewModel } from './score.view-model';
+import { ScoreViewModel } from './view-model/score.view-model';
 import { MapperService } from '../mapper/mapper.service';
 import { random } from '../util/util';
 import { ScorePlayer } from './score-player/score-player.entity';
 import { PlayerService } from '../player/player.service';
 import { PlatformGameMiniGameModeCharacterCostumeService } from '../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.service';
+import { ScoreTableViewModel } from './view-model/score-table.view-model';
 
 @Injectable()
 export class ScoreService {
@@ -107,5 +108,35 @@ export class ScoreService {
     );
     score.scorePlayers = await this.scorePlayerService.addManyRandom(scorePlayers);
     return score;
+  }
+
+  async findScoreTable(
+    idPlatform: number,
+    idGame: number,
+    idMiniGame: number,
+    idMode: number
+  ): Promise<ScoreTableViewModel[]> {
+    const platformGameMiniGameModeStages = await this.platformGameMiniGameModeStageService.findByPlatformGameMiniGameMode(
+      idPlatform,
+      idGame,
+      idMiniGame,
+      idMode
+    );
+    const scoreMap = await this.scoreRepository.findScoreTable(idPlatform, idGame, idMiniGame, idMode);
+    const scoreTableViewModel: ScoreTableViewModel[] = [];
+    for (const [idPlayer, scores] of scoreMap) {
+      const player = scores.find(score => score)!.scorePlayers.find(scorePlayer => scorePlayer.idPlayer === idPlayer)!
+        .player;
+      const scoreTable = new ScoreTableViewModel();
+      scoreTable.idPlayer = player.id;
+      scoreTable.personaName = player.personaName;
+      const scoresMapped = this.mapperService.map(Score, ScoreViewModel, scores);
+      scoreTable.scores = platformGameMiniGameModeStages.map(platformGameMiniGameModeStage =>
+        scoresMapped.find(score => score.idPlatformGameMiniGameModeStage === platformGameMiniGameModeStage.id)
+      );
+      scoreTable.total = scoreTable.scores.reduce((acc, score) => acc + (score?.score ?? 0), 0);
+      scoreTableViewModel.push(scoreTable);
+    }
+    return scoreTableViewModel;
   }
 }
