@@ -9,6 +9,17 @@ import { FindConditions } from 'typeorm';
 export class UserService {
   constructor(private userRepository: UserRepository) {}
 
+  private _getWhereEmailOrUsername(username?: string, email?: string): FindConditions<User>[] {
+    const where: FindConditions<User>[] = [];
+    if (username) {
+      where.push({ username });
+    }
+    if (email) {
+      where.push({ email });
+    }
+    return where;
+  }
+
   async add(dto: UserAddDto): Promise<User> {
     return this.userRepository.save(new User().extendDto(dto));
   }
@@ -45,13 +56,7 @@ export class UserService {
     if (!username && !email) {
       throw new BadRequestException('Needs at least one parameter');
     }
-    const where: FindConditions<User>[] = [];
-    if (username) {
-      where.push({ username });
-    }
-    if (email) {
-      where.push({ email });
-    }
+    const where = this._getWhereEmailOrUsername(username, email);
     return this.userRepository.findOne({ where });
   }
 
@@ -59,13 +64,7 @@ export class UserService {
     if (!username && !email) {
       throw new BadRequestException('Needs at least one parameter');
     }
-    const where: FindConditions<User>[] = [];
-    if (username) {
-      where.push({ username });
-    }
-    if (email) {
-      where.push({ email });
-    }
+    const where = this._getWhereEmailOrUsername(username, email);
     return this.userRepository.exists(where);
   }
 

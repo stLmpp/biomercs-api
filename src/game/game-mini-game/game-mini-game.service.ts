@@ -15,6 +15,8 @@ export class GameMiniGameService {
   }
 
   async findIdByGameMiniGame(idGame: number, idMiniGame: number): Promise<number> {
-    return (await this.gameMiniGameRepository.findOneOrFail({ select: ['id'], where: { idGame, idMiniGame } })).id;
+    return this.gameMiniGameRepository
+      .findOneOrFail({ select: ['id'], where: { idGame, idMiniGame } })
+      .then(gameMiniGame => gameMiniGame.id);
   }
 }

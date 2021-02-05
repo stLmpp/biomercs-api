@@ -62,11 +62,11 @@ export class PlayerService {
   }
 
   async findIdByPersonaName(personaName: string): Promise<number> {
-    return (await this.playerRepository.findOneOrFail({ select: ['id'], where: { personaName } })).id;
+    return this.playerRepository.findOneOrFail({ select: ['id'], where: { personaName } }).then(player => player.id);
   }
 
   async findIdByIdUser(idUser: number): Promise<number> {
-    return (await this.playerRepository.findOneOrFail({ select: ['id'], where: { idUser } })).id;
+    return this.playerRepository.findOneOrFail({ select: ['id'], where: { idUser } }).then(player => player.id);
   }
 
   async findRandom(): Promise<Player> {

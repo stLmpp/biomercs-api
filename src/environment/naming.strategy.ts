@@ -1,6 +1,6 @@
 import { DefaultNamingStrategy, Table } from 'typeorm';
 import { RandomGenerator } from 'typeorm/util/RandomGenerator';
-import { camelCase } from '../util/util';
+import camelcase from 'camelcase';
 
 export class NamingStategy extends DefaultNamingStrategy {
   joinColumnName(relationName: string, referencedColumnName: string): string {
@@ -27,10 +27,10 @@ export class NamingStategy extends DefaultNamingStrategy {
   }
 
   joinTableColumnName(tableName: string, propertyName: string): string {
-    return camelCase(`${propertyName}_${tableName}`);
+    return camelcase(`${propertyName}_${tableName}`);
   }
 
   joinTableInverseColumnName(tableName: string, propertyName: string): string {
-    return camelCase(`${propertyName}_${tableName}`);
+    return camelcase(`${propertyName}_${tableName}`);
   }
 }

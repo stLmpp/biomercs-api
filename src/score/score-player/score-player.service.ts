@@ -37,4 +37,8 @@ export class ScorePlayerService {
   async addManyRandom(scorePlayers: ScorePlayer[]): Promise<ScorePlayer[]> {
     return this.scorePlayerRepository.save(scorePlayers);
   }
+
+  async findCountByIdScoreWithtoutCreator(idScore: number): Promise<number> {
+    return this.scorePlayerRepository.findCountByIdScoreWithtoutCreator(idScore);
+  }
 }

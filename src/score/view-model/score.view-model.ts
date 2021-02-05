@@ -42,4 +42,5 @@ export class ScoreViewModel {
   @Property() dateAchieved?: Date;
   @Property() status!: ScoreStatusEnum;
   @Property() scorePlayers!: ScorePlayerViewModel[];
+  @Property() creationDate!: Date;
 }

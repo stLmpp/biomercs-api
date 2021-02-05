@@ -3,6 +3,7 @@ import { BaseEntity } from '../shared/super/base-entity';
 import { PlatformGameMiniGameModeStage } from '../platform/platform-game-mini-game-mode-stage/platform-game-mini-game-mode-stage.entity';
 import { ScoreStatusEnum } from './score-status.enum';
 import { ScorePlayer } from './score-player/score-player.entity';
+import { Player } from '../player/player.entity';
 
 @Entity()
 export class Score extends BaseEntity {
@@ -30,4 +31,11 @@ export class Score extends BaseEntity {
 
   @OneToMany(() => ScorePlayer, scorePlayer => scorePlayer.score)
   scorePlayers!: ScorePlayer[];
+
+  @Column()
+  createdByIdPlayer!: number;
+
+  @ManyToOne(() => Player)
+  @JoinColumn({ name: 'createdByIdPlayer' })
+  createdByPlayer!: Player;
 }

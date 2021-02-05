@@ -21,7 +21,9 @@ export class RegionService {
   }
 
   async findDefaultIdRegion(): Promise<number> {
-    return (await this.regionRepository.findOneOrFail({ select: ['id'], where: { shortName: 'UNKNOWN' } })).id;
+    return this.regionRepository
+      .findOneOrFail({ select: ['id'], where: { shortName: 'UNKNOWN' } })
+      .then(region => region.id);
   }
 
   async findById(idRegion: number): Promise<Region> {

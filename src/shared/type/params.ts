@@ -24,6 +24,8 @@ export enum Params {
   uuid = 'uuid',
   username = 'username',
   action = 'action',
+  limit = 'limit',
+  page = 'page',
 }
 
 export enum HeaderParams {

@@ -43,10 +43,10 @@ export class User extends BaseEntity {
   }
 
   removePasswordAndSalt(): this {
-    if (this.hasOwnProperty('password')) {
+    if ('password' in this) {
       this.password = '';
     }
-    if (this.hasOwnProperty('salt')) {
+    if ('salt' in this) {
       this.salt = '';
     }
     return this;

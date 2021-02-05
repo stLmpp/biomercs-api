@@ -13,6 +13,7 @@ import { environment } from './environment';
 import { MysqlError } from 'mysql';
 import { isObject } from '@stlmpp/utils';
 import { EntityNotFoundError } from 'typeorm/error/EntityNotFoundError';
+import { Response } from 'express';
 
 @Catch()
 export class HandleErrorFilter extends BaseExceptionFilter {
@@ -54,7 +55,7 @@ export class HandleErrorFilter extends BaseExceptionFilter {
     if (!environment.production) {
       Logger.error(errorObj);
     }
-    applicationRef.reply(host.getArgByIndex(1), errorObj, status);
+    (host.switchToHttp().getResponse() as Response).status(status).json(errorObj);
   }
 
   handleSqlError(exception: MysqlError): HttpException {

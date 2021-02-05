@@ -6,7 +6,14 @@ import { ScoreAddDto } from './score.dto';
 import { Params } from '../shared/type/params';
 import { ScoreViewModel } from './view-model/score.view-model';
 import { Score } from './score.entity';
-import { ScoreTableViewModel } from './view-model/score-table.view-model';
+import { AuthUser } from '../auth/auth-user.decorator';
+import { User } from '../user/user.entity';
+import { ScoreTopTableViewModel } from './view-model/score-table.view-model';
+import { OptionalQueryPipe } from '../shared/pipe/optional-query.pipe';
+import { ApiAdmin } from '../auth/api-admin.decorator';
+import { ScoreApprovalViewModel } from './view-model/score-approval.view-model';
+import { ScoreApprovalAddDto } from './score-approval/score-approval.dto';
+import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.enum';
 
 @ApiAuth()
 @ApiTags('Score')
@@ -15,8 +22,8 @@ export class ScoreController {
   constructor(private scoreService: ScoreService) {}
 
   @Post()
-  async add(@Body() dto: ScoreAddDto): Promise<ScoreViewModel> {
-    return this.scoreService.add(dto);
+  async add(@Body() dto: ScoreAddDto, @AuthUser() user: User): Promise<ScoreViewModel> {
+    return this.scoreService.add(dto, user);
   }
 
   @ApiQuery({ name: 'platform', required: false })
@@ -50,6 +57,7 @@ export class ScoreController {
     );
   }
 
+  @ApiQuery({ name: Params.limit, required: false })
   @Get(
     `platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}/mode/:${Params.idMode}/score-table`
   )
@@ -57,9 +65,99 @@ export class ScoreController {
     @Param(Params.idPlatform) idPlatform: number,
     @Param(Params.idGame) idGame: number,
     @Param(Params.idMiniGame) idMiniGame: number,
-    @Param(Params.idMode) idMode: number
-  ): Promise<ScoreTableViewModel[]> {
-    return this.scoreService.findScoreTable(idPlatform, idGame, idMiniGame, idMode);
+    @Param(Params.idMode) idMode: number,
+    @Query(Params.page) page: number,
+    @Query(Params.limit, OptionalQueryPipe) limit?: number
+  ): Promise<ScoreTopTableViewModel> {
+    return this.scoreService.findScoreTable(idPlatform, idGame, idMiniGame, idMode, page, limit ?? 10);
+  }
+
+  @ApiQuery({ name: Params.idPlatform, required: false })
+  @ApiQuery({ name: Params.idGame, required: false })
+  @ApiQuery({ name: Params.idMiniGame, required: false })
+  @ApiQuery({ name: Params.idMode, required: false })
+  @ApiQuery({ name: Params.limit, required: false })
+  @ApiAdmin()
+  @Get(`approval/admin`)
+  async findApprovalListAdmin(
+    @Query(Params.idPlatform) idPlatform: number,
+    @Query(Params.page) page: number,
+    @Query(Params.idGame, OptionalQueryPipe) idGame?: number,
+    @Query(Params.idMiniGame, OptionalQueryPipe) idMiniGame?: number,
+    @Query(Params.idMode, OptionalQueryPipe) idMode?: number,
+    @Query(Params.limit, OptionalQueryPipe) limit?: number
+  ): Promise<ScoreApprovalViewModel> {
+    return this.scoreService.findApprovalListAdmin({
+      idMiniGame,
+      idMode,
+      idPlatform,
+      limit: limit ?? 10,
+      page,
+      idGame,
+    });
+  }
+
+  @ApiQuery({ name: Params.idPlatform, required: false })
+  @ApiQuery({ name: Params.idGame, required: false })
+  @ApiQuery({ name: Params.idMiniGame, required: false })
+  @ApiQuery({ name: Params.idMode, required: false })
+  @ApiQuery({ name: Params.limit, required: false })
+  @Get(`approval/player`)
+  async findApprovalListPlayer(
+    @AuthUser() user: User,
+    @Query(Params.idPlatform) idPlatform: number,
+    @Query(Params.page) page: number,
+    @Query(Params.idGame, OptionalQueryPipe) idGame?: number,
+    @Query(Params.idMiniGame, OptionalQueryPipe) idMiniGame?: number,
+    @Query(Params.idMode, OptionalQueryPipe) idMode?: number,
+    @Query(Params.limit, OptionalQueryPipe) limit?: number
+  ): Promise<ScoreApprovalViewModel> {
+    return this.scoreService.findApprovalListUser(user, {
+      idMiniGame,
+      idMode,
+      idPlatform,
+      limit: limit ?? 10,
+      page,
+      idGame,
+    });
+  }
+
+  @ApiAdmin()
+  @Post(`:${Params.idScore}/approve/admin`)
+  async approveAdmin(
+    @Param(Params.idScore) idScore: number,
+    @Body() dto: ScoreApprovalAddDto,
+    @AuthUser() user: User
+  ): Promise<void> {
+    return this.scoreService.approvalAdmin(idScore, dto, user, ScoreApprovalActionEnum.Approve);
+  }
+
+  @Post(`:${Params.idScore}/approve/player`)
+  async approvePlayer(
+    @Param(Params.idScore) idScore: number,
+    @Body() dto: ScoreApprovalAddDto,
+    @AuthUser() user: User
+  ): Promise<void> {
+    return this.scoreService.approvalPlayer(idScore, dto, user, ScoreApprovalActionEnum.Approve);
+  }
+
+  @ApiAdmin()
+  @Post(`:${Params.idScore}/reject/admin`)
+  async rejectAdmin(
+    @Param(Params.idScore) idScore: number,
+    @Body() dto: ScoreApprovalAddDto,
+    @AuthUser() user: User
+  ): Promise<void> {
+    return this.scoreService.approvalAdmin(idScore, dto, user, ScoreApprovalActionEnum.Reject);
+  }
+
+  @Post(`:${Params.idScore}/reject/player`)
+  async rejectPlayer(
+    @Param(Params.idScore) idScore: number,
+    @Body() dto: ScoreApprovalAddDto,
+    @AuthUser() user: User
+  ): Promise<void> {
+    return this.scoreService.approvalPlayer(idScore, dto, user, ScoreApprovalActionEnum.Reject);
   }
 
   @Get(`:${Params.idScore}`)

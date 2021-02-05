@@ -12,6 +12,7 @@ export function Property(): PropertyDecorator {
 }
 
 function getProperties<T>(type: Type<T>): (keyof T)[] {
+  const parent = Object.getPrototypeOf(type).constructor;
   return uniq([
     ...getMetadataArgsStorage()
       .filterColumns(type)
@@ -19,7 +20,11 @@ function getProperties<T>(type: Type<T>): (keyof T)[] {
     ...getMetadataArgsStorage()
       .filterRelations(type)
       .map(value => value.propertyName),
+    ...getMetadataArgsStorage()
+      .columns.filter(column => type.prototype instanceof (column.target as any))
+      .map(column => column.propertyName),
     ...(storeProperties.get(type) ?? []),
+    ...(storeProperties.get(parent) ?? []),
   ]) as (keyof T)[];
 }
 

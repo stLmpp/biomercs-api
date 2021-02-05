@@ -5,7 +5,7 @@ import { isArray } from '@stlmpp/utils';
 import { KeyValue } from '../shared/inteface/key-value.interface';
 import { genSalt } from 'bcryptjs';
 
-function _getEnvVar(property: string): any {
+function tryGetEnvVar(property: string): any {
   try {
     return get(property);
   } catch {
@@ -17,9 +17,9 @@ function getEnvVar(properties: string[]): { key: string; value: any }[];
 function getEnvVar(property: string): any;
 function getEnvVar(propertyOrProperties: string | string[]): any {
   if (isArray(propertyOrProperties)) {
-    return propertyOrProperties.map(key => ({ key, value: _getEnvVar(key) }));
+    return propertyOrProperties.map(key => ({ key, value: tryGetEnvVar(key) }));
   } else {
-    return _getEnvVar(propertyOrProperties);
+    return tryGetEnvVar(propertyOrProperties);
   }
 }
 
@@ -86,12 +86,10 @@ class Env {
       'DB_SYNCHRONIZE',
       'DB_CHARSET',
     ]).reduce(
-      (dbConfig, { key, value }) => {
-        return {
-          ...dbConfig,
-          [key.replace('DB_', '').toLowerCase()]: value,
-        };
-      },
+      (dbConfig, { key, value }) => ({
+        ...dbConfig,
+        [key.replace('DB_', '').toLowerCase()]: value,
+      }),
       {
         extra: {
           collate: this.get('DB_COLLATE'),
