@@ -4,7 +4,7 @@ import { IsDate as _IsDate } from 'class-validator';
 
 export function IsDate(): PropertyDecorator {
   return applyDecorators(
-    Transform(data => (data ? new Date(data) : data)),
+    Transform(({ value }) => (value ? new Date(value) : value)),
     _IsDate()
   );
 }

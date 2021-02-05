@@ -4,7 +4,7 @@ import { IsArray } from 'class-validator';
 
 export function IsArrayNumber(): PropertyDecorator {
   return applyDecorators(
-    Transform(ids => (ids?.length ? ids.map(Number) : ids)),
+    Transform(({ value }) => (value?.length ? value.map(Number) : value)),
     IsArray()
   );
 }
