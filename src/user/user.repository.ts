@@ -23,7 +23,7 @@ export class UserRepository extends Repository<User> {
 
   async findByAuthCode(code: number): Promise<User | undefined> {
     return this.createQueryBuilder('u')
-      .innerJoin('u.authConfirmations', 'ac')
+      .innerJoin('u.currentAuthConfirmation', 'ac')
       .andWhere('ac.code = :code', { code })
       .getOne();
   }

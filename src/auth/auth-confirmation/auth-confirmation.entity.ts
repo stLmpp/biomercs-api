@@ -10,10 +10,13 @@ export class AuthConfirmation extends BaseEntity {
   @Column()
   expirationDate!: Date;
 
+  @Column({ nullable: true })
+  confirmationDate?: Date;
+
   @Column()
   idUser!: number;
 
-  @ManyToOne(() => User, user => user.authConfirmations)
+  @ManyToOne(() => User)
   @JoinColumn()
   user!: User;
 }

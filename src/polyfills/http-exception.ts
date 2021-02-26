@@ -1,5 +1,5 @@
 import { HttpException } from '@nestjs/common';
-import { isObject, isArray } from '@stlmpp/utils';
+import { isObject, isArray } from 'st-utils';
 
 HttpException.createBody = (objectOrError: Record<string, any> | string, description?: string, status?: number) => {
   if (!objectOrError) {

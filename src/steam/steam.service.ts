@@ -6,7 +6,7 @@ import { SteamProfileRepository } from './steam-profile.repository';
 import { User } from '../user/user.entity';
 import { environment } from '../environment/environment';
 import { RelyingParty } from 'openid';
-import { isString } from '@stlmpp/utils';
+import { isString } from 'st-utils';
 import { PlayerService } from '../player/player.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { Player } from '../player/player.entity';
@@ -104,10 +104,6 @@ export class SteamService {
     return new RelyingParty(returnUrl, environment.apiUrl, true, true, []);
   }
 
-  async openIdUrl(returnUrl: string): Promise<string>;
-  async openIdUrl(user: User): Promise<string>;
-  async openIdUrl(player: Player): Promise<string>;
-  async openIdUrl(): Promise<string>;
   async openIdUrl(urlOrUser?: string | User | Player): Promise<string> {
     let url = '/steam/auth';
     if (urlOrUser) {

@@ -1,5 +1,5 @@
 import { FindConditions, FindOneOptions, Repository } from 'typeorm';
-import { isNumber, isString } from '@stlmpp/utils';
+import { isNumber, isString } from 'st-utils';
 
 declare module 'typeorm/repository/Repository' {
   interface Repository<Entity> {

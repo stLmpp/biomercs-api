@@ -46,6 +46,10 @@ export class UserUpdateDto {
   @IsOptional()
   @IsBoolean()
   rememberMe?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  idAuthConfirmation?: number | null;
 }
 
 export class UserGetDto {

@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { environment } from './environment';
 import { MysqlError } from 'mysql';
-import { isObject } from '@stlmpp/utils';
+import { isObject } from 'st-utils';
 import { EntityNotFoundError } from 'typeorm/error/EntityNotFoundError';
 import { Response } from 'express';
 

@@ -11,7 +11,7 @@ import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto, AuthRegiste
 import { UserAddDto } from '../user/user.dto';
 import { genSalt, hash } from 'bcryptjs';
 import { AuthRegisterViewModel, AuthSteamLoginSocketErrorType } from './auth.view-model';
-import { isNumber } from '@stlmpp/utils';
+import { isNumber } from 'st-utils';
 import { AuthConfirmationService } from './auth-confirmation/auth-confirmation.service';
 import { User } from '../user/user.entity';
 import { MailerService } from '@nestjs-modules/mailer';
@@ -35,23 +35,21 @@ export class AuthService {
     private steamService: SteamService
   ) {}
 
-  private async _sendConfirmationCodeEmail({ email, id }: User): Promise<void> {
-    const code = await this._generateConfirmationCode(id);
+  private async _sendConfirmationCodeEmail(user: User): Promise<void> {
+    const { email, id } = user;
+    const authConfirmation = await this.authConfirmationService.generateConfirmationCode(user);
+    await this.userService.update(id, { idAuthConfirmation: authConfirmation.id });
     await this.mailerService.sendMail({
       to: email,
       from: environment.get('MAIL'),
       subject: 'Biomercs - Confirmation code',
       template: 'confirmation-code',
       context: {
-        code,
+        code: authConfirmation.code,
         version: environment.appVersion,
         year: new Date().getFullYear(),
       },
     });
-  }
-
-  private async _generateConfirmationCode(idUser: number): Promise<number> {
-    return this.authConfirmationService.generateConfirmationCode(idUser);
   }
 
   private async _registerUser({ username, password, email }: AuthRegisterDto): Promise<User> {
@@ -87,7 +85,9 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    await this.authConfirmationService.invalidateLastCode(user.id);
+    if (user.idCurrentAuthConfirmation) {
+      await this.authConfirmationService.invalideCode(user.idCurrentAuthConfirmation);
+    }
     await this._sendConfirmationCodeEmail(user);
   }
 
@@ -97,26 +97,30 @@ export class AuthService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    await this.authConfirmationService.confirmCode(idUser, code);
+    if (!user.idCurrentAuthConfirmation) {
+      throw new BadRequestException('User is not waiting for confirmation');
+    }
+    await this.authConfirmationService.confirmCode(user.idCurrentAuthConfirmation, code);
     const { password, salt } = await this.userService.getPasswordAndSalt(idUser);
     user.password = password;
     user.salt = salt;
     user.token = await this.getToken(user);
     user.lastOnline = new Date();
-    await this.userService.update(idUser, { lastOnline: user.lastOnline });
+    await this.userService.update(idUser, { lastOnline: user.lastOnline, idAuthConfirmation: null });
     return user.removePasswordAndSalt();
   }
 
   @Transactional()
   async changeForgottenPassword(dto: AuthChangePasswordDto): Promise<User> {
     let user = await this.userService.findByAuthCode(dto.confirmationCode);
-    if (!user) {
+    if (!user?.idCurrentAuthConfirmation) {
       throw new BadRequestException('Confirmation code does not exists');
     }
-    await this.authConfirmationService.confirmCode(user.id, dto.confirmationCode);
+    await this.authConfirmationService.confirmCode(user.idCurrentAuthConfirmation, dto.confirmationCode);
     const { salt } = await this.userService.getPasswordAndSalt(user.id);
     const newPasswordHash = await hash(dto.password, salt);
     user = await this.userService.updatePassword(user.id, newPasswordHash);
+    await this.userService.update(user.id, { idAuthConfirmation: null });
     return this.login({ username: user.username, password: dto.password, rememberMe: true });
   }
 
@@ -141,7 +145,7 @@ export class AuthService {
       });
       return;
     }
-    if (await this.authConfirmationService.hasConfirmationPending(user.id)) {
+    if (user.idCurrentAuthConfirmation) {
       await this.resendConfirmationCode(user);
       this.authGateway.sendTokenSteam({
         uuid,
@@ -181,7 +185,7 @@ export class AuthService {
    */
   async login(dto: AuthCredentialsDto): Promise<User> {
     const user = await this.userService.validateUserToLogin(dto);
-    const hasConfirmationPending = await this.authConfirmationService.hasConfirmationPending(user.id);
+    const hasConfirmationPending = user.idCurrentAuthConfirmation;
     if (hasConfirmationPending) {
       await this.resendConfirmationCode(user);
       throw new PreconditionFailedException({ message: 'Account not confirmed', extra: user.id });

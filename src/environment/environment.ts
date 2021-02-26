@@ -1,7 +1,7 @@
 import { get } from 'config';
 import { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOptions';
 import { version } from '../../package.json';
-import { isArray } from '@stlmpp/utils';
+import { isArray } from 'st-utils';
 import { KeyValue } from '../shared/inteface/key-value.interface';
 import { genSalt } from 'bcryptjs';
 
@@ -31,7 +31,7 @@ export type Configs =
   | 'FILE_UPLOAD_PATH';
 
 class Env {
-  private _salt!: string;
+  private _salt?: string;
 
   config<T = any>(config: Configs): T {
     return getEnvVar('CONFIG_' + config);

@@ -1,4 +1,4 @@
-import { Column, Entity, OneToMany, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import { BaseEntity } from '../shared/super/base-entity';
 import { ApiHideProperty } from '@nestjs/swagger';
 import { hash } from 'bcryptjs';
@@ -35,6 +35,13 @@ export class User extends BaseEntity {
 
   @OneToMany(() => AuthConfirmation, authConfirmation => authConfirmation.user)
   authConfirmations!: AuthConfirmation[];
+
+  @Column({ nullable: true })
+  idCurrentAuthConfirmation?: number;
+
+  @OneToOne(() => AuthConfirmation)
+  @JoinColumn({ name: 'idCurrentAuthConfirmation' })
+  currentAuthConfirmation?: AuthConfirmation
 
   token?: string;
 

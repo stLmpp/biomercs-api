@@ -1,7 +1,7 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Type } from '../util/type';
 import { getMetadataArgsStorage } from 'typeorm';
-import { isArray, isFunction, uniq } from '@stlmpp/utils';
+import { isArray, isFunction, uniq } from 'st-utils';
 import { plainToClass } from 'class-transformer';
 
 export function Property(): PropertyDecorator {
