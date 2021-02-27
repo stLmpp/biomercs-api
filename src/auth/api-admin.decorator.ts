@@ -22,7 +22,7 @@ export class AdminGuard implements CanActivate {
   }
 }
 
-export function ApiAdmin(): ClassDecorator | MethodDecorator {
+export function ApiAdmin(): any {
   const decorators = environment.config('USE_AUTH')
     ? [
         UseGuards(AdminGuard),
