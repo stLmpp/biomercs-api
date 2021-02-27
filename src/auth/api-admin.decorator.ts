@@ -17,13 +17,12 @@ export class AdminGuard implements CanActivate {
     const user = getUserFromContext(context);
     if (!user?.admin) {
       throw new ForbiddenException('Access denied');
-    } else {
-      return true;
     }
+    return true;
   }
 }
 
-export function ApiAdmin(): any {
+export function ApiAdmin(): ClassDecorator | MethodDecorator {
   const decorators = environment.config('USE_AUTH')
     ? [
         UseGuards(AdminGuard),
