@@ -41,7 +41,10 @@ export class User extends BaseEntity {
 
   @OneToOne(() => AuthConfirmation)
   @JoinColumn({ name: 'idCurrentAuthConfirmation' })
-  currentAuthConfirmation?: AuthConfirmation
+  currentAuthConfirmation?: AuthConfirmation;
+
+  @Column({ default: 'dd/MM/yyyy' })
+  dateFormat!: string;
 
   token?: string;
 

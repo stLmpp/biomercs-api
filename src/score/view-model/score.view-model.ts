@@ -2,6 +2,7 @@ import { ScoreStatusEnum } from '../score-status.enum';
 import { Property } from '../../mapper/mapper.service';
 
 export class ScorePlayerViewModel {
+  @Property() idScorePlayer!: number;
   @Property() idScore!: number;
   @Property() idPlayer!: number;
   @Property() playerPersonaName!: string;

@@ -61,6 +61,10 @@ export class ScoreModule {
       .for(
         dest => dest.characterName,
         from => from.platformGameMiniGameModeCharacterCostume.characterCostume.character.name
+      )
+      .for(
+        dest => dest.idScorePlayer,
+        from => from.id
       );
 
     this.mapperService
