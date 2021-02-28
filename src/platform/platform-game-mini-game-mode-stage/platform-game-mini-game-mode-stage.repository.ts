@@ -63,6 +63,8 @@ export class PlatformGameMiniGameModeStageRepository extends Repository<Platform
     idMiniGame: number,
     idMode: number
   ): Promise<PlatformGameMiniGameModeStage[]> {
-    return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode).getMany();
+    return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode)
+      .innerJoinAndSelect('pgmms.stage', 's')
+      .getMany();
   }
 }

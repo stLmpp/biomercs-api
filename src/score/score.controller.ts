@@ -14,6 +14,8 @@ import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ScoreApprovalViewModel } from './view-model/score-approval.view-model';
 import { ScoreApprovalAddDto } from './score-approval/score-approval.dto';
 import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.enum';
+import { ApiOrderByAndDir } from '../shared/order-by/api-order-by';
+import { OrderByDirection } from 'st-utils';
 
 @ApiAuth()
 @ApiTags('Score')
@@ -77,6 +79,7 @@ export class ScoreController {
   @ApiQuery({ name: Params.idMiniGame, required: false })
   @ApiQuery({ name: Params.idMode, required: false })
   @ApiQuery({ name: Params.limit, required: false })
+  @ApiOrderByAndDir()
   @ApiAdmin()
   @Get(`approval/admin`)
   async findApprovalListAdmin(
@@ -85,7 +88,9 @@ export class ScoreController {
     @Query(Params.idGame, OptionalQueryPipe) idGame?: number,
     @Query(Params.idMiniGame, OptionalQueryPipe) idMiniGame?: number,
     @Query(Params.idMode, OptionalQueryPipe) idMode?: number,
-    @Query(Params.limit, OptionalQueryPipe) limit?: number
+    @Query(Params.limit, OptionalQueryPipe) limit?: number,
+    @Query(Params.orderBy, OptionalQueryPipe) orderBy?: string,
+    @Query(Params.orderByDirection, OptionalQueryPipe) orderByDirection?: OrderByDirection
   ): Promise<ScoreApprovalViewModel> {
     return this.scoreService.findApprovalListAdmin({
       idMiniGame,
@@ -94,6 +99,8 @@ export class ScoreController {
       limit: limit ?? 10,
       page,
       idGame,
+      orderBy: orderBy ?? 'creationDate',
+      orderByDirection: orderByDirection ?? 'desc',
     });
   }
 
@@ -102,6 +109,7 @@ export class ScoreController {
   @ApiQuery({ name: Params.idMiniGame, required: false })
   @ApiQuery({ name: Params.idMode, required: false })
   @ApiQuery({ name: Params.limit, required: false })
+  @ApiOrderByAndDir()
   @Get(`approval/player`)
   async findApprovalListPlayer(
     @AuthUser() user: User,
@@ -110,7 +118,9 @@ export class ScoreController {
     @Query(Params.idGame, OptionalQueryPipe) idGame?: number,
     @Query(Params.idMiniGame, OptionalQueryPipe) idMiniGame?: number,
     @Query(Params.idMode, OptionalQueryPipe) idMode?: number,
-    @Query(Params.limit, OptionalQueryPipe) limit?: number
+    @Query(Params.limit, OptionalQueryPipe) limit?: number,
+    @Query(Params.orderBy, OptionalQueryPipe) orderBy?: string,
+    @Query(Params.orderByDirection, OptionalQueryPipe) orderByDirection?: OrderByDirection
   ): Promise<ScoreApprovalViewModel> {
     return this.scoreService.findApprovalListUser(user, {
       idMiniGame,
@@ -119,6 +129,8 @@ export class ScoreController {
       limit: limit ?? 10,
       page,
       idGame,
+      orderBy: orderBy ?? 'creationDate',
+      orderByDirection: orderByDirection ?? 'desc',
     });
   }
 

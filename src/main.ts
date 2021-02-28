@@ -24,12 +24,6 @@ async function bootstrap(): Promise<void> {
   useContainer(app.select(ValidationModule), { fallbackOnErrors: true });
 
   app.use(helmet());
-  app.use(
-    expressRateLimit({
-      windowMs: 15 * 60 * 1000,
-      max: 100,
-    })
-  );
   app.use(compression());
   app.use(morgan('combined'));
   app.useGlobalInterceptors(
@@ -51,6 +45,13 @@ async function bootstrap(): Promise<void> {
     SwaggerModule.setup('help', app, document, {
       customCss: `.swagger-ui .scheme-container { position: sticky; top: 0; z-index: 1; margin-bottom: 0; padding: 0.25rem 0; }`,
     });
+  } else {
+    app.use(
+      expressRateLimit({
+        windowMs: 15 * 60 * 1000,
+        max: 100,
+      })
+    );
   }
 
   await app.listen(environment.port, environment.host);

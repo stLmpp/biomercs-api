@@ -1,3 +1,5 @@
+import { OrderByDirection } from 'st-utils';
+
 export interface ScoreApprovalParams {
   idPlatform?: number;
   idGame?: number;
@@ -5,4 +7,6 @@ export interface ScoreApprovalParams {
   idMode?: number;
   page: number;
   limit: number;
+  orderBy: string;
+  orderByDirection: OrderByDirection;
 }

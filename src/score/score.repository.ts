@@ -6,6 +6,7 @@ import { ScoreApprovalParams } from './score.params';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ScoreApproval } from './score-approval/score-approval.entity';
 import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.enum';
+import { OrderByDirection } from 'st-utils';
 
 const ALL_RELATIONS = [
   'platformGameMiniGameModeStage',
@@ -102,6 +103,23 @@ export class ScoreRepository extends Repository<Score> {
     ).andWhere('sp.idPlayer = :idPlayer', { idPlayer });
   }
 
+  private _resolveOrderByApproval(orderBy: string): string {
+    switch (orderBy) {
+      case 'game':
+        return 'g.shortName';
+      case 'miniGame':
+        return 'mg.name';
+      case 'mode':
+        return 'm.name';
+      case 'score':
+        return 'score.score';
+      case 'dateAchieved':
+        return 'score.dateAchieved';
+      default:
+        return 'score.creationDate';
+    }
+  }
+
   async findByIdWithAllRelations(idScore: number): Promise<Score> {
     return this.findOneOrFail(idScore, { relations: ALL_RELATIONS });
   }
@@ -153,10 +171,12 @@ export class ScoreRepository extends Repository<Score> {
               )
                 .addSelect('pgmms.id', 'id')
                 .addSelect('max(s.score)', 'maxScore')
+                .andWhere('s.status = :status', { status: ScoreStatusEnum.Approved })
                 .addGroupBy('id'),
             't',
             '(t.id = score.idPlatformGameMiniGameModeStage and t.maxScore = score.score)'
           )
+          .andWhere('score.status = :status', { status: ScoreStatusEnum.Approved })
           .getMany()
       );
     }
@@ -170,6 +190,8 @@ export class ScoreRepository extends Repository<Score> {
     idGame,
     limit,
     page,
+    orderBy,
+    orderByDirection,
   }: ScoreApprovalParams): Promise<Pagination<Score>> {
     return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode)
       .andWhere('score.status = :status', { status: ScoreStatusEnum.AwaitingApprovalAdmin })
@@ -179,13 +201,13 @@ export class ScoreRepository extends Repository<Score> {
           .andWhere('sa.idScore = score.id')
           .andWhere('sa.action != :action', { action: ScoreApprovalActionEnum.Approve })
       )
-      .orderBy('score.creationDate', 'DESC')
+      .orderBy(this._resolveOrderByApproval(orderBy), orderByDirection.toUpperCase() as Uppercase<OrderByDirection>)
       .paginate(page, limit);
   }
 
   async findApprovalListUser(
     idPlayer: number,
-    { idMiniGame, idPlatform, idMode, idGame, limit, page }: ScoreApprovalParams
+    { idMiniGame, idPlatform, idMode, idGame, limit, page, orderBy, orderByDirection }: ScoreApprovalParams
   ): Promise<Pagination<Score>> {
     return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode)
       .andWhere('score.status = :status', { status: ScoreStatusEnum.AwaitingApprovalPlayer })
@@ -197,7 +219,7 @@ export class ScoreRepository extends Repository<Score> {
           .andWhere('sa.actionByPlayer = :actionByPlayer', { actionByPlayer: idPlayer })
           .andWhere('sa.action != :action', { action: ScoreApprovalActionEnum.Approve })
       )
-      .orderBy('score.creationDate', 'DESC')
+      .orderBy(this._resolveOrderByApproval(orderBy), orderByDirection.toUpperCase() as Uppercase<OrderByDirection>)
       .paginate(page, limit);
   }
 }
