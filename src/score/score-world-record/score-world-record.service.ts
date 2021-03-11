@@ -9,13 +9,15 @@ import { ScoreService } from '../score.service';
 import { ScoreWorldRecordTypeEnum } from './score-world-record-type.enum';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { IsNull } from 'typeorm';
+import { ModeService } from '../../mode/mode.service';
 
 @Injectable()
 export class ScoreWorldRecordService {
   constructor(
     private scoreWorldRecordRepository: ScoreWorldRecordRepository,
     private scoreWorldRecordScheduleService: ScoreWorldRecordScheduleService,
-    @Inject(forwardRef(() => ScoreService)) private scoreService: ScoreService
+    @Inject(forwardRef(() => ScoreService)) private scoreService: ScoreService,
+    private modeService: ModeService
   ) {
     this._init().then();
   }
@@ -83,25 +85,29 @@ export class ScoreWorldRecordService {
         });
       }
     }
-    const maxScoreCombination = await this.scoreService.findTopCombinationScoreByIdPlatformGameMiniGameModeStageAndCharacterCostumes(
-      idPlatformGameMiniGameModeStage,
-      idPlatformGameMiniGameModeCharacterCostumes,
-      fromDate
-    );
-    if (maxScoreCombination) {
-      await this.scoreWorldRecordRepository.updateEndDateCombinationWordRecordByIdPlatformGameMiniGameModeStageAndCharacterCostumes(
+    const mode = await this.modeService.findByIdPlatformGameMiniGameModeStage(idPlatformGameMiniGameModeStage);
+    const playerQuantity = mode?.playerQuantity ?? 0;
+    if (playerQuantity > 1) {
+      const maxScoreCombination = await this.scoreService.findTopCombinationScoreByIdPlatformGameMiniGameModeStageAndCharacterCostumes(
         idPlatformGameMiniGameModeStage,
         idPlatformGameMiniGameModeCharacterCostumes,
         fromDate
       );
-      await this.scoreWorldRecordRepository.save({
-        idScore: maxScoreCombination.id,
-        idPlatformGameMiniGameModeStage: maxScoreCombination.idPlatformGameMiniGameModeStage,
-        type: ScoreWorldRecordTypeEnum.CombinationWorldRecord,
-        scoreWorldRecordCharacters: idPlatformGameMiniGameModeCharacterCostumes.map(
-          idPlatformGameMiniGameModeCharacterCostume => ({ idPlatformGameMiniGameModeCharacterCostume })
-        ),
-      });
+      if (maxScoreCombination) {
+        await this.scoreWorldRecordRepository.updateEndDateCombinationWordRecordByIdPlatformGameMiniGameModeStageAndCharacterCostumes(
+          idPlatformGameMiniGameModeStage,
+          idPlatformGameMiniGameModeCharacterCostumes,
+          fromDate
+        );
+        await this.scoreWorldRecordRepository.save({
+          idScore: maxScoreCombination.id,
+          idPlatformGameMiniGameModeStage: maxScoreCombination.idPlatformGameMiniGameModeStage,
+          type: ScoreWorldRecordTypeEnum.CombinationWorldRecord,
+          scoreWorldRecordCharacters: idPlatformGameMiniGameModeCharacterCostumes.map(
+            idPlatformGameMiniGameModeCharacterCostume => ({ idPlatformGameMiniGameModeCharacterCostume })
+          ),
+        });
+      }
     }
   }
 

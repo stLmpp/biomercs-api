@@ -13,4 +13,14 @@ export class ModeRepository extends Repository<Mode> {
       .andWhere('gm.idMiniGame = :idMiniGame', { idMiniGame })
       .getMany();
   }
+
+  async findByIdPlatformGameMiniGameModeStage(idPlatformGameMiniGameModeStage: number): Promise<Mode | undefined> {
+    return this.createQueryBuilder('m')
+      .innerJoin('m.platformGameMiniGameModes', 'pgmgm')
+      .innerJoin('pgmgm.platformGameMiniGameModeStages', 'pgmgms')
+      .andWhere('pgmgms.id = :idPlatformGameMiniGameModeStage', {
+        idPlatformGameMiniGameModeStage,
+      })
+      .getOneOrFail();
+  }
 }

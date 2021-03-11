@@ -23,4 +23,8 @@ export class ModeService {
   async findByIdPlatformGameMiniGame(idPlatform: number, idGame: number, idMiniGame: number): Promise<Mode[]> {
     return this.modeRepository.findByIdPlatformGameMiniGame(idPlatform, idGame, idMiniGame);
   }
+
+  async findByIdPlatformGameMiniGameModeStage(idPlatformGameMiniGameModeStage: number): Promise<Mode | undefined> {
+    return this.modeRepository.findByIdPlatformGameMiniGameModeStage(idPlatformGameMiniGameModeStage);
+  }
 }
