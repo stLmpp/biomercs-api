@@ -35,7 +35,8 @@ export class ScoreRepository extends Repository<Score> {
     idPlatform?: number,
     idGame?: number,
     idMiniGame?: number,
-    idMode?: number
+    idMode?: number,
+    idStage?: number
   ): SelectQueryBuilder<Score> {
     const queryBuilder = this.createQueryBuilder('score')
       .innerJoinAndSelect('score.platformGameMiniGameModeStage', 'pgmms')
@@ -63,6 +64,9 @@ export class ScoreRepository extends Repository<Score> {
     }
     if (idMode) {
       queryBuilder.andWhere('m.id = :idMode', { idMode });
+    }
+    if (idStage) {
+      queryBuilder.andWhere('s.id = :idStage', { idStage });
     }
     return queryBuilder;
   }
@@ -111,13 +115,19 @@ export class ScoreRepository extends Repository<Score> {
         return 'mg.name';
       case 'mode':
         return 'm.name';
+      case 'stage':
+        return 's.shortName';
       case 'score':
         return 'score.score';
-      case 'dateAchieved':
-        return 'score.dateAchieved';
       default:
         return 'score.creationDate';
     }
+  }
+
+  private _includeScoreWorldRecord(alias: string, queryBuilder: SelectQueryBuilder<Score>): SelectQueryBuilder<Score> {
+    return queryBuilder
+      .leftJoinAndSelect(`${alias}.scoreWorldRecords`, 'swr', 'swr.endDate is null')
+      .leftJoinAndSelect('swr.scoreWorldRecordCharacters', 'swrc');
   }
 
   async findByIdWithAllRelations(idScore: number): Promise<Score> {
@@ -156,29 +166,19 @@ export class ScoreRepository extends Repository<Score> {
     const idsPlayers = items.map(row => row.idPlayer);
     const map = new Map<number, Score[]>();
     for (const idPlayer of idsPlayers) {
-      map.set(
-        idPlayer,
-        await this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode)
-          .innerJoin(
-            subQuery =>
-              this._createQueryBuilderPlayer(
-                idPlatform,
-                idGame,
-                idMiniGame,
-                idMode,
-                idPlayer,
-                subQuery.from(Score, 's')
-              )
-                .addSelect('pgmms.id', 'id')
-                .addSelect('max(s.score)', 'maxScore')
-                .andWhere('s.status = :status', { status: ScoreStatusEnum.Approved })
-                .addGroupBy('id'),
-            't',
-            '(t.id = score.idPlatformGameMiniGameModeStage and t.maxScore = score.score)'
-          )
-          .andWhere('score.status = :status', { status: ScoreStatusEnum.Approved })
-          .getMany()
-      );
+      const qb = this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode)
+        .innerJoin(
+          subQuery =>
+            this._createQueryBuilderPlayer(idPlatform, idGame, idMiniGame, idMode, idPlayer, subQuery.from(Score, 's'))
+              .addSelect('pgmms.id', 'id')
+              .addSelect('max(s.score)', 'maxScore')
+              .andWhere('s.status = :status', { status: ScoreStatusEnum.Approved })
+              .addGroupBy('id'),
+          't',
+          '(t.id = score.idPlatformGameMiniGameModeStage and t.maxScore = score.score)'
+        )
+        .andWhere('score.status = :status', { status: ScoreStatusEnum.Approved });
+      map.set(idPlayer, await this._includeScoreWorldRecord('score', qb).getMany());
     }
     return [map, meta];
   }
@@ -192,8 +192,9 @@ export class ScoreRepository extends Repository<Score> {
     page,
     orderBy,
     orderByDirection,
+    idStage,
   }: ScoreApprovalParams): Promise<Pagination<Score>> {
-    return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode)
+    return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode, idStage)
       .andWhere('score.status = :status', { status: ScoreStatusEnum.AwaitingApprovalAdmin })
       .andNotExists(sb =>
         sb
@@ -207,9 +208,9 @@ export class ScoreRepository extends Repository<Score> {
 
   async findApprovalListUser(
     idPlayer: number,
-    { idMiniGame, idPlatform, idMode, idGame, limit, page, orderBy, orderByDirection }: ScoreApprovalParams
+    { idMiniGame, idPlatform, idMode, idGame, limit, page, orderBy, orderByDirection, idStage }: ScoreApprovalParams
   ): Promise<Pagination<Score>> {
-    return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode)
+    return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode, idStage)
       .andWhere('score.status = :status', { status: ScoreStatusEnum.AwaitingApprovalPlayer })
       .andWhere('(score.createdByIdPlayer != :createdBy && sp.idPlayer = :idPlayer)', { createdBy: idPlayer, idPlayer })
       .andNotExists(sb =>
@@ -221,5 +222,123 @@ export class ScoreRepository extends Repository<Score> {
       )
       .orderBy(this._resolveOrderByApproval(orderBy), orderByDirection.toUpperCase() as Uppercase<OrderByDirection>)
       .paginate(page, limit);
+  }
+
+  async findTopScoreByIdPlatformGameMiniGameModeStage(
+    idPlatformGameMiniGameModeStage: number,
+    fromDate: Date
+  ): Promise<Score | undefined> {
+    return this.createQueryBuilder('score')
+      .andWhere('score.status = :status', { status: ScoreStatusEnum.Approved })
+      .andWhere('score.idPlatformGameMiniGameModeStage = :idPlatformGameMiniGameModeStage', {
+        idPlatformGameMiniGameModeStage,
+      })
+      .andWhere('score.approvalDate >= :fromDate', { fromDate })
+      .andWhere(
+        sb =>
+          `${sb
+            .subQuery()
+            .from(Score, 's')
+            .andWhere('s.status = :status', { status: ScoreStatusEnum.Approved })
+            .andWhere('s.idPlatformGameMiniGameModeStage = :idPlatformGameMiniGameModeStage', {
+              idPlatformGameMiniGameModeStage,
+            })
+            .andWhere('s.approvalDate >= :fromDate', { fromDate })
+            .select('max(s.score)', 'max_score')
+            .getQuery()} = score.score`
+      )
+      .getOne();
+  }
+
+  async findTopScoreByIdPlatformGameMiniGameModeStageAndCharacterCostume(
+    idPlatformGameMiniGameModeStage: number,
+    idPlatformGameMiniGameModeCharacterCostume: number,
+    fromDate: Date
+  ): Promise<Score | undefined> {
+    return this.createQueryBuilder('score')
+      .innerJoin('score.scorePlayers', 'scorePlayer')
+      .andWhere(
+        'scorePlayer.idPlatformGameMiniGameModeCharacterCostume = :idPlatformGameMiniGameModeCharacterCostume',
+        { idPlatformGameMiniGameModeCharacterCostume }
+      )
+      .andWhere('score.status = :status', { status: ScoreStatusEnum.Approved })
+      .andWhere('score.idPlatformGameMiniGameModeStage = :idPlatformGameMiniGameModeStage', {
+        idPlatformGameMiniGameModeStage,
+      })
+      .andWhere('score.approvalDate >= :fromDate', { fromDate })
+      .andWhere(
+        sb =>
+          `${sb
+            .subQuery()
+            .from(Score, 's')
+            .innerJoin('s.scorePlayers', 'sp')
+            .andWhere('sp.idPlatformGameMiniGameModeCharacterCostume = :idPlatformGameMiniGameModeCharacterCostume', {
+              idPlatformGameMiniGameModeCharacterCostume,
+            })
+            .andWhere('s.status = :status', { status: ScoreStatusEnum.Approved })
+            .andWhere('s.idPlatformGameMiniGameModeStage = :idPlatformGameMiniGameModeStage', {
+              idPlatformGameMiniGameModeStage,
+            })
+            .andWhere('s.approvalDate >= :fromDate', { fromDate })
+            .select('max(s.score)', 'max_score')
+            .getQuery()} = score.score`
+      )
+      .getOne();
+  }
+
+  queryDifferentCharacters(
+    qb: SelectQueryBuilder<Score>,
+    idPlatformGameMiniGameModeCharacterCostumes: number[],
+    alias: string
+  ): SelectQueryBuilder<Score> {
+    const len = idPlatformGameMiniGameModeCharacterCostumes.length;
+    for (let i = 0; i < len; i++) {
+      const idPlatformGameMiniGameModeCharacterCostume = idPlatformGameMiniGameModeCharacterCostumes[i];
+      const tableAlias = `${alias}sp${i}`;
+      const columnAlias = `${alias}${tableAlias}idPlatformGameMiniGameModeCharacterCostume`;
+      qb.innerJoin(`${alias}.scorePlayers`, tableAlias).andWhere(
+        `${tableAlias}.idPlatformGameMiniGameModeCharacterCostume = :${columnAlias}`,
+        {
+          [columnAlias]: idPlatformGameMiniGameModeCharacterCostume,
+        }
+      );
+      for (let j = 0; j < len; j++) {
+        if (i !== j) {
+          const tableAlias2 = `${alias}sp${j}`;
+          qb.andWhere(`${tableAlias2}.id != ${tableAlias}.id`);
+        }
+      }
+    }
+    return qb;
+  }
+
+  async findTopCombinationScoreByIdPlatformGameMiniGameModeStageAndCharacterCostumes(
+    idPlatformGameMiniGameModeStage: number,
+    idPlatformGameMiniGameModeCharacterCostumes: number[],
+    fromDate: Date
+  ): Promise<Score | undefined> {
+    const qb = this.createQueryBuilder('score')
+      .andWhere('score.status = :status', { status: ScoreStatusEnum.Approved })
+      .andWhere('score.idPlatformGameMiniGameModeStage = :idPlatformGameMiniGameModeStage', {
+        idPlatformGameMiniGameModeStage,
+      })
+      .andWhere('score.approvalDate >= :fromDate', { fromDate })
+      .andWhere(sb => {
+        const subQuery = sb
+          .subQuery()
+          .from(Score, 's')
+          .andWhere('s.status = :status', { status: ScoreStatusEnum.Approved })
+          .andWhere('s.idPlatformGameMiniGameModeStage = :idPlatformGameMiniGameModeStage', {
+            idPlatformGameMiniGameModeStage,
+          })
+          .andWhere('s.approvalDate >= :fromDate', { fromDate })
+          .select('max(s.score)', 'max_score');
+        return `${this.queryDifferentCharacters(
+          subQuery,
+          idPlatformGameMiniGameModeCharacterCostumes,
+          's'
+        ).getQuery()} = score.score`;
+      });
+    return this.queryDifferentCharacters(qb, idPlatformGameMiniGameModeCharacterCostumes, 'score').getOne();
   }
 }

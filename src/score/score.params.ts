@@ -9,4 +9,5 @@ export interface ScoreApprovalParams {
   limit: number;
   orderBy: string;
   orderByDirection: OrderByDirection;
+  idStage?: number;
 }

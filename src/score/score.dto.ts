@@ -1,6 +1,5 @@
-import { IsArray, IsDefined, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
+import { IsArray, IsDefined, IsNotEmpty, IsString, MaxLength, ValidateNested } from 'class-validator';
 import { IsNumber } from '../validation/is-number';
-import { IsDate } from '../validation/is-date';
 import { ScorePlayerAddDto } from './score-player/score-player.dto';
 import { Type } from 'class-transformer';
 
@@ -38,10 +37,6 @@ export class ScoreAddDto {
   @IsNotEmpty()
   @MaxLength(8)
   time!: string;
-
-  @IsOptional()
-  @IsDate()
-  dateAchieved?: Date;
 
   @IsDefined()
   @IsArray()

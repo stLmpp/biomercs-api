@@ -4,7 +4,7 @@ import { Score } from '../score.entity';
 import { Player } from '../../player/player.entity';
 import { PlatformGameMiniGameModeCharacterCostume } from '../../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.entity';
 
-@Entity()
+@Entity({ orderBy: { host: 'DESC', id: 'ASC' } })
 export class ScorePlayer extends BaseEntity {
   @Column()
   idScore!: number;

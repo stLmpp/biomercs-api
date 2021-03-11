@@ -4,6 +4,7 @@ import { PlatformGameMiniGameModeStage } from '../platform/platform-game-mini-ga
 import { ScoreStatusEnum } from './score-status.enum';
 import { ScorePlayer } from './score-player/score-player.entity';
 import { Player } from '../player/player.entity';
+import { ScoreWorldRecord } from './score-world-record/score-world-record.entity';
 
 @Entity()
 export class Score extends BaseEntity {
@@ -23,9 +24,6 @@ export class Score extends BaseEntity {
   @Column({ length: 8 })
   time!: string;
 
-  @Column({ nullable: true })
-  dateAchieved?: Date;
-
   @Column({ type: 'enum', enum: ScoreStatusEnum })
   status!: ScoreStatusEnum;
 
@@ -38,4 +36,10 @@ export class Score extends BaseEntity {
   @ManyToOne(() => Player)
   @JoinColumn({ name: 'createdByIdPlayer' })
   createdByPlayer!: Player;
+
+  @OneToMany(() => ScoreWorldRecord, scoreWorldRecord => scoreWorldRecord.score)
+  scoreWorldRecords!: ScoreWorldRecord[];
+
+  @Column({ nullable: true })
+  approvalDate?: Date;
 }

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ScoreRepository } from './score.repository';
 import { ScoreAddDto } from './score.dto';
 import { Score } from './score.entity';
@@ -22,6 +22,9 @@ import { ScoreApprovalViewModel } from './view-model/score-approval.view-model';
 import { ScoreApprovalAddDto } from './score-approval/score-approval.dto';
 import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.enum';
 import { Stage } from '../stage/stage.entity';
+import { ScoreWorldRecordService } from './score-world-record/score-world-record.service';
+import { orderBy } from 'st-utils';
+import { addSeconds } from 'date-fns';
 
 @Injectable()
 export class ScoreService {
@@ -33,7 +36,8 @@ export class ScoreService {
     private mapperService: MapperService,
     private playerService: PlayerService,
     private platformGameMiniGameModeCharacterCostumeService: PlatformGameMiniGameModeCharacterCostumeService,
-    private scoreApprovalService: ScoreApprovalService
+    private scoreApprovalService: ScoreApprovalService,
+    @Inject(forwardRef(() => ScoreWorldRecordService)) private scoreWorldRecordService: ScoreWorldRecordService
   ) {}
 
   @Transactional()
@@ -80,7 +84,7 @@ export class ScoreService {
     user: User,
     action: ScoreApprovalActionEnum
   ): Promise<void> {
-    const score = await this.scoreRepository.findOneOrFail(idScore);
+    const score = await this.scoreRepository.findOneOrFail(idScore, { relations: ['scorePlayers'] });
     if (![ScoreStatusEnum.AwaitingApprovalAdmin, ScoreStatusEnum.RejectedByAdmin].includes(score.status)) {
       throw new BadRequestException(`Score is not awaiting for Admin approval`);
     }
@@ -88,6 +92,14 @@ export class ScoreService {
       this.scoreApprovalService.addAdmin({ ...dto, idUser: user.id, action, actionDate: new Date(), idScore }),
       this.scoreRepository.update(idScore, {
         status: action === ScoreApprovalActionEnum.Approve ? ScoreStatusEnum.Approved : ScoreStatusEnum.RejectedByAdmin,
+        approvalDate: new Date(),
+      }),
+      this.scoreWorldRecordService.scheduleWorldRecordSearch({
+        idPlatformGameMiniGameModeStage: score.idPlatformGameMiniGameModeStage,
+        fromDate: addSeconds(score.creationDate, -5),
+        idPlatformGameMiniGameModeCharacterCostumes: orderBy(
+          score.scorePlayers.map(scorePlayer => scorePlayer.idPlatformGameMiniGameModeCharacterCostume)
+        ),
       }),
     ]);
   }
@@ -135,7 +147,6 @@ export class ScoreService {
     const platformGameMiniGameModeStage = await this.platformGameMiniGameModeStageService.findRandom(options);
     const score = new Score();
     score.score = random(700_000, 1_500_000);
-    score.dateAchieved = new Date(+new Date() - Math.floor(Math.random() * 10000000000));
     score.status = ScoreStatusEnum.AwaitingApprovalAdmin;
     score.idPlatformGameMiniGameModeStage = platformGameMiniGameModeStage.id;
     score.maxCombo = random(100, 150);
@@ -182,6 +193,7 @@ export class ScoreService {
       this.platformGameMiniGameModeStageService.findByPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode),
       this.scoreRepository.findScoreTable(idPlatform, idGame, idMiniGame, idMode, page, limit),
     ]);
+
     const scoreTableViewModel: ScoreTableViewModel[] = [];
     let position = (page - 1) * limit + 1;
     for (const [idPlayer, scores] of scoreMap) {
@@ -226,5 +238,39 @@ export class ScoreService {
     scoreApprovalVW.meta = meta;
     scoreApprovalVW.scores = this.mapperService.map(Score, ScoreViewModel, items);
     return scoreApprovalVW;
+  }
+
+  async findTopScoreByIdPlatformGameMiniGameModeStage(
+    idPlatformGameMiniGameModeStage: number,
+    fromDate: Date
+  ): Promise<Score | undefined> {
+    return this.scoreRepository.findTopScoreByIdPlatformGameMiniGameModeStage(
+      idPlatformGameMiniGameModeStage,
+      fromDate
+    );
+  }
+
+  async findTopScoreByIdPlatformGameMiniGameModeStageAndCharacterCostume(
+    idPlatformGameMiniGameModeStage: number,
+    idPlatformGameMiniGameModeCharacterCostume: number,
+    fromDate: Date
+  ): Promise<Score | undefined> {
+    return this.scoreRepository.findTopScoreByIdPlatformGameMiniGameModeStageAndCharacterCostume(
+      idPlatformGameMiniGameModeStage,
+      idPlatformGameMiniGameModeCharacterCostume,
+      fromDate
+    );
+  }
+
+  async findTopCombinationScoreByIdPlatformGameMiniGameModeStageAndCharacterCostumes(
+    idPlatformGameMiniGameModeStage: number,
+    idPlatformGameMiniGameModeCharacterCostumes: number[],
+    fromDate: Date
+  ): Promise<Score | undefined> {
+    return this.scoreRepository.findTopCombinationScoreByIdPlatformGameMiniGameModeStageAndCharacterCostumes(
+      idPlatformGameMiniGameModeStage,
+      idPlatformGameMiniGameModeCharacterCostumes,
+      fromDate
+    );
   }
 }

@@ -79,6 +79,7 @@ export class ScoreController {
   @ApiQuery({ name: Params.idMiniGame, required: false })
   @ApiQuery({ name: Params.idMode, required: false })
   @ApiQuery({ name: Params.limit, required: false })
+  @ApiQuery({ name: Params.idStage, required: false })
   @ApiOrderByAndDir()
   @ApiAdmin()
   @Get(`approval/admin`)
@@ -88,6 +89,7 @@ export class ScoreController {
     @Query(Params.idGame, OptionalQueryPipe) idGame?: number,
     @Query(Params.idMiniGame, OptionalQueryPipe) idMiniGame?: number,
     @Query(Params.idMode, OptionalQueryPipe) idMode?: number,
+    @Query(Params.idStage, OptionalQueryPipe) idStage?: number,
     @Query(Params.limit, OptionalQueryPipe) limit?: number,
     @Query(Params.orderBy, OptionalQueryPipe) orderBy?: string,
     @Query(Params.orderByDirection, OptionalQueryPipe) orderByDirection?: OrderByDirection
@@ -101,6 +103,7 @@ export class ScoreController {
       idGame,
       orderBy: orderBy ?? 'creationDate',
       orderByDirection: orderByDirection ?? 'desc',
+      idStage,
     });
   }
 
@@ -109,6 +112,7 @@ export class ScoreController {
   @ApiQuery({ name: Params.idMiniGame, required: false })
   @ApiQuery({ name: Params.idMode, required: false })
   @ApiQuery({ name: Params.limit, required: false })
+  @ApiQuery({ name: Params.idStage, required: false })
   @ApiOrderByAndDir()
   @Get(`approval/player`)
   async findApprovalListPlayer(
@@ -118,6 +122,7 @@ export class ScoreController {
     @Query(Params.idGame, OptionalQueryPipe) idGame?: number,
     @Query(Params.idMiniGame, OptionalQueryPipe) idMiniGame?: number,
     @Query(Params.idMode, OptionalQueryPipe) idMode?: number,
+    @Query(Params.idStage, OptionalQueryPipe) idStage?: number,
     @Query(Params.limit, OptionalQueryPipe) limit?: number,
     @Query(Params.orderBy, OptionalQueryPipe) orderBy?: string,
     @Query(Params.orderByDirection, OptionalQueryPipe) orderByDirection?: OrderByDirection
@@ -131,6 +136,7 @@ export class ScoreController {
       idGame,
       orderBy: orderBy ?? 'creationDate',
       orderByDirection: orderByDirection ?? 'desc',
+      idStage,
     });
   }
 

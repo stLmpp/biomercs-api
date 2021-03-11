@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { ScoreService } from './score.service';
 import { ScoreController } from './score.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -16,6 +16,9 @@ import { ScorePlayer } from './score-player/score-player.entity';
 import { PlatformGameMiniGameModeCharacterCostumeModule } from '../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.module';
 import { PlayerModule } from '../player/player.module';
 import { StageModule } from '../stage/stage.module';
+import { ScoreWorldRecordModule } from './score-world-record/score-world-record.module';
+import { ScoreWorldRecordScheduleModule } from './score-world-record-schedule/score-world-record-schedule.module';
+import { ScoreWorldRecordTypeEnum } from './score-world-record/score-world-record-type.enum';
 
 @Module({
   imports: [
@@ -29,10 +32,12 @@ import { StageModule } from '../stage/stage.module';
     PlatformGameMiniGameModeCharacterCostumeModule,
     PlayerModule,
     StageModule,
+    forwardRef(() => ScoreWorldRecordModule),
+    ScoreWorldRecordScheduleModule,
   ],
   providers: [ScoreService],
   controllers: [ScoreController],
-  exports: [ScoreService, ScorePlayerModule, ScoreApprovalModule, ScoreApprovalMotiveModule],
+  exports: [ScoreService, ScorePlayerModule, ScoreApprovalModule, ScoreApprovalMotiveModule, ScoreWorldRecordModule],
 })
 export class ScoreModule {
   constructor(private mapperService: MapperService) {
@@ -141,7 +146,40 @@ export class ScoreModule {
       )
       .for(
         dest => dest.scorePlayers,
-        from => this.mapperService.map(ScorePlayer, ScorePlayerViewModel, from.scorePlayers)
+        from =>
+          this.mapperService.map(ScorePlayer, ScorePlayerViewModel, from.scorePlayers).map(scorePlayer => {
+            scorePlayer.isCharacterWorldRecord = (from.scoreWorldRecords ?? []).some(
+              scoreWorldRecord =>
+                scoreWorldRecord.type === ScoreWorldRecordTypeEnum.CharacterWorldRecord &&
+                scoreWorldRecord.scoreWorldRecordCharacters.some(
+                  scoreWorldRecordCharacter =>
+                    scoreWorldRecordCharacter.idPlatformGameMiniGameModeCharacterCostume ===
+                    scorePlayer.idPlatformGameMiniGameModeCharacterCostume
+                )
+            );
+            return scorePlayer;
+          })
+      )
+      .for(
+        dest => dest.isWorldRecord,
+        from =>
+          (from.scoreWorldRecords ?? []).some(
+            scoreWorldRecord => scoreWorldRecord.type === ScoreWorldRecordTypeEnum.WorldRecord
+          )
+      )
+      .for(
+        dest => dest.isCharacterWorldRecord,
+        from =>
+          (from.scoreWorldRecords ?? []).some(
+            scoreWorldRecord => scoreWorldRecord.type === ScoreWorldRecordTypeEnum.CharacterWorldRecord
+          )
+      )
+      .for(
+        dest => dest.isCombinationWorldRecord,
+        from =>
+          (from.scoreWorldRecords ?? []).some(
+            scoreWorldRecord => scoreWorldRecord.type === ScoreWorldRecordTypeEnum.CombinationWorldRecord
+          )
       );
   }
 }

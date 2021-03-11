@@ -7,6 +7,7 @@ export class ScorePlayerViewModel {
   @Property() idPlayer!: number;
   @Property() playerPersonaName!: string;
   @Property() idPlatformGameMiniGameModeCharacterCostume!: number;
+  @Property() isCharacterWorldRecord!: boolean;
   @Property() idCharacterCostume!: number;
   @Property() characterCostumeName!: string;
   @Property() characterCostumeShortName!: string;
@@ -40,8 +41,11 @@ export class ScoreViewModel {
   @Property() score!: number;
   @Property() maxCombo!: number;
   @Property() time!: string;
-  @Property() dateAchieved?: Date;
+  @Property() approvalDate?: Date;
   @Property() status!: ScoreStatusEnum;
   @Property() scorePlayers!: ScorePlayerViewModel[];
   @Property() creationDate!: Date;
+  @Property() isWorldRecord!: boolean;
+  @Property() isCharacterWorldRecord!: boolean;
+  @Property() isCombinationWorldRecord!: boolean;
 }
