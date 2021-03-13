@@ -25,6 +25,7 @@ import { CharacterModule } from './character/character.module';
 import { PlatformModule } from './platform/platform.module';
 import { ScoreModule } from './score/score.module';
 import { MapperModule } from './mapper/mapper.module';
+import { UrlMetadataModule } from './url-metadata/url-metadata.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { MapperModule } from './mapper/mapper.module';
     PlatformModule,
     ScoreModule,
     MapperModule,
+    UrlMetadataModule,
   ],
   controllers: [AppController],
   providers: [

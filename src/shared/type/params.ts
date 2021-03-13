@@ -26,6 +26,7 @@ export enum Params {
   action = 'action',
   limit = 'limit',
   page = 'page',
+  url = 'url',
 }
 
 export enum HeaderParams {

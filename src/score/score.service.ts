@@ -166,7 +166,7 @@ export class ScoreService {
           const scorePlayer = new ScorePlayer();
           scorePlayer.bulletKills = random(0, 15);
           scorePlayer.description = '';
-          scorePlayer.evidence = 'TESTE';
+          scorePlayer.evidence = 'www.google.com';
           scorePlayer.idPlayer = player.id;
           scorePlayer.host = !index;
           scorePlayer.idPlatformGameMiniGameModeCharacterCostume = platformGameMiniGameModeCharacterCostume.id;
