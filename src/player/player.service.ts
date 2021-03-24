@@ -4,7 +4,7 @@ import { Player } from './player.entity';
 import { PlayerAddDto, PlayerUpdateDto } from './player.dto';
 import { SteamService } from '../steam/steam.service';
 import { RegionService } from '../region/region.service';
-import { LikeUppercase } from '../util/find-operator';
+import { LikeUppercase, NotOrNull } from '../util/find-operator';
 
 @Injectable()
 export class PlayerService {
@@ -78,7 +78,9 @@ export class PlayerService {
     return this.playerRepository.createQueryBuilder('p').orderBy('rand()').getOneOrFail();
   }
 
-  async findBySearch(personaName: string): Promise<Player[]> {
-    return this.playerRepository.find({ where: { personaName: LikeUppercase(personaName) } });
+  async findBySearch(personaName: string, idUser: number): Promise<Player[]> {
+    return this.playerRepository.find({
+      where: { personaName: LikeUppercase(`%${personaName}%`), idUser: NotOrNull(idUser) },
+    });
   }
 }

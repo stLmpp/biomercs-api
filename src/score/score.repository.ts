@@ -7,6 +7,7 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { ScoreApproval } from './score-approval/score-approval.entity';
 import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.enum';
 import { OrderByDirection } from 'st-utils';
+import { ScorePlayer } from './score-player/score-player.entity';
 
 const ALL_RELATIONS = [
   'platformGameMiniGameModeStage',
@@ -212,7 +213,13 @@ export class ScoreRepository extends Repository<Score> {
   ): Promise<Pagination<Score>> {
     return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode, idStage)
       .andWhere('score.status = :status', { status: ScoreStatusEnum.AwaitingApprovalPlayer })
-      .andWhere('(score.createdByIdPlayer != :createdBy && sp.idPlayer = :idPlayer)', { createdBy: idPlayer, idPlayer })
+      .andWhere('score.createdByIdPlayer != :createdByIdPlayer', { createdByIdPlayer: idPlayer })
+      .andExists(sb =>
+        sb
+          .from(ScorePlayer, 'sp1')
+          .andWhere('sp1.idScore = score.id')
+          .andWhere('sp1.idPlayer = :idPlayer', { idPlayer })
+      )
       .andNotExists(sb =>
         sb
           .from(ScoreApproval, 'sa')

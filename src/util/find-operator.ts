@@ -10,3 +10,5 @@ export const Month = (value: string): FindOperator<any> => Raw(alias => `month($
 export const Year = (value: string): FindOperator<any> => Raw(alias => `year(${alias}) = :year`, { year: value });
 export const SimpleArrayEquals = (value: any[]): FindOperator<any> =>
   Raw(alias => `${alias} = :simpleArray`, { simpleArray: value.join(',') });
+export const NotOrNull = (value: any): FindOperator<any> =>
+  Raw(alias => `(${alias} != :notOrNull or ${alias} is null)`, { notOrNull: value });

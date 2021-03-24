@@ -36,8 +36,8 @@ export class User extends BaseEntity {
   @OneToMany(() => AuthConfirmation, authConfirmation => authConfirmation.user)
   authConfirmations!: AuthConfirmation[];
 
-  @Column({ nullable: true })
-  idCurrentAuthConfirmation?: number;
+  @Column({ nullable: true, type: 'int' })
+  idCurrentAuthConfirmation?: number | null;
 
   @OneToOne(() => AuthConfirmation)
   @JoinColumn({ name: 'idCurrentAuthConfirmation' })

@@ -40,8 +40,8 @@ export class PlayerController {
   }
 
   @Get('search')
-  async findBySearch(@Query(Params.personaName) personaName: string): Promise<Player[]> {
-    return this.playerService.findBySearch(personaName);
+  async findBySearch(@Query(Params.personaName) personaName: string, @AuthUser() user: User): Promise<Player[]> {
+    return this.playerService.findBySearch(personaName, user.id);
   }
 
   @Get(`:${Params.idPlayer}`)

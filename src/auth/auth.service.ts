@@ -38,7 +38,7 @@ export class AuthService {
   private async _sendConfirmationCodeEmail(user: User): Promise<void> {
     const { email, id } = user;
     const authConfirmation = await this.authConfirmationService.generateConfirmationCode(user);
-    await this.userService.update(id, { idAuthConfirmation: authConfirmation.id });
+    await this.userService.update(id, { idCurrentAuthConfirmation: authConfirmation.id });
     await this.mailerService.sendMail({
       to: email,
       from: environment.get('MAIL'),
@@ -106,7 +106,7 @@ export class AuthService {
     user.salt = salt;
     user.token = await this.getToken(user);
     user.lastOnline = new Date();
-    await this.userService.update(idUser, { lastOnline: user.lastOnline, idAuthConfirmation: null });
+    await this.userService.update(idUser, { lastOnline: user.lastOnline, idCurrentAuthConfirmation: null });
     return user.removePasswordAndSalt();
   }
 
@@ -120,7 +120,7 @@ export class AuthService {
     const { salt } = await this.userService.getPasswordAndSalt(user.id);
     const newPasswordHash = await hash(dto.password, salt);
     user = await this.userService.updatePassword(user.id, newPasswordHash);
-    await this.userService.update(user.id, { idAuthConfirmation: null });
+    await this.userService.update(user.id, { idCurrentAuthConfirmation: null });
     return this.login({ username: user.username, password: dto.password, rememberMe: true });
   }
 

@@ -49,7 +49,7 @@ export class UserUpdateDto {
 
   @IsOptional()
   @IsNumber()
-  idAuthConfirmation?: number | null;
+  idCurrentAuthConfirmation?: number | null;
 }
 
 export class UserGetDto {
