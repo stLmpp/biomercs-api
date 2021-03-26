@@ -34,12 +34,12 @@ import { UrlMetadataModule } from './url-metadata/url-metadata.module';
       transport: {
         service: environment.get('MAIL_SERVICE'),
         auth: {
-          user: environment.get('MAIL'),
-          pass: environment.get('MAIL_PASS'),
+          user: environment.get('MAIL_ADDRESS'),
+          pass: environment.get('MAIL_PASSWORD'),
         },
       },
       defaults: {
-        from: `"Biomercs" <${environment.get('MAIL')}>`,
+        from: `"Biomercs" <${environment.get('MAIL_ADDRRESS')}>`,
       },
       template: {
         dir: join(__dirname, '..', '..', 'mail', 'templates'),
