@@ -32,10 +32,10 @@ function toPropertiesObject<T, K extends keyof T = keyof T>(keys: K[]): Record<K
   return keys.reduce((acc, key) => ({ ...acc, [key]: key }), {} as Record<K, K>);
 }
 
-type MapProperty<T, K extends keyof T = keyof T> = ((entity: T) => T[K]) | K;
+type MapProperty<T, K extends keyof T = keyof T> = ((entity: T) => any) | K;
 type MapTransformer<T, ToType = any> = (entity: T) => ToType;
 
-class MapProfile<From, To> {
+export class MapProfile<From, To> {
   constructor(private from: Type<From>, private to: Type<To>) {
     this._fromProperties = getProperties(from);
     this._toProperties = getProperties(to);

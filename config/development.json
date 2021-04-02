@@ -4,7 +4,7 @@
   "DB_USERNAME": "root",
   "DB_PASSWORD": "mysql",
   "DB_DATABASE": "biomercs2",
-  "DB_SYNCHRONIZE": false,
+  "DB_SYNCHRONIZE": true,
   "PORT": 3000,
   "HOST": "localhost",
   "CONFIG_USE_HANDLE_ERROR": true,

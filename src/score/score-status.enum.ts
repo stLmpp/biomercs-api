@@ -4,4 +4,5 @@ export enum ScoreStatusEnum {
   RejectedByPlayer = 'Rejected by Partner',
   AwaitingApprovalAdmin = 'Awaiting Approval of Admin',
   AwaitingApprovalPlayer = 'Awaiting Approval of Partner',
+  ChangesRequested = 'Changes Requested',
 }

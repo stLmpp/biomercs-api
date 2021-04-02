@@ -5,6 +5,7 @@ import { ScoreStatusEnum } from './score-status.enum';
 import { ScorePlayer } from './score-player/score-player.entity';
 import { Player } from '../player/player.entity';
 import { ScoreWorldRecord } from './score-world-record/score-world-record.entity';
+import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
 
 @Entity()
 export class Score extends BaseEntity {
@@ -42,4 +43,7 @@ export class Score extends BaseEntity {
 
   @Column({ nullable: true })
   approvalDate?: Date;
+
+  @OneToMany(() => ScoreChangeRequest, scoreChangeRequest => scoreChangeRequest.score)
+  scoreChangeRequests!: ScoreChangeRequest[];
 }

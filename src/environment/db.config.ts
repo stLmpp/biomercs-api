@@ -3,11 +3,20 @@ import { environment } from './environment';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 
 export const DB_TYPEORM_CONFIG: TypeOrmModuleOptions = {
-  ...environment.database,
-  type: 'mysql',
+  host: environment.get('DB_HOST'),
+  port: environment.get('DB_PORT'),
+  username: environment.get('DB_USERNAME'),
+  password: environment.get('DB_PASSWORD'),
+  database: environment.get('DB_DATABASE'),
+  synchronize: environment.get('DB_SYNCHRONIZE'),
+  charset: environment.get('DB_CHARSET'),
+  type: 'mariadb',
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   logging: !environment.production ? 'all' : false,
   bigNumberStrings: false,
   namingStrategy: new NamingStategy(),
   dropSchema: false,
+  extra: {
+    collate: environment.get('DB_COLLATE'),
+  },
 };

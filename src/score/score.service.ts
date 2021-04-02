@@ -25,6 +25,10 @@ import { Stage } from '../stage/stage.entity';
 import { ScoreWorldRecordService } from './score-world-record/score-world-record.service';
 import { orderBy } from 'st-utils';
 import { addSeconds } from 'date-fns';
+import {
+  ScoreChangeRequestsViewModel,
+  ScoreChangeRequestsPaginationViewModel,
+} from './view-model/score-change-request.view-model';
 
 @Injectable()
 export class ScoreService {
@@ -272,5 +276,18 @@ export class ScoreService {
       idPlatformGameMiniGameModeCharacterCostumes,
       fromDate
     );
+  }
+
+  async findScoresWithChangeRequests(
+    idUser: number,
+    page: number,
+    limit: number
+  ): Promise<ScoreChangeRequestsPaginationViewModel> {
+    const idPlayer = await this.playerService.findIdByIdUser(idUser);
+    const { items, meta } = await this.scoreRepository.findScoresWithChangeRequests(idPlayer, page, limit);
+    const viewModel = new ScoreChangeRequestsPaginationViewModel();
+    viewModel.meta = meta;
+    viewModel.scores = this.mapperService.map(Score, ScoreChangeRequestsViewModel, items);
+    return viewModel;
   }
 }

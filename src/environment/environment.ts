@@ -1,5 +1,4 @@
 import { get } from 'config';
-import { MysqlConnectionOptions } from 'typeorm/driver/mysql/MysqlConnectionOptions';
 import { version } from '../../package.json';
 import { isArray } from 'st-utils';
 import { KeyValue } from '../shared/inteface/key-value.interface';
@@ -74,28 +73,6 @@ class Env {
 
   get frontEndUrl(): string {
     return `http://${this.hostFrontEnd}:${this.portFrontEnd}`;
-  }
-
-  get database(): MysqlConnectionOptions {
-    return this.getMany([
-      'DB_HOST',
-      'DB_PORT',
-      'DB_USERNAME',
-      'DB_PASSWORD',
-      'DB_DATABASE',
-      'DB_SYNCHRONIZE',
-      'DB_CHARSET',
-    ]).reduce(
-      (dbConfig, { key, value }) => ({
-        ...dbConfig,
-        [key.replace('DB_', '').toLowerCase()]: value,
-      }),
-      {
-        extra: {
-          collate: this.get('DB_COLLATE'),
-        },
-      }
-    ) as MysqlConnectionOptions;
   }
 
   get production(): boolean {

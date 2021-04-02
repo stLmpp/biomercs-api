@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
-import { ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { ScoreService } from './score.service';
 import { ScoreAddDto } from './score.dto';
@@ -16,12 +16,15 @@ import { ScoreApprovalAddDto } from './score-approval/score-approval.dto';
 import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.enum';
 import { ApiOrderByAndDir } from '../shared/order-by/api-order-by';
 import { OrderByDirection } from 'st-utils';
+import { ScoreChangeRequestsPaginationViewModel } from './view-model/score-change-request.view-model';
+import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
+import { ScoreChangeRequestService } from './score-change-request/score-change-request.service';
 
 @ApiAuth()
 @ApiTags('Score')
 @Controller('score')
 export class ScoreController {
-  constructor(private scoreService: ScoreService) {}
+  constructor(private scoreService: ScoreService, private scoreChangeRequestService: ScoreChangeRequestService) {}
 
   @Post()
   async add(@Body() dto: ScoreAddDto, @AuthUser() user: User): Promise<ScoreViewModel> {
@@ -140,6 +143,17 @@ export class ScoreController {
     });
   }
 
+  @ApiQuery({ name: Params.limit, required: false })
+  @Get('player/change-requests')
+  async findScoresWithChangeRequests(
+    @AuthUser() user: User,
+    @Query(Params.page) page: number,
+    @Query(Params.limit, OptionalQueryPipe) limit?: number
+  ): Promise<ScoreChangeRequestsPaginationViewModel> {
+    limit ??= 10;
+    return this.scoreService.findScoresWithChangeRequests(user.id, page, limit);
+  }
+
   @ApiAdmin()
   @Post(`:${Params.idScore}/approve/admin`)
   async approveAdmin(
@@ -176,6 +190,13 @@ export class ScoreController {
     @AuthUser() user: User
   ): Promise<void> {
     return this.scoreService.approvalPlayer(idScore, dto, user, ScoreApprovalActionEnum.Reject);
+  }
+
+  @ApiAdmin()
+  @ApiBody({ type: String, isArray: true })
+  @Post(`:${Params.idScore}/request-changes`)
+  async addMany(@Param(Params.idScore) idScore: number, @Body() dtos: string[]): Promise<ScoreChangeRequest[]> {
+    return this.scoreChangeRequestService.addMany(idScore, dtos);
   }
 
   @Get(`:${Params.idScore}`)

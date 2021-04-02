@@ -348,4 +348,18 @@ export class ScoreRepository extends Repository<Score> {
       });
     return this.queryDifferentCharacters(qb, idPlatformGameMiniGameModeCharacterCostumes, 'score').getOne();
   }
+
+  async findScoresWithChangeRequests(idPlayer: number, page: number, limit: number): Promise<Pagination<Score>> {
+    return this._createQueryBuilderRelations()
+      .innerJoinAndSelect('score.scoreChangeRequests', 'scr')
+      .andWhere('scr.dateFulfilled is null')
+      .andWhere('score.status = :status', { status: ScoreStatusEnum.ChangesRequested })
+      .andExists(sb =>
+        sb
+          .from(ScorePlayer, 'sp1')
+          .andWhere('sp1.idScore = score.id')
+          .andWhere('sp1.idPlayer = :idPlayer', { idPlayer })
+      )
+      .paginate(page, limit);
+  }
 }
