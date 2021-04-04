@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from '../shared/super/base-entity';
 import { PlatformGameMiniGameModeStage } from '../platform/platform-game-mini-game-mode-stage/platform-game-mini-game-mode-stage.entity';
 import { ScoreStatusEnum } from './score-status.enum';
@@ -26,6 +26,7 @@ export class Score extends BaseEntity {
   time!: string;
 
   @Column({ type: 'enum', enum: ScoreStatusEnum })
+  @Index()
   status!: ScoreStatusEnum;
 
   @OneToMany(() => ScorePlayer, scorePlayer => scorePlayer.score)
