@@ -26,9 +26,11 @@ import { ScoreWorldRecordService } from './score-world-record/score-world-record
 import { orderBy } from 'st-utils';
 import { addSeconds } from 'date-fns';
 import {
-  ScoreChangeRequestsViewModel,
   ScoreChangeRequestsPaginationViewModel,
+  ScoreChangeRequestsViewModel,
 } from './view-model/score-change-request.view-model';
+import { ScoreChangeRequestService } from './score-change-request/score-change-request.service';
+import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
 
 @Injectable()
 export class ScoreService {
@@ -41,7 +43,8 @@ export class ScoreService {
     private playerService: PlayerService,
     private platformGameMiniGameModeCharacterCostumeService: PlatformGameMiniGameModeCharacterCostumeService,
     private scoreApprovalService: ScoreApprovalService,
-    @Inject(forwardRef(() => ScoreWorldRecordService)) private scoreWorldRecordService: ScoreWorldRecordService
+    @Inject(forwardRef(() => ScoreWorldRecordService)) private scoreWorldRecordService: ScoreWorldRecordService,
+    private scoreChangeRequestService: ScoreChangeRequestService
   ) {}
 
   @Transactional()
@@ -133,6 +136,12 @@ export class ScoreService {
             : ScoreStatusEnum.RejectedByPlayer,
       });
     }
+  }
+
+  @Transactional()
+  async requestChanges(idScore: number, dtos: string[]): Promise<ScoreChangeRequest[]> {
+    await this.scoreRepository.update(idScore, { status: ScoreStatusEnum.ChangesRequested });
+    return this.scoreChangeRequestService.addMany(idScore, dtos);
   }
 
   async findByIdMapped(idScore: number): Promise<ScoreViewModel> {
@@ -289,5 +298,19 @@ export class ScoreService {
     viewModel.meta = meta;
     viewModel.scores = this.mapperService.map(Score, ScoreChangeRequestsViewModel, items);
     return viewModel;
+  }
+
+  async findApprovalPlayerCount(user: User): Promise<number> {
+    const idPlayer = await this.playerService.findIdByIdUser(user.id);
+    return this.scoreRepository.findApprovalPlayerCount(idPlayer);
+  }
+
+  async findApprovalAdminCount(): Promise<number> {
+    return this.scoreRepository.findApprovalAdminCount();
+  }
+
+  async findScoresWithChangeRequestsCount(user: User): Promise<number> {
+    const idPlayer = await this.playerService.findIdByIdUser(user.id);
+    return this.scoreRepository.findScoresWithChangeRequestsCount(idPlayer);
   }
 }

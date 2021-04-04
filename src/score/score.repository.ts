@@ -362,4 +362,50 @@ export class ScoreRepository extends Repository<Score> {
       )
       .paginate(page, limit);
   }
+
+  async findApprovalPlayerCount(idPlayer: number): Promise<number> {
+    return this._createQueryBuilderRelations()
+      .andWhere('score.status = :status', { status: ScoreStatusEnum.AwaitingApprovalPlayer })
+      .andWhere('score.createdByIdPlayer != :createdByIdPlayer', { createdByIdPlayer: idPlayer })
+      .andExists(sb =>
+        sb
+          .from(ScorePlayer, 'sp1')
+          .andWhere('sp1.idScore = score.id')
+          .andWhere('sp1.idPlayer = :idPlayer', { idPlayer })
+      )
+      .andNotExists(sb =>
+        sb
+          .from(ScoreApproval, 'sa')
+          .andWhere('sa.idScore = score.id')
+          .andWhere('sa.actionByPlayer = :actionByPlayer', { actionByPlayer: idPlayer })
+          .andWhere('sa.action != :action', { action: ScoreApprovalActionEnum.Approve })
+      )
+      .getCount();
+  }
+
+  async findApprovalAdminCount(): Promise<number> {
+    return this._createQueryBuilderRelations()
+      .andWhere('score.status = :status', { status: ScoreStatusEnum.AwaitingApprovalAdmin })
+      .andNotExists(sb =>
+        sb
+          .from(ScoreApproval, 'sa')
+          .andWhere('sa.idScore = score.id')
+          .andWhere('sa.action != :action', { action: ScoreApprovalActionEnum.Approve })
+      )
+      .getCount();
+  }
+
+  async findScoresWithChangeRequestsCount(idPlayer: number): Promise<number> {
+    return this._createQueryBuilderRelations()
+      .innerJoinAndSelect('score.scoreChangeRequests', 'scr')
+      .andWhere('scr.dateFulfilled is null')
+      .andWhere('score.status = :status', { status: ScoreStatusEnum.ChangesRequested })
+      .andExists(sb =>
+        sb
+          .from(ScorePlayer, 'sp1')
+          .andWhere('sp1.idScore = score.id')
+          .andWhere('sp1.idPlayer = :idPlayer', { idPlayer })
+      )
+      .getCount();
+  }
 }

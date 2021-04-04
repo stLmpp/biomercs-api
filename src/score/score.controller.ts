@@ -18,13 +18,12 @@ import { ApiOrderByAndDir } from '../shared/order-by/api-order-by';
 import { OrderByDirection } from 'st-utils';
 import { ScoreChangeRequestsPaginationViewModel } from './view-model/score-change-request.view-model';
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
-import { ScoreChangeRequestService } from './score-change-request/score-change-request.service';
 
 @ApiAuth()
 @ApiTags('Score')
 @Controller('score')
 export class ScoreController {
-  constructor(private scoreService: ScoreService, private scoreChangeRequestService: ScoreChangeRequestService) {}
+  constructor(private scoreService: ScoreService) {}
 
   @Post()
   async add(@Body() dto: ScoreAddDto, @AuthUser() user: User): Promise<ScoreViewModel> {
@@ -110,6 +109,11 @@ export class ScoreController {
     });
   }
 
+  @Get('approval/admin/count')
+  async findApprovalAdminCount(): Promise<number> {
+    return this.scoreService.findApprovalAdminCount();
+  }
+
   @ApiQuery({ name: Params.idPlatform, required: false })
   @ApiQuery({ name: Params.idGame, required: false })
   @ApiQuery({ name: Params.idMiniGame, required: false })
@@ -143,6 +147,11 @@ export class ScoreController {
     });
   }
 
+  @Get('approval/player/count')
+  async findApprovalPlayerCount(@AuthUser() user: User): Promise<number> {
+    return this.scoreService.findApprovalPlayerCount(user);
+  }
+
   @ApiQuery({ name: Params.limit, required: false })
   @Get('player/change-requests')
   async findScoresWithChangeRequests(
@@ -152,6 +161,11 @@ export class ScoreController {
   ): Promise<ScoreChangeRequestsPaginationViewModel> {
     limit ??= 10;
     return this.scoreService.findScoresWithChangeRequests(user.id, page, limit);
+  }
+
+  @Get('player/change-requests/count')
+  async findScoresWithChangeRequestsCount(@AuthUser() user: User): Promise<number> {
+    return this.scoreService.findScoresWithChangeRequestsCount(user);
   }
 
   @ApiAdmin()
@@ -195,8 +209,8 @@ export class ScoreController {
   @ApiAdmin()
   @ApiBody({ type: String, isArray: true })
   @Post(`:${Params.idScore}/request-changes`)
-  async addMany(@Param(Params.idScore) idScore: number, @Body() dtos: string[]): Promise<ScoreChangeRequest[]> {
-    return this.scoreChangeRequestService.addMany(idScore, dtos);
+  async requestChanges(@Param(Params.idScore) idScore: number, @Body() dtos: string[]): Promise<ScoreChangeRequest[]> {
+    return this.scoreService.requestChanges(idScore, dtos);
   }
 
   @Get(`:${Params.idScore}`)
