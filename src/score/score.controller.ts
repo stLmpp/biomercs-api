@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { ScoreService } from './score.service';
-import { ScoreAddDto } from './score.dto';
+import { ScoreAddDto, ScoreChangeRequestsFulfilDto } from './score.dto';
 import { Params } from '../shared/type/params';
 import { ScoreViewModel } from './view-model/score.view-model';
 import { Score } from './score.entity';
@@ -211,6 +211,14 @@ export class ScoreController {
   @Post(`:${Params.idScore}/request-changes`)
   async requestChanges(@Param(Params.idScore) idScore: number, @Body() dtos: string[]): Promise<ScoreChangeRequest[]> {
     return this.scoreService.requestChanges(idScore, dtos);
+  }
+
+  @Patch(`:${Params.idScore}/fulfil-change-requests`)
+  async fulfilScoreChangeRequests(
+    @Param(Params.idScore) idScore: number,
+    @Body() dto: ScoreChangeRequestsFulfilDto
+  ): Promise<boolean> {
+    return this.scoreService.fulfilScoreChangeRequests(idScore, dto);
   }
 
   @Get(`:${Params.idScore}`)

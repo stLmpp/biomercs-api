@@ -34,3 +34,28 @@ export class ScorePlayerAddDto {
   @IsUrl()
   evidence!: string;
 }
+
+export class ScorePlayerUpdateDto {
+  @IsDefined()
+  @IsNumber()
+  id!: number;
+
+  @IsOptional()
+  @IsBoolean()
+  host?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  bulletKills?: number;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  description?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsUrl()
+  @IsNotEmpty()
+  evidence?: string;
+}

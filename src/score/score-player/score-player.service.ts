@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ScorePlayer } from './score-player.entity';
-import { ScorePlayerAddDto } from './score-player.dto';
+import { ScorePlayerAddDto, ScorePlayerUpdateDto } from './score-player.dto';
 import { ScorePlayerRepository } from './score-player.repository';
 import { PlatformGameMiniGameModeCharacterCostumeService } from '../../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.service';
 
@@ -40,5 +40,9 @@ export class ScorePlayerService {
 
   async findCountByIdScoreWithtoutCreator(idScore: number): Promise<number> {
     return this.scorePlayerRepository.findCountByIdScoreWithtoutCreator(idScore);
+  }
+
+  async updateMany(dto: ScorePlayerUpdateDto[]): Promise<void> {
+    await this.scorePlayerRepository.save(dto);
   }
 }

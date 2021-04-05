@@ -1,6 +1,6 @@
 import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ScoreRepository } from './score.repository';
-import { ScoreAddDto } from './score.dto';
+import { ScoreAddDto, ScoreChangeRequestsFulfilDto } from './score.dto';
 import { Score } from './score.entity';
 import { PlatformGameMiniGameModeStageService } from '../platform/platform-game-mini-game-mode-stage/platform-game-mini-game-mode-stage.service';
 import { ModeService } from '../mode/mode.service';
@@ -142,6 +142,24 @@ export class ScoreService {
   async requestChanges(idScore: number, dtos: string[]): Promise<ScoreChangeRequest[]> {
     await this.scoreRepository.update(idScore, { status: ScoreStatusEnum.ChangesRequested });
     return this.scoreChangeRequestService.addMany(idScore, dtos);
+  }
+
+  @Transactional()
+  async fulfilScoreChangeRequests(
+    idScore: number,
+    { idsScoreChangeRequests, scorePlayers, ...dto }: ScoreChangeRequestsFulfilDto
+  ): Promise<boolean> {
+    await this.scoreChangeRequestService.fulfilMany(idsScoreChangeRequests);
+    const updateScore: Partial<Score> = dto;
+    const hasAnyRequestChanges = await this.scoreChangeRequestService.hasAnyRequestChanges(idScore);
+    if (!hasAnyRequestChanges) {
+      updateScore.status = ScoreStatusEnum.AwaitingApprovalAdmin;
+    }
+    if (scorePlayers?.length) {
+      await this.scorePlayerService.updateMany(scorePlayers);
+    }
+    await this.scoreRepository.update(idScore, updateScore);
+    return hasAnyRequestChanges;
   }
 
   async findByIdMapped(idScore: number): Promise<ScoreViewModel> {
