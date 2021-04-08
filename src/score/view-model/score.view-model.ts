@@ -45,6 +45,7 @@ export class ScoreViewModel {
   @Property() status!: ScoreStatusEnum;
   @Property() scorePlayers!: ScorePlayerViewModel[];
   @Property() creationDate!: Date;
+  @Property() lastUpdatedDate!: Date | null;
   @Property() isWorldRecord!: boolean;
   @Property() isCharacterWorldRecord!: boolean;
   @Property() isCombinationWorldRecord!: boolean;
