@@ -8,6 +8,9 @@ import { ScoreApproval } from './score-approval/score-approval.entity';
 import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.enum';
 import { OrderByDirection } from 'st-utils';
 import { ScorePlayer } from './score-player/score-player.entity';
+import { ScoreSearchDto } from './score.dto';
+import { ScoreWorldRecordTypeEnum } from './score-world-record/score-world-record-type.enum';
+import { ScoreWorldRecord } from './score-world-record/score-world-record.entity';
 
 const ALL_RELATIONS = [
   'platformGameMiniGameModeStage',
@@ -141,7 +144,7 @@ export class ScoreRepository extends Repository<Score> {
     return this.findByIds(idsScores, { relations: ALL_RELATIONS });
   }
 
-  async findScoreTable(
+  async findLeaderboards(
     idPlatform: number,
     idGame: number,
     idMiniGame: number,
@@ -155,30 +158,30 @@ export class ScoreRepository extends Repository<Score> {
         subQuery =>
           this._createQueryBuilderScore(idPlatform, idGame, idMiniGame, idMode, subQuery.from(Score, 's'))
             .andWhere('s.status = :status', { status: ScoreStatusEnum.Approved })
-            .addSelect('sp.idPlayer', 'idPlayer')
-            .addSelect('max(s.score)', 'maxScore')
+            .addSelect('sp.idPlayer', 'id')
+            .addSelect('max(s.score)', 'score')
             .addGroupBy('pgmms.id')
             .addGroupBy('sp.idPlayer'),
         't'
       )
-      .addSelect('idPlayer', 'idPlayer')
-      .addSelect('sum(maxScore)', 'sumScore')
-      .groupBy('idPlayer')
-      .orderBy('sumScore', 'DESC')
-      .paginateRaw<{ idPlayer: number }>(page, limit);
-    const idsPlayers = items.map(row => row.idPlayer);
+      .addSelect('id', 'id')
+      .addSelect('sum(score)', 'score')
+      .groupBy('id')
+      .orderBy('score', 'DESC')
+      .paginateRaw<{ id: number }>(page, limit);
+    const idsPlayers = items.map(row => row.id);
     const map = new Map<number, Score[]>();
     for (const idPlayer of idsPlayers) {
       const qb = this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode)
         .innerJoin(
           subQuery =>
             this._createQueryBuilderPlayer(idPlatform, idGame, idMiniGame, idMode, idPlayer, subQuery.from(Score, 's'))
-              .addSelect('pgmms.id', 'id')
-              .addSelect('max(s.score)', 'maxScore')
+              .addSelect('pgmms.id', 'pgmms_id')
+              .addSelect('max(s.score)', 'score')
               .andWhere('s.status = :status', { status: ScoreStatusEnum.Approved })
-              .addGroupBy('id'),
+              .addGroupBy('pgmms_id'),
           't',
-          '(t.id = score.idPlatformGameMiniGameModeStage and t.maxScore = score.score)'
+          '(t.pgmms_id = score.idPlatformGameMiniGameModeStage and t.score = score.score)'
         )
         .andWhere('score.status = :status', { status: ScoreStatusEnum.Approved });
       map.set(idPlayer, await this._includeScoreWorldRecord('score', qb).getMany());
@@ -418,5 +421,102 @@ export class ScoreRepository extends Repository<Score> {
           .andWhere('sp1.idPlayer = :idPlayer', { idPlayer })
       )
       .getCount();
+  }
+
+  async searchScores(
+    {
+      score,
+      character,
+      characterWorldRecord,
+      combinationWorldRecord,
+      game,
+      miniGame,
+      mode,
+      worldRecord,
+      stage,
+      platform,
+      player,
+      status,
+    }: ScoreSearchDto,
+    page: number,
+    limit: number
+  ): Promise<Pagination<Score>> {
+    const queryBuilder = this._createQueryBuilderRelations().andWhere('score.status = :status', { status });
+    if (score) {
+      if (score.toLowerCase().endsWith('k')) {
+        score = score.slice(0, -1);
+        const scoreStart = +(score + '000');
+        const scoreEnd = +(score + '999');
+        if (!isNaN(scoreStart) && !isNaN(scoreEnd)) {
+          queryBuilder.andWhere('score.score between :scoreStart and :scoreEnd', { scoreStart, scoreEnd });
+        }
+      } else {
+        const scoreNumber = +score;
+        if (!isNaN(scoreNumber)) {
+          queryBuilder.andWhere('score.score = :score', { score: scoreNumber });
+        }
+      }
+    }
+    if (platform) {
+      queryBuilder.andWhere('(p.shortName ilike :platform or p.name ilike :platform)', { platform });
+    }
+    if (game) {
+      queryBuilder.andWhere('(g.shortName ilike :game or g.name ilike :game)', { game });
+    }
+    if (miniGame) {
+      miniGame = `%${miniGame}%`;
+      queryBuilder.andWhere('mg.name ilike :miniGame', { miniGame });
+    }
+    if (mode) {
+      queryBuilder.andWhere('m.name ilike :mode', { mode });
+    }
+    if (stage) {
+      queryBuilder.andWhere('(s.shortName ilike :stage or s.name ilike :stage)', { stage });
+    }
+    if (character || player) {
+      queryBuilder.andExists(subQuery => {
+        subQuery.from(ScorePlayer, 'spc_exists').andWhere('spc_exists.idScore = score.id');
+        if (character) {
+          character = `%${character}%`;
+          subQuery
+            .innerJoin('spc_exists.platformGameMiniGameModeCharacterCostume', 'pgmgmc_exists')
+            .innerJoin('pgmgmc_exists.characterCostume', 'cc_exists')
+            .innerJoin('cc_exists.character', 'c_exists')
+            .andWhere(
+              `
+                (replace(concat(c_exists.name, cc_exists.name), ' ', '') ilike :character 
+                or replace(replace(cc_exists.shortName, '.', ''), ' ', '') ilike :character)
+             `,
+              { character }
+            );
+        }
+        if (player) {
+          player = `%${player}%`;
+          subQuery
+            .innerJoin('spc_exists.player', 'p_exists')
+            .andWhere('p_exists.personaName ilike :player', { player });
+        }
+        return subQuery;
+      });
+    }
+    if (worldRecord || characterWorldRecord || combinationWorldRecord) {
+      this._includeScoreWorldRecord('score', queryBuilder);
+      let type: ScoreWorldRecordTypeEnum;
+      if (characterWorldRecord) {
+        type = ScoreWorldRecordTypeEnum.CharacterWorldRecord;
+      } else if (combinationWorldRecord) {
+        type = ScoreWorldRecordTypeEnum.CombinationWorldRecord;
+      } else {
+        type = ScoreWorldRecordTypeEnum.WorldRecord;
+      }
+      queryBuilder.andExists(subQuery =>
+        subQuery
+          .from(ScoreWorldRecord, 'swr_exists')
+          .andWhere('swr_exists.idScore = score.id')
+          .andWhere('swr_exists.endDate is null')
+          .andWhere('swr_exists.type = :type', { type })
+      );
+    }
+    return queryBuilder.paginate(page, limit);
   }
 }

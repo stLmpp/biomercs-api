@@ -9,14 +9,9 @@ export const DB_TYPEORM_CONFIG: TypeOrmModuleOptions = {
   password: environment.get('DB_PASSWORD'),
   database: environment.get('DB_DATABASE'),
   synchronize: environment.get('DB_SYNCHRONIZE'),
-  charset: environment.get('DB_CHARSET'),
-  type: 'mariadb',
+  type: 'postgres',
   entities: [__dirname + '/../**/*.entity{.ts,.js}'],
   logging: !environment.production ? 'all' : false,
-  bigNumberStrings: false,
   namingStrategy: new NamingStategy(),
   dropSchema: false,
-  extra: {
-    collate: environment.get('DB_COLLATE'),
-  },
 };

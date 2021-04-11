@@ -1,7 +1,5 @@
 {
   "JWT_EXPIRES_IN": 86400,
-  "DB_CHARSET": "utf8mb4",
-  "DB_COLLATE": "utf8mb4_unicode_ci",
   "CONFIG_USE_ROLE": true,
   "CONFIG_USE_AUTH": true,
   "CONFIG_USE_HANDLE_ERROR": true,

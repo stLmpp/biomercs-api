@@ -1,6 +1,6 @@
 import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ScoreRepository } from './score.repository';
-import { ScoreAddDto, ScoreChangeRequestsFulfilDto } from './score.dto';
+import { ScoreAddDto, ScoreChangeRequestsFulfilDto, ScoreSearchDto } from './score.dto';
 import { Score } from './score.entity';
 import { PlatformGameMiniGameModeStageService } from '../platform/platform-game-mini-game-mode-stage/platform-game-mini-game-mode-stage.service';
 import { ModeService } from '../mode/mode.service';
@@ -23,7 +23,7 @@ import { ScoreApprovalAddDto } from './score-approval/score-approval.dto';
 import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.enum';
 import { Stage } from '../stage/stage.entity';
 import { ScoreWorldRecordService } from './score-world-record/score-world-record.service';
-import { orderBy } from 'st-utils';
+import { isNil, orderBy } from 'st-utils';
 import { addSeconds } from 'date-fns';
 import {
   ScoreChangeRequestsPaginationViewModel,
@@ -31,6 +31,7 @@ import {
 } from './view-model/score-change-request.view-model';
 import { ScoreChangeRequestService } from './score-change-request/score-change-request.service';
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
+import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class ScoreService {
@@ -222,7 +223,7 @@ export class ScoreService {
   ): Promise<ScoreTopTableViewModel> {
     const [platformGameMiniGameModeStages, [scoreMap, meta]] = await Promise.all([
       this.platformGameMiniGameModeStageService.findByPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode),
-      this.scoreRepository.findScoreTable(idPlatform, idGame, idMiniGame, idMode, page, limit),
+      this.scoreRepository.findLeaderboards(idPlatform, idGame, idMiniGame, idMode, page, limit),
     ]);
 
     const scoreTableViewModel: ScoreTableViewModel[] = [];
@@ -330,5 +331,54 @@ export class ScoreService {
   async findScoresWithChangeRequestsCount(user: User): Promise<number> {
     const idPlayer = await this.playerService.findIdByIdUser(user.id);
     return this.scoreRepository.findScoresWithChangeRequestsCount(idPlayer);
+  }
+
+  async searchScores(
+    term: string,
+    status: ScoreStatusEnum,
+    page: number,
+    limit: number
+  ): Promise<Pagination<ScoreViewModel>> {
+    const dto = new ScoreSearchDto();
+    dto.status = status;
+    dto.combinationWorldRecord = /(combination wr|comb wr|comb world record|combwr|combination world record|combinationwr)/i.test(
+      term
+    );
+    dto.characterWorldRecord = /(character wr|char wr|char world record|charwr|character world record|characterwr)/i.test(
+      term
+    );
+    dto.worldRecord = /(wr|world record)/i.test(term) && !dto.combinationWorldRecord && !dto.characterWorldRecord;
+    const scoreMatches = term.match(/(\d+(\.\d{3,})*)(k)?/gi) ?? [];
+    dto.score = scoreMatches.reduce(
+      (largest: string | null, match) => (match.length > (largest?.length || 0) ? match : largest),
+      null
+    );
+    if (dto.score && dto.score.length < 3) {
+      dto.score = null;
+    }
+    if (dto.score) {
+      dto.score = dto.score.replace(/[,.]/gi, '');
+    }
+    const replace = (str: string | undefined, tokens: string[]): string | undefined =>
+      isNil(str) ? str : tokens.reduce((acc, token) => acc.replace(token, ''), str);
+    const resolveTest = (tokens: string[]): string | undefined =>
+      replace(term.match(new RegExp(`(${tokens.join('|')})\\w+`, 'ig'))?.[0], tokens);
+    dto.game = resolveTest(['game:', 'g:']);
+    dto.platform = resolveTest(['platform:', 'plat:', 'p:']);
+    dto.mode = resolveTest(['mode:', 'm:']);
+    dto.miniGame = resolveTest(['miniGame:', 'mg:']);
+    if (dto.miniGame) {
+      if (/(mercs|merx|mercxs|murcs|murx|murxs|murcxs)/.test(dto.miniGame)) {
+        dto.miniGame = 'mercenaries';
+      }
+    }
+    dto.character = resolveTest(['character:', 'char:', 'c:']);
+    dto.player = resolveTest(['player:', 'pl:']);
+    dto.stage = resolveTest(['stage:', 's:']);
+    const pagination = await this.scoreRepository.searchScores(dto, page, limit);
+    return {
+      ...pagination,
+      items: this.mapperService.map(Score, ScoreViewModel, pagination.items),
+    };
   }
 }

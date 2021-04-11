@@ -8,8 +8,7 @@ export class NamingStategy extends DefaultNamingStrategy {
   }
 
   foreignKeyName(tableOrName: Table | string, columnNames: string[], referencedTablePath: string): string {
-    const clonedColumnNames = [...columnNames];
-    clonedColumnNames.sort();
+    const clonedColumnNames = [...columnNames].sort();
     const tableName = tableOrName instanceof Table ? tableOrName.name : tableOrName;
     const replacedTableName = tableName.replace('.', '_');
     const replacedReferenceTablePath = referencedTablePath.replace('.', '_');

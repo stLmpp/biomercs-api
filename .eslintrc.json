@@ -5,11 +5,7 @@
     "sourceType": "module"
   },
   "plugins": ["@typescript-eslint/eslint-plugin", "prefer-arrow"],
-  "extends": [
-    "plugin:@typescript-eslint/eslint-recommended",
-    "plugin:@typescript-eslint/recommended",
-    "prettier"
-  ],
+  "extends": ["plugin:@typescript-eslint/eslint-recommended", "plugin:@typescript-eslint/recommended", "prettier"],
   "root": true,
   "env": {
     "node": true,
@@ -31,7 +27,7 @@
     "no-trailing-spaces": ["error", { "ignoreComments": true, "skipBlankLines": true }],
     "no-underscore-dangle": "off",
     "space-in-parens": ["off", "never"],
-    "quotes": ["error", "single", { "allowTemplateLiterals": true }],
+    "quotes": ["error", "single", { "allowTemplateLiterals": true, "avoidEscape": true }],
     "no-console": ["error"],
     "curly": ["error", "multi-line"],
     "no-useless-constructor": ["off"],

@@ -18,6 +18,9 @@ import { ApiOrderByAndDir } from '../shared/order-by/api-order-by';
 import { OrderByDirection } from 'st-utils';
 import { ScoreChangeRequestsPaginationViewModel } from './view-model/score-change-request.view-model';
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
+import { ScoreStatusEnum } from './score-status.enum';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { ApiPagination } from '../shared/decorator/api-pagination';
 
 @ApiAuth()
 @ApiTags('Score')
@@ -166,6 +169,19 @@ export class ScoreController {
   @Get('player/change-requests/count')
   async findScoresWithChangeRequestsCount(@AuthUser() user: User): Promise<number> {
     return this.scoreService.findScoresWithChangeRequestsCount(user);
+  }
+
+  @ApiPagination(ScoreViewModel)
+  @ApiQuery({ name: Params.status, required: true, enum: ScoreStatusEnum })
+  @ApiQuery({ name: Params.limit, required: false })
+  @Get('search')
+  async searchScores(
+    @Query(Params.term) term: string,
+    @Query(Params.status) status: ScoreStatusEnum,
+    @Query(Params.page) page: number,
+    @Query(Params.limit, OptionalQueryPipe) limit?: number
+  ): Promise<Pagination<ScoreViewModel>> {
+    return this.scoreService.searchScores(term, status, page, limit ?? 10);
   }
 
   @ApiAdmin()
