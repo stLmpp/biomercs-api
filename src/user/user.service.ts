@@ -4,10 +4,12 @@ import { UserAddDto, UserGetDto, UserUpdateDto } from './user.dto';
 import { User } from './user.entity';
 import { AuthCredentialsDto } from '../auth/auth.dto';
 import { FindConditions } from 'typeorm';
+import { UserViewModel } from './user.view-model';
+import { MapperService } from '../mapper/mapper.service';
 
 @Injectable()
 export class UserService {
-  constructor(private userRepository: UserRepository) {}
+  constructor(private userRepository: UserRepository, private mapperService: MapperService) {}
 
   private _getWhereEmailOrUsername(username?: string, email?: string): FindConditions<User>[] {
     const where: FindConditions<User>[] = [];
@@ -24,13 +26,13 @@ export class UserService {
     return this.userRepository.save(new User().extendDto(dto));
   }
 
-  async update(idUser: number, dto: UserUpdateDto): Promise<User> {
+  async update(idUser: number, dto: UserUpdateDto): Promise<UserViewModel> {
     const user = await this.userRepository.findOne(idUser);
     if (!user) {
       throw new NotFoundException('User not found');
     }
     await this.userRepository.update(idUser, dto);
-    return new User().extendDto({ ...user, ...dto });
+    return this.mapperService.map(User, UserViewModel, new User().extendDto({ ...user, ...dto }));
   }
 
   async updatePassword(idUser: number, password: string): Promise<User> {

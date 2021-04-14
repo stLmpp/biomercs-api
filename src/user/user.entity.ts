@@ -4,9 +4,11 @@ import { ApiHideProperty } from '@nestjs/swagger';
 import { hash } from 'bcryptjs';
 import { Player } from '../player/player.entity';
 import { AuthConfirmation } from '../auth/auth-confirmation/auth-confirmation.entity';
+import { UserInterface } from './user.interface';
+import { Property } from '../mapper/mapper.service';
 
 @Entity()
-export class User extends BaseEntity {
+export class User extends BaseEntity implements UserInterface {
   @Column({ unique: true })
   username!: string;
 
@@ -46,19 +48,10 @@ export class User extends BaseEntity {
   @Column({ default: 'dd/MM/yyyy' })
   dateFormat!: string;
 
+  @Property()
   token?: string;
 
   async validatePassword(password: string): Promise<boolean> {
     return (await hash(password, this.salt)) === this.password;
-  }
-
-  removePasswordAndSalt(): this {
-    if ('password' in this) {
-      this.password = '';
-    }
-    if ('salt' in this) {
-      this.salt = '';
-    }
-    return this;
   }
 }

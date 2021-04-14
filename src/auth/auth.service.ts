@@ -22,6 +22,8 @@ import { PlayerService } from '../player/player.service';
 import { AuthGateway } from './auth.gateway';
 import { SteamService } from '../steam/steam.service';
 import { random } from '../util/util';
+import { UserViewModel } from '../user/user.view-model';
+import { MapperService } from '../mapper/mapper.service';
 
 @Injectable()
 export class AuthService {
@@ -32,7 +34,8 @@ export class AuthService {
     private jwtService: JwtService,
     private playerService: PlayerService,
     private authGateway: AuthGateway,
-    private steamService: SteamService
+    private steamService: SteamService,
+    private mapperService: MapperService
   ) {}
 
   private async _sendConfirmationCodeEmail(user: User): Promise<void> {
@@ -92,7 +95,7 @@ export class AuthService {
   }
 
   @Transactional()
-  async confirmCode(idUser: number, code: number): Promise<User> {
+  async confirmCode(idUser: number, code: number): Promise<UserViewModel> {
     const user = await this.userService.getById(idUser);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -107,11 +110,11 @@ export class AuthService {
     user.token = await this.getToken(user);
     user.lastOnline = new Date();
     await this.userService.update(idUser, { lastOnline: user.lastOnline, idCurrentAuthConfirmation: null });
-    return user.removePasswordAndSalt();
+    return this.mapperService.map(User, UserViewModel, user);
   }
 
   @Transactional()
-  async changeForgottenPassword(dto: AuthChangePasswordDto): Promise<User> {
+  async changeForgottenPassword(dto: AuthChangePasswordDto): Promise<UserViewModel> {
     let user = await this.userService.findByAuthCode(dto.confirmationCode);
     if (!user?.idCurrentAuthConfirmation) {
       throw new BadRequestException('Confirmation code does not exists');
@@ -183,7 +186,7 @@ export class AuthService {
    * @description Not transactional because the e-mail must be sent.
    * Also there's no need for this method to be transactional, since there's only one update that matters
    */
-  async login(dto: AuthCredentialsDto): Promise<User> {
+  async login(dto: AuthCredentialsDto): Promise<UserViewModel> {
     const user = await this.userService.validateUserToLogin(dto);
     const hasConfirmationPending = user.idCurrentAuthConfirmation;
     if (hasConfirmationPending) {
@@ -194,7 +197,7 @@ export class AuthService {
     user.rememberMe = dto.rememberMe ?? false;
     await this.userService.update(user.id, { lastOnline: user.lastOnline, rememberMe: user.rememberMe });
     user.token = await this.getToken(user);
-    return user.removePasswordAndSalt();
+    return this.mapperService.map(User, UserViewModel, user);
   }
 
   async getToken({ id, password, rememberMe }: User): Promise<string> {

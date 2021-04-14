@@ -10,6 +10,7 @@ import { AuthController } from './auth.controller';
 import { PlayerModule } from '../player/player.module';
 import { AuthGateway } from './auth.gateway';
 import { SteamModule } from '../steam/steam.module';
+import { MapperModule } from '../mapper/mapper.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { SteamModule } from '../steam/steam.module';
     AuthConfirmationModule,
     PlayerModule,
     SteamModule,
+    MapperModule,
   ],
   providers: [JwtStrategy, AuthService, AuthGateway],
   exports: [AuthService, PassportModule],
