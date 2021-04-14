@@ -3,6 +3,7 @@ import { Property } from '../mapper/mapper.service';
 import { Region } from '../region/region.entity';
 
 export class PlayerViewModel implements PlayerInterface {
+  @Property() id!: number;
   @Property() aboutMe?: string;
   @Property() idRegion!: number;
   @Property() idSteamProfile?: number;

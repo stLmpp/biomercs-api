@@ -1,4 +1,5 @@
 export interface PlayerInterface {
+  id: number;
   personaName: string;
   title?: string;
   aboutMe?: string;
