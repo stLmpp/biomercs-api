@@ -63,7 +63,7 @@ SelectQueryBuilder.prototype.paginateRaw = async function (page, limit) {
   const [query, parameters] = this.clone().getQueryAndParameters();
   const offset = (page - 1) * limit;
   const [total, items] = await Promise.all([
-    this.connection.query(`SELECT COUNT(1) AS Q FROM (${query}) AS COUNTED`, parameters).then(raw => raw[0].Q),
+    this.connection.query(`SELECT COUNT(1) AS q FROM (${query}) AS COUNTED`, parameters).then(raw => +raw[0].q),
     this.limit(limit).offset(offset).getRawMany(),
   ]);
   return {
