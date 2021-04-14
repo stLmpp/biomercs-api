@@ -1,11 +1,11 @@
 import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { StageService } from './stage.service';
-import { Stage } from './stage.entity';
 import { StageAddDto, StageUpdateDto } from './stage.dto';
 import { Params } from '../shared/type/params';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ApiAuth } from '../auth/api-auth.decorator';
+import { StageViewModel } from './stage.view-model';
 
 @ApiAuth()
 @ApiTags('Stage')
@@ -15,13 +15,13 @@ export class StageController {
 
   @ApiAdmin()
   @Post()
-  async add(@Body() dto: StageAddDto): Promise<Stage> {
+  async add(@Body() dto: StageAddDto): Promise<StageViewModel> {
     return this.stageService.add(dto);
   }
 
   @ApiAdmin()
   @Patch(`:${Params.idStage}`)
-  async update(@Param(Params.idStage) idStage: number, @Body() dto: StageUpdateDto): Promise<Stage> {
+  async update(@Param(Params.idStage) idStage: number, @Body() dto: StageUpdateDto): Promise<StageViewModel> {
     return this.stageService.update(idStage, dto);
   }
 
@@ -31,12 +31,12 @@ export class StageController {
     @Param(Params.idGame) idGame: number,
     @Param(Params.idMiniGame) idMiniGame: number,
     @Param(Params.idMode) idMode: number
-  ): Promise<Stage[]> {
+  ): Promise<StageViewModel[]> {
     return this.stageService.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode);
   }
 
   @Get(`:${Params.idStage}`)
-  async findById(@Param(Params.idStage) idStage: number): Promise<Stage> {
+  async findById(@Param(Params.idStage) idStage: number): Promise<StageViewModel> {
     return this.stageService.findById(idStage);
   }
 }

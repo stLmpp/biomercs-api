@@ -2,22 +2,27 @@ import { Injectable } from '@nestjs/common';
 import { StageRepository } from './stage.repository';
 import { Stage } from './stage.entity';
 import { StageAddDto, StageUpdateDto } from './stage.dto';
+import { StageViewModel } from './stage.view-model';
+import { MapperService } from '../mapper/mapper.service';
 
 @Injectable()
 export class StageService {
-  constructor(private stageRepository: StageRepository) {}
+  constructor(private stageRepository: StageRepository, private mapperService: MapperService) {}
 
-  async findById(idStage: number): Promise<Stage> {
-    return this.stageRepository.findOneOrFail(idStage);
+  async findById(idStage: number): Promise<StageViewModel> {
+    const stage = await this.stageRepository.findOneOrFail(idStage);
+    return this.mapperService.map(Stage, StageViewModel, stage);
   }
 
-  async add(dto: StageAddDto): Promise<Stage> {
-    return this.stageRepository.save(new Stage().extendDto(dto));
+  async add(dto: StageAddDto): Promise<StageViewModel> {
+    const stage = await this.stageRepository.save(new Stage().extendDto(dto));
+    return this.mapperService.map(Stage, StageViewModel, stage);
   }
 
-  async update(idStage: number, dto: StageUpdateDto): Promise<Stage> {
+  async update(idStage: number, dto: StageUpdateDto): Promise<StageViewModel> {
     await this.stageRepository.update(idStage, dto);
-    return this.stageRepository.findOneOrFail(idStage);
+    const stage = await this.stageRepository.findOneOrFail(idStage);
+    return this.mapperService.map(Stage, StageViewModel, stage);
   }
 
   async findByIdPlatformGameMiniGameMode(
@@ -25,7 +30,8 @@ export class StageService {
     idGame: number,
     idMiniGame: number,
     idMode: number
-  ): Promise<Stage[]> {
-    return this.stageRepository.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode);
+  ): Promise<StageViewModel[]> {
+    const stages = await this.stageRepository.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode);
+    return this.mapperService.map(Stage, StageViewModel, stages);
   }
 }
