@@ -32,6 +32,7 @@ import {
 import { ScoreChangeRequestService } from './score-change-request/score-change-request.service';
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { StageViewModel } from '../stage/stage.view-model';
 
 @Injectable()
 export class ScoreService {
@@ -96,20 +97,26 @@ export class ScoreService {
     if (![ScoreStatusEnum.AwaitingApprovalAdmin, ScoreStatusEnum.RejectedByAdmin].includes(score.status)) {
       throw new BadRequestException(`Score is not awaiting for Admin approval`);
     }
-    await Promise.all([
+    const promises: Promise<any>[] = [
       this.scoreApprovalService.addAdmin({ ...dto, idUser: user.id, action, actionDate: new Date(), idScore }),
       this.scoreRepository.update(idScore, {
         status: action === ScoreApprovalActionEnum.Approve ? ScoreStatusEnum.Approved : ScoreStatusEnum.RejectedByAdmin,
         approvalDate: new Date(),
       }),
-      this.scoreWorldRecordService.scheduleWorldRecordSearch({
-        idPlatformGameMiniGameModeStage: score.idPlatformGameMiniGameModeStage,
-        fromDate: addSeconds(score.creationDate, -5),
-        idPlatformGameMiniGameModeCharacterCostumes: orderBy(
-          score.scorePlayers.map(scorePlayer => scorePlayer.idPlatformGameMiniGameModeCharacterCostume)
-        ),
-      }),
-    ]);
+    ];
+    // This check is only needed if the score is approved
+    if (action === ScoreApprovalActionEnum.Approve) {
+      promises.push(
+        this.scoreWorldRecordService.checkForWorldRecord({
+          idPlatformGameMiniGameModeStage: score.idPlatformGameMiniGameModeStage,
+          fromDate: addSeconds(score.creationDate, -5),
+          idPlatformGameMiniGameModeCharacterCostumes: orderBy(
+            score.scorePlayers.map(scorePlayer => scorePlayer.idPlatformGameMiniGameModeCharacterCostume)
+          ),
+        })
+      );
+    }
+    await Promise.all(promises);
   }
 
   @Transactional()
@@ -119,11 +126,11 @@ export class ScoreService {
     user: User,
     action: ScoreApprovalActionEnum
   ): Promise<void> {
-    const idPlayer = await this.playerService.findIdByIdUser(user.id);
     const score = await this.scoreRepository.findOneOrFail(idScore);
     if (![ScoreStatusEnum.AwaitingApprovalPlayer, ScoreStatusEnum.RejectedByPlayer].includes(score.status)) {
       throw new BadRequestException(`Score is not awaiting for Player approval`);
     }
+    const idPlayer = await this.playerService.findIdByIdUser(user.id);
     await this.scoreApprovalService.addPlayer({ ...dto, idPlayer, action, actionDate: new Date(), idScore });
     const [countPlayers, countApprovals] = await Promise.all([
       this.scorePlayerService.findCountByIdScoreWithtoutCreator(idScore),
@@ -213,7 +220,7 @@ export class ScoreService {
     return score;
   }
 
-  async findScoreTable(
+  async findLeaderboards(
     idPlatform: number,
     idGame: number,
     idMiniGame: number,
@@ -242,11 +249,12 @@ export class ScoreService {
       scoreTable.position = position++;
       scoreTableViewModel.push(scoreTable);
     }
-    return {
-      scoreTables: scoreTableViewModel,
-      stages: platformGameMiniGameModeStages.reduce((acc, item) => [...acc, item.stage], [] as Stage[]),
-      meta,
-    };
+    const stages = this.mapperService.map(
+      Stage,
+      StageViewModel,
+      platformGameMiniGameModeStages.reduce((acc, item) => [...acc, item.stage], [] as Stage[])
+    );
+    return { scoreTables: scoreTableViewModel, stages, meta };
   }
 
   async findApprovalListAdmin(params: ScoreApprovalParams): Promise<ScoreApprovalViewModel> {

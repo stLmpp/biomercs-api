@@ -17,12 +17,11 @@ import { PlatformGameMiniGameModeCharacterCostumeModule } from '../platform/plat
 import { PlayerModule } from '../player/player.module';
 import { StageModule } from '../stage/stage.module';
 import { ScoreWorldRecordModule } from './score-world-record/score-world-record.module';
-import { ScoreWorldRecordScheduleModule } from './score-world-record-schedule/score-world-record-schedule.module';
 import { ScoreWorldRecordTypeEnum } from './score-world-record/score-world-record-type.enum';
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
 import {
-  ScoreChangeRequestViewModel,
   ScoreChangeRequestsViewModel,
+  ScoreChangeRequestViewModel,
 } from './view-model/score-change-request.view-model';
 import { Type } from '../util/type';
 import { ScoreChangeRequestModule } from './score-change-request/score-change-request.module';
@@ -40,7 +39,6 @@ import { ScoreChangeRequestModule } from './score-change-request/score-change-re
     PlayerModule,
     StageModule,
     forwardRef(() => ScoreWorldRecordModule),
-    ScoreWorldRecordScheduleModule,
     ScoreChangeRequestModule,
   ],
   providers: [ScoreService],

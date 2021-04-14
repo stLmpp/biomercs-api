@@ -66,9 +66,9 @@ export class ScoreController {
 
   @ApiQuery({ name: Params.limit, required: false })
   @Get(
-    `platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}/mode/:${Params.idMode}/score-table`
+    `platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}/mode/:${Params.idMode}/leaderboards`
   )
-  async findScoreTable(
+  async findLeaderboards(
     @Param(Params.idPlatform) idPlatform: number,
     @Param(Params.idGame) idGame: number,
     @Param(Params.idMiniGame) idMiniGame: number,
@@ -76,7 +76,7 @@ export class ScoreController {
     @Query(Params.page) page: number,
     @Query(Params.limit, OptionalQueryPipe) limit?: number
   ): Promise<ScoreTopTableViewModel> {
-    return this.scoreService.findScoreTable(idPlatform, idGame, idMiniGame, idMode, page, limit ?? 10);
+    return this.scoreService.findLeaderboards(idPlatform, idGame, idMiniGame, idMode, page, limit ?? 10);
   }
 
   @ApiQuery({ name: Params.idPlatform, required: false })

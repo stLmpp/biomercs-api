@@ -1,51 +1,24 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
-import { Subject } from 'rxjs';
-import { auditTime } from 'rxjs/operators';
 import { ScoreWorldRecordRepository } from './score-world-record.repository';
-import { ScoreWorldRecordScheduleService } from '../score-world-record-schedule/score-world-record-schedule.service';
-import { ScoreWorldRecordScheduleAddDto } from '../score-world-record-schedule/score-world-record-schedule.dto';
-import { ScoreWorldRecordSchedule } from '../score-world-record-schedule/score-world-record-schedule.entity';
 import { ScoreService } from '../score.service';
 import { ScoreWorldRecordTypeEnum } from './score-world-record-type.enum';
-import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { IsNull } from 'typeorm';
 import { ModeService } from '../../mode/mode.service';
+import { ScoreWorldRecordCheckDto } from './score-world-record.dto';
 
 @Injectable()
 export class ScoreWorldRecordService {
   constructor(
     private scoreWorldRecordRepository: ScoreWorldRecordRepository,
-    private scoreWorldRecordScheduleService: ScoreWorldRecordScheduleService,
     @Inject(forwardRef(() => ScoreService)) private scoreService: ScoreService,
     private modeService: ModeService
-  ) {
-    this._init().then();
-  }
+  ) {}
 
-  private _runSchedules$ = new Subject<void>();
-
-  @Transactional()
-  private async _processSchedules(): Promise<void> {
-    const schedules = await this.scoreWorldRecordScheduleService.findSchedules();
-    const promises = schedules.map(schedule => this._processSchedule(schedule));
-    await Promise.all(promises);
-    await this.scoreWorldRecordScheduleService.deleteMany(schedules.map(schedule => schedule.id));
-  }
-
-  private async _init(): Promise<void> {
-    this._runSchedules$.pipe(auditTime(15000)).subscribe(() => {
-      this._processSchedules();
-    });
-    if (await this.scoreWorldRecordScheduleService.hasChecksScheduled()) {
-      this._runSchedules$.next();
-    }
-  }
-
-  private async _processSchedule({
-    idPlatformGameMiniGameModeStage,
+  async checkForWorldRecord({
     idPlatformGameMiniGameModeCharacterCostumes,
+    idPlatformGameMiniGameModeStage,
     fromDate,
-  }: ScoreWorldRecordSchedule): Promise<void> {
+  }: ScoreWorldRecordCheckDto): Promise<void> {
     const maxScore = await this.scoreService.findTopScoreByIdPlatformGameMiniGameModeStage(
       idPlatformGameMiniGameModeStage,
       fromDate
@@ -109,10 +82,5 @@ export class ScoreWorldRecordService {
         });
       }
     }
-  }
-
-  async scheduleWorldRecordSearch(dto: ScoreWorldRecordScheduleAddDto): Promise<void> {
-    await this.scoreWorldRecordScheduleService.add(dto);
-    this._runSchedules$.next();
   }
 }
