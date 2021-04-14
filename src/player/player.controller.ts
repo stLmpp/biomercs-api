@@ -7,6 +7,7 @@ import { Params } from '../shared/type/params';
 import { PlayerUpdateDto } from './player.dto';
 import { AuthUser } from '../auth/auth-user.decorator';
 import { User } from '../user/user.entity';
+import { PlayerViewModel, PlayerWithRegionViewModel } from './player.view-model';
 
 @ApiAuth()
 @ApiTags('Player')
@@ -20,7 +21,7 @@ export class PlayerController {
   }
 
   @Put(`:${Params.idPlayer}/unlink-steam`)
-  async unlinkSteamProfile(@Param(Params.idPlayer) idPlayer: number): Promise<Player> {
+  async unlinkSteamProfile(@Param(Params.idPlayer) idPlayer: number): Promise<PlayerViewModel> {
     return this.playerService.unlinkSteamProfile(idPlayer);
   }
 
@@ -35,22 +36,28 @@ export class PlayerController {
   }
 
   @Get('auth')
-  async findAuthPlayer(@AuthUser() user: User): Promise<Player> {
+  async findAuthPlayer(@AuthUser() user: User): Promise<PlayerViewModel> {
     return this.playerService.findByIdUserOrThrow(user.id);
   }
 
   @Get('search')
-  async findBySearch(@Query(Params.personaName) personaName: string, @AuthUser() user: User): Promise<Player[]> {
+  async findBySearch(
+    @Query(Params.personaName) personaName: string,
+    @AuthUser() user: User
+  ): Promise<PlayerViewModel[]> {
     return this.playerService.findBySearch(personaName, user.id);
   }
 
   @Get(`:${Params.idPlayer}`)
-  async findById(@Param(Params.idPlayer) idPlayer: number): Promise<Player> {
-    return this.playerService.findById(idPlayer);
+  async findById(@Param(Params.idPlayer) idPlayer: number): Promise<PlayerWithRegionViewModel> {
+    return this.playerService.findByIdMapped(idPlayer);
   }
 
   @Patch(`:${Params.idPlayer}`)
-  async update(@Param(Params.idPlayer) idPlayer: number, @Body() dto: PlayerUpdateDto): Promise<Player> {
+  async update(
+    @Param(Params.idPlayer) idPlayer: number,
+    @Body() dto: PlayerUpdateDto
+  ): Promise<PlayerWithRegionViewModel> {
     return this.playerService.update(idPlayer, dto);
   }
 }

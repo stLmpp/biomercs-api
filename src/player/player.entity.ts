@@ -3,9 +3,10 @@ import { User } from '../user/user.entity';
 import { BaseEntity } from '../shared/super/base-entity';
 import { SteamProfile } from '../steam/steam-profile.entity';
 import { Region } from '../region/region.entity';
+import { PlayerInterface } from './player.interface';
 
 @Entity()
-export class Player extends BaseEntity {
+export class Player extends BaseEntity implements PlayerInterface {
   @Column({ unique: true })
   personaName!: string;
 

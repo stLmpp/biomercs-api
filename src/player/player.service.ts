@@ -5,13 +5,16 @@ import { PlayerAddDto, PlayerUpdateDto } from './player.dto';
 import { SteamService } from '../steam/steam.service';
 import { RegionService } from '../region/region.service';
 import { LikeUppercase, NotOrNull } from '../util/find-operator';
+import { PlayerViewModel, PlayerWithRegionViewModel } from './player.view-model';
+import { MapperService } from '../mapper/mapper.service';
 
 @Injectable()
 export class PlayerService {
   constructor(
     private playerRepository: PlayerRepository,
     @Inject(forwardRef(() => SteamService)) private steamService: SteamService,
-    private regionService: RegionService
+    private regionService: RegionService,
+    private mapperService: MapperService
   ) {}
 
   async add(dto: PlayerAddDto & { noUser?: boolean }): Promise<Player> {
@@ -25,8 +28,9 @@ export class PlayerService {
     return this.playerRepository.findOne({ where: { idUser } });
   }
 
-  async findByIdUserOrThrow(idUser: number): Promise<Player> {
-    return this.playerRepository.findOneOrFail({ where: { idUser } });
+  async findByIdUserOrThrow(idUser: number): Promise<PlayerViewModel> {
+    const player = await this.playerRepository.findOneOrFail({ where: { idUser } });
+    return this.mapperService.map(Player, PlayerViewModel, player);
   }
 
   async findByIdSteamProfile(idSteamProfile: number): Promise<Player | undefined> {
@@ -41,13 +45,18 @@ export class PlayerService {
     return player;
   }
 
-  async update(idPlayer: number, dto: PlayerUpdateDto): Promise<Player> {
+  async findByIdMapped(idPlayer: number): Promise<PlayerWithRegionViewModel> {
+    const player = await this.findById(idPlayer);
+    return this.mapperService.map(Player, PlayerWithRegionViewModel, player);
+  }
+
+  async update(idPlayer: number, dto: PlayerUpdateDto): Promise<PlayerWithRegionViewModel> {
     const player = await this.playerRepository.findOneOrFail(idPlayer);
     await this.playerRepository.update(idPlayer, dto);
     if (dto.idRegion && player.idRegion !== dto.idRegion) {
       player.region = await this.regionService.findById(dto.idRegion);
     }
-    return new Player().extendDto({ ...player, ...dto });
+    return this.mapperService.map(Player, PlayerWithRegionViewModel, new Player().extendDto({ ...player, ...dto }));
   }
 
   async delete(idPlayer: number): Promise<void> {
@@ -55,14 +64,14 @@ export class PlayerService {
   }
 
   async linkSteamProfile(idPlayer: number): Promise<string> {
-    const player = await this.findById(idPlayer);
+    const player = await this.playerRepository.findOneOrFail(idPlayer);
     if (player.idSteamProfile) {
       throw new BadRequestException('Player already have a steam linked');
     }
     return this.steamService.openIdUrl(player);
   }
 
-  async unlinkSteamProfile(idPlayer: number): Promise<Player> {
+  async unlinkSteamProfile(idPlayer: number): Promise<PlayerWithRegionViewModel> {
     return this.update(idPlayer, { idSteamProfile: undefined });
   }
 
@@ -78,9 +87,10 @@ export class PlayerService {
     return this.playerRepository.createQueryBuilder('p').orderBy('rand()').getOneOrFail();
   }
 
-  async findBySearch(personaName: string, idUser: number): Promise<Player[]> {
-    return this.playerRepository.find({
+  async findBySearch(personaName: string, idUser: number): Promise<PlayerViewModel[]> {
+    const players = await this.playerRepository.find({
       where: { personaName: LikeUppercase(`%${personaName}%`), idUser: NotOrNull(idUser) },
     });
+    return this.mapperService.map(Player, PlayerViewModel, players);
   }
 }
