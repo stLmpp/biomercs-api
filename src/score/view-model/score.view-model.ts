@@ -1,5 +1,5 @@
 import { ScoreStatusEnum } from '../score-status.enum';
-import { Property } from '../../mapper/mapper.service';
+import { Property } from '../../mapper/property.decorator';
 
 export class ScorePlayerViewModel {
   @Property() idScorePlayer!: number;
@@ -43,7 +43,7 @@ export class ScoreViewModel {
   @Property() time!: string;
   @Property() approvalDate?: Date;
   @Property() status!: ScoreStatusEnum;
-  @Property() scorePlayers!: ScorePlayerViewModel[];
+  @Property(() => ScorePlayerViewModel) scorePlayers!: ScorePlayerViewModel[];
   @Property() creationDate!: Date;
   @Property() lastUpdatedDate!: Date | null;
   @Property() isWorldRecord!: boolean;

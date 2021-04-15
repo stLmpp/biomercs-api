@@ -2,12 +2,12 @@ import { BadRequestException, Controller, Get, Param, Post, Put, Query, Req, Res
 import { Request, Response } from 'express';
 import { SteamService } from './steam.service';
 import { ApiQuery, ApiTags } from '@nestjs/swagger';
-import { SteamProfile } from './steam-profile.entity';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { OptionalQueryPipe } from '../shared/pipe/optional-query.pipe';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { environment } from '../environment/environment';
 import { Params } from '../shared/type/params';
+import { SteamProfileViewModel, SteamProfileWithPlayerViewModel } from './steam-profile.view-model';
 
 @ApiTags('Steam')
 @Controller('steam')
@@ -36,14 +36,14 @@ export class SteamController {
 
   @ApiAuth()
   @Put(`:${Params.idSteamProfile}/refresh`)
-  async refresh(@Param(Params.idSteamProfile) idSteamProfile: number): Promise<SteamProfile> {
+  async refresh(@Param(Params.idSteamProfile) idSteamProfile: number): Promise<SteamProfileViewModel> {
     return this.steamService.updateSteamProfile(idSteamProfile);
   }
 
   @ApiAdmin()
   @ApiAuth()
   @Post(`create/:${Params.steamid}`)
-  async create(@Param(Params.steamid) steamid: string): Promise<SteamProfile> {
+  async create(@Param(Params.steamid) steamid: string): Promise<SteamProfileWithPlayerViewModel> {
     return this.steamService.create(steamid);
   }
 }

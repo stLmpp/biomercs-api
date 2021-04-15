@@ -1,5 +1,5 @@
 import { BadRequestException, forwardRef, HttpService, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { RawSteamProfile, SteamProfile } from './steam-profile.entity';
+import { SteamProfile } from './steam-profile.entity';
 import { map } from 'rxjs/operators';
 import { Request } from 'express';
 import { SteamProfileRepository } from './steam-profile.repository';
@@ -10,13 +10,17 @@ import { isString } from 'st-utils';
 import { PlayerService } from '../player/player.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { Player } from '../player/player.entity';
+import { RawSteamProfile } from './steam-profile.interface';
+import { SteamProfileViewModel, SteamProfileWithPlayerViewModel } from './steam-profile.view-model';
+import { MapperService } from '../mapper/mapper.service';
 
 @Injectable()
 export class SteamService {
   constructor(
     private http: HttpService,
     private steamProfileRepository: SteamProfileRepository,
-    @Inject(forwardRef(() => PlayerService)) private playerService: PlayerService
+    @Inject(forwardRef(() => PlayerService)) private playerService: PlayerService,
+    private mapperService: MapperService
   ) {}
 
   private async _createOrReplaceSteamProfile(req: Request, player?: Player, returnUrl?: string): Promise<SteamProfile> {
@@ -59,7 +63,7 @@ export class SteamService {
   }
 
   @Transactional()
-  async create(steamid: string): Promise<SteamProfile> {
+  async create(steamid: string): Promise<SteamProfileWithPlayerViewModel> {
     const rawSteamProfile = await this.getPlayerSummary(steamid);
     if (!rawSteamProfile) {
       throw new NotFoundException('Steam profile not found');
@@ -70,16 +74,21 @@ export class SteamService {
       idSteamProfile: steamProfile.id,
       noUser: true,
     });
-    return steamProfile;
+    return this.mapperService.map(SteamProfile, SteamProfileWithPlayerViewModel, steamProfile);
   }
 
-  async updateSteamProfile(idSteamProfile: number): Promise<SteamProfile> {
+  async updateSteamProfile(idSteamProfile: number): Promise<SteamProfileViewModel> {
     const steamProfile = await this.steamProfileRepository.findOne(idSteamProfile);
     if (!steamProfile?.steamid) {
       throw new BadRequestException('Steam Profile does not exist');
     }
-    await this.steamProfileRepository.update(idSteamProfile, await this.getPlayerSummary(steamProfile.steamid));
-    return await this.steamProfileRepository.findOneOrFail(idSteamProfile);
+    const rawSteamProfile = await this.getPlayerSummary(steamProfile.steamid);
+    await this.steamProfileRepository.update(idSteamProfile, rawSteamProfile);
+    return this.mapperService.map(
+      SteamProfile,
+      SteamProfileViewModel,
+      new SteamProfile().extendDto({ ...steamProfile, ...rawSteamProfile })
+    );
   }
 
   async getPlayerSummary(steamid: string): Promise<RawSteamProfile> {

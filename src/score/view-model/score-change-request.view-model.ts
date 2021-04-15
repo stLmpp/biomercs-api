@@ -1,9 +1,9 @@
-import { Property } from '../../mapper/mapper.service';
 import { ScoreViewModel } from './score.view-model';
 import { PaginationMeta } from '../../shared/view-model/pagination.view-model';
+import { Property } from '../../mapper/property.decorator';
 
 export class ScoreChangeRequestsViewModel extends ScoreViewModel {
-  @Property() scoreChangeRequests!: ScoreChangeRequestViewModel[];
+  @Property(() => ScoreChangeRequestViewModel) scoreChangeRequests!: ScoreChangeRequestViewModel[];
 }
 
 export class ScoreChangeRequestViewModel {
@@ -12,6 +12,6 @@ export class ScoreChangeRequestViewModel {
 }
 
 export class ScoreChangeRequestsPaginationViewModel {
-  @Property() meta!: PaginationMeta;
-  @Property() scores!: ScoreChangeRequestsViewModel[];
+  @Property(() => PaginationMeta) meta!: PaginationMeta;
+  @Property(() => ScoreChangeRequestsViewModel) scores!: ScoreChangeRequestsViewModel[];
 }

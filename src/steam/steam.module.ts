@@ -4,11 +4,25 @@ import { SteamService } from './steam.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SteamProfileRepository } from './steam-profile.repository';
 import { PlayerModule } from '../player/player.module';
+import { MapperModule } from '../mapper/mapper.module';
+import { MapperService } from '../mapper/mapper.service';
+import { SteamProfile } from './steam-profile.entity';
+import { SteamProfileViewModel, SteamProfileWithPlayerViewModel } from './steam-profile.view-model';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([SteamProfileRepository]), HttpModule, forwardRef(() => PlayerModule)],
+  imports: [
+    TypeOrmModule.forFeature([SteamProfileRepository]),
+    HttpModule,
+    forwardRef(() => PlayerModule),
+    MapperModule,
+  ],
   controllers: [SteamController],
   providers: [SteamService],
   exports: [SteamService],
 })
-export class SteamModule {}
+export class SteamModule {
+  constructor(private mapperService: MapperService) {
+    this.mapperService.create(SteamProfile, SteamProfileViewModel);
+    this.mapperService.create(SteamProfile, SteamProfileWithPlayerViewModel);
+  }
+}

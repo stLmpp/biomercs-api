@@ -197,9 +197,6 @@ export class ScoreModule {
         );
 
     createScoreViewModeMap(ScoreViewModel);
-    createScoreViewModeMap(ScoreChangeRequestsViewModel).for(
-      dest => dest.scoreChangeRequests,
-      from => this.mapperService.map(ScoreChangeRequest, ScoreChangeRequestViewModel, from.scoreChangeRequests)
-    );
+    createScoreViewModeMap(ScoreChangeRequestsViewModel);
   }
 }

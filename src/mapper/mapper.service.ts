@@ -1,59 +1,44 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { Type } from '../util/type';
-import { getMetadataArgsStorage } from 'typeorm';
-import { isArray, isFunction, uniq } from 'st-utils';
+import { isArray, isFunction } from 'st-utils';
 import { plainToClass } from 'class-transformer';
-
-export function Property(): PropertyDecorator {
-  return (target, propertyKey) => {
-    const properties = storeProperties.get(target.constructor as any) ?? [];
-    storeProperties.set(target.constructor as any, [...properties, propertyKey.toString()]);
-  };
-}
-
-function getProperties<T>(type: Type<T>): (keyof T)[] {
-  const prototype = Object.getPrototypeOf(type);
-  const parentConstructor = prototype.constructor;
-  return uniq([
-    ...getMetadataArgsStorage()
-      .filterColumns(type)
-      .map(value => value.propertyName),
-    ...getMetadataArgsStorage()
-      .filterRelations(type)
-      .map(value => value.propertyName),
-    ...getMetadataArgsStorage()
-      .columns.filter(column => type.prototype instanceof (column.target as any))
-      .map(column => column.propertyName),
-    ...(storeProperties.get(type) ?? []),
-    ...(storeProperties.get(parentConstructor) ?? []),
-    ...(storeProperties.get(prototype) ?? []),
-  ]) as (keyof T)[];
-}
-
-function toPropertiesObject<T, K extends keyof T = keyof T>(keys: K[]): Record<K, K> {
-  return keys.reduce((acc, key) => ({ ...acc, [key]: key }), {} as Record<K, K>);
-}
+import {
+  compiltePropertyMetadata,
+  getPropertiesMetadata,
+  PropertyMetadata,
+  toPropertiesObject,
+} from './property.decorator';
 
 type MapProperty<T, K extends keyof T = keyof T> = ((entity: T) => any) | K;
 type MapTransformer<T, ToType = any> = (entity: T) => ToType;
 
 export class MapProfile<From, To> {
-  constructor(private from: Type<From>, private to: Type<To>) {
-    this._fromProperties = getProperties(from);
-    this._toProperties = getProperties(to);
-    this._fromPropertiesObj = toPropertiesObject<From>(this._fromProperties);
-    this._toPropertiesObj = toPropertiesObject<To>(this._toProperties);
-    const intersection = this._fromProperties.filter(fromKey => this._toProperties.includes(fromKey as any));
-    for (const property of intersection) {
-      this._propertiesMap.set(property, entity => entity[property]);
+  constructor(private from: Type<From>, private to: Type<To>, private mapperService: MapperService) {
+    const fromProperties = getPropertiesMetadata(from);
+    const toProperties = getPropertiesMetadata(to);
+    this._toPropertiesObj = toPropertiesObject<To>(toProperties.map(toMetadata => toMetadata.propertyKey));
+    const intersection: [PropertyMetadata<From>, PropertyMetadata<To>][] = fromProperties.reduce(
+      (acc, fromMetadata) => {
+        const toMetadata = toProperties.find(toMeta => toMeta.propertyKey === (fromMetadata.propertyKey as any));
+        if (toMetadata) {
+          acc.push([fromMetadata, toMetadata]);
+        }
+        return acc;
+      },
+      [] as [PropertyMetadata, PropertyMetadata][]
+    );
+    for (const [fromMetadata, toMetadata] of intersection) {
+      let callback: MapTransformer<From> = entity => entity[fromMetadata.propertyKey];
+      if (this.mapperService.has(fromMetadata.type, toMetadata.type)) {
+        callback = entity =>
+          this.mapperService.map(fromMetadata.type, toMetadata.type, entity[fromMetadata.propertyKey]);
+      }
+      this._propertiesMap.set(fromMetadata.propertyKey, callback);
     }
   }
 
-  private readonly _fromProperties: (keyof From)[];
-  private readonly _toProperties: (keyof To)[];
-  private readonly _fromPropertiesObj: Record<keyof From, keyof From>;
   private readonly _toPropertiesObj: Record<keyof To, keyof To>;
-  private _propertiesMap = new Map<keyof From, MapTransformer<From>>();
+  private readonly _propertiesMap = new Map<keyof From, MapTransformer<From>>();
 
   private _mapOne(value: From): To {
     const object: Record<any, any> = {};
@@ -83,6 +68,10 @@ export class MapProfile<From, To> {
 
 @Injectable()
 export class MapperService {
+  constructor() {
+    compiltePropertyMetadata();
+  }
+
   private _profiles = new Map<Type, Map<Type, MapProfile<any, any>>>();
 
   private _getOrCreateProfiles<From, To>(from: Type<From>): Map<Type, MapProfile<From, To>> {
@@ -95,7 +84,7 @@ export class MapperService {
   }
 
   create<From, To>(from: Type<From>, to: Type<To>): MapProfile<From, To> {
-    const mapProfile = new MapProfile<From, To>(from, to);
+    const mapProfile = new MapProfile<From, To>(from, to, this);
     this._getOrCreateProfiles<From, To>(from).set(to, mapProfile);
     return mapProfile;
   }
@@ -105,10 +94,12 @@ export class MapperService {
   map<From, To>(from: Type<From>, to: Type<To>, value: From | From[]): To | To[] {
     const mapProfile = this._profiles.get(from)?.get(to);
     if (!mapProfile) {
-      throw new InternalServerErrorException();
+      throw new InternalServerErrorException(); // TODO BETTER ERROR? MAYBE
     }
     return mapProfile.map(value);
   }
-}
 
-const storeProperties = new Map<Type, string[]>();
+  has<From, To>(from: Type<From>, to: Type<To>): boolean {
+    return !!from && !!to && !!this._profiles.get(from)?.has(to);
+  }
+}

@@ -1,6 +1,6 @@
 import { PlayerInterface } from './player.interface';
-import { Property } from '../mapper/mapper.service';
 import { Region } from '../region/region.entity';
+import { Property } from '../mapper/property.decorator';
 
 export class PlayerViewModel implements PlayerInterface {
   @Property() id!: number;
@@ -14,5 +14,5 @@ export class PlayerViewModel implements PlayerInterface {
 }
 
 export class PlayerWithRegionViewModel extends PlayerViewModel {
-  @Property() region?: Region;
+  @Property(() => Region) region?: Region;
 }

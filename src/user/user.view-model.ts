@@ -1,5 +1,5 @@
-import { Property } from '../mapper/mapper.service';
 import { UserInterface } from './user.interface';
+import { Property } from '../mapper/property.decorator';
 
 export class UserViewModel implements UserInterface {
   @Property() id!: number;

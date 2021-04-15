@@ -1,4 +1,4 @@
-import { Property } from '../mapper/mapper.service';
+import { Property } from '../mapper/property.decorator';
 
 export class UrlMetadataViewModel {
   constructor(properties?: UrlMetadataViewModel) {
