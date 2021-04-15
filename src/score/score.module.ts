@@ -36,7 +36,7 @@ import { ScoreChangeRequestModule } from './score-change-request/score-change-re
     ModeModule,
     MapperModule,
     PlatformGameMiniGameModeCharacterCostumeModule,
-    PlayerModule,
+    forwardRef(() => PlayerModule),
     StageModule,
     forwardRef(() => ScoreWorldRecordModule),
     ScoreChangeRequestModule,

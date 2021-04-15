@@ -45,4 +45,8 @@ export class ScorePlayerService {
   async updateMany(dto: ScorePlayerUpdateDto[]): Promise<void> {
     await this.scorePlayerRepository.save(dto);
   }
+
+  async transferScores(oldIdPlayer: number, newIdPlayer: number): Promise<void> {
+    await this.scorePlayerRepository.update({ idPlayer: oldIdPlayer }, { idPlayer: newIdPlayer });
+  }
 }

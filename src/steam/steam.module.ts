@@ -8,6 +8,8 @@ import { MapperModule } from '../mapper/mapper.module';
 import { MapperService } from '../mapper/mapper.service';
 import { SteamProfile } from './steam-profile.entity';
 import { SteamProfileViewModel, SteamProfileWithPlayerViewModel } from './steam-profile.view-model';
+import { ScoreModule } from '../score/score.module';
+import { RegionModule } from '../region/region.module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { SteamProfileViewModel, SteamProfileWithPlayerViewModel } from './steam-
     HttpModule,
     forwardRef(() => PlayerModule),
     MapperModule,
+    ScoreModule,
+    RegionModule,
   ],
   controllers: [SteamController],
   providers: [SteamService],

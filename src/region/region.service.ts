@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { RegionRepository } from './region.repository';
 import { Region } from './region.entity';
+import { ILike } from 'typeorm';
 
 @Injectable()
 export class RegionService {
@@ -28,5 +29,9 @@ export class RegionService {
 
   async findById(idRegion: number): Promise<Region> {
     return this.regionRepository.findOneOrFail(idRegion);
+  }
+
+  async findIdByShortName(shortName: string): Promise<number | undefined> {
+    return this.regionRepository.findOne({ where: { shortName: ILike(shortName) } }).then(region => region?.id);
   }
 }

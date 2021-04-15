@@ -42,7 +42,7 @@ export class ScoreService {
     private modeService: ModeService,
     private scorePlayerService: ScorePlayerService,
     private mapperService: MapperService,
-    private playerService: PlayerService,
+    @Inject(forwardRef(() => PlayerService)) private playerService: PlayerService,
     private platformGameMiniGameModeCharacterCostumeService: PlatformGameMiniGameModeCharacterCostumeService,
     private scoreApprovalService: ScoreApprovalService,
     @Inject(forwardRef(() => ScoreWorldRecordService)) private scoreWorldRecordService: ScoreWorldRecordService,
@@ -168,6 +168,11 @@ export class ScoreService {
     }
     await this.scoreRepository.update(idScore, updateScore);
     return hasAnyRequestChanges;
+  }
+
+  async transferScores(oldIdPlayer: number, newIdPlayer: number): Promise<void> {
+    await this.scoreRepository.update({ createdByIdPlayer: oldIdPlayer }, { createdByIdPlayer: newIdPlayer });
+    await this.scorePlayerService.transferScores(oldIdPlayer, newIdPlayer);
   }
 
   async findByIdMapped(idScore: number): Promise<ScoreViewModel> {

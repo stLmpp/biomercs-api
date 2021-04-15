@@ -13,6 +13,9 @@ import { Player } from '../player/player.entity';
 import { RawSteamProfile } from './steam-profile.interface';
 import { SteamProfileViewModel, SteamProfileWithPlayerViewModel } from './steam-profile.view-model';
 import { MapperService } from '../mapper/mapper.service';
+import { ScoreService } from '../score/score.service';
+import { RegionService } from '../region/region.service';
+import { PlayerAddDto } from '../player/player.dto';
 
 @Injectable()
 export class SteamService {
@@ -20,7 +23,9 @@ export class SteamService {
     private http: HttpService,
     private steamProfileRepository: SteamProfileRepository,
     @Inject(forwardRef(() => PlayerService)) private playerService: PlayerService,
-    private mapperService: MapperService
+    private mapperService: MapperService,
+    private scoreService: ScoreService,
+    private regionService: RegionService
   ) {}
 
   private async _createOrReplaceSteamProfile(req: Request, player?: Player, returnUrl?: string): Promise<SteamProfile> {
@@ -37,7 +42,8 @@ export class SteamService {
         if (!steamProfile.player.noUser) {
           throw new BadRequestException('Steam profile already has a Player linked to it');
         } else {
-          // TODO merge player scores
+          // TODO test this out
+          await this.scoreService.transferScores(steamProfile.player.id, player.id);
           await this.playerService.delete(steamProfile.player.id);
           await this.playerService.update(player.id, { idSteamProfile: steamProfile.id });
         }
@@ -69,11 +75,18 @@ export class SteamService {
       throw new NotFoundException('Steam profile not found');
     }
     const steamProfile = (await this.checkIfSteamProfileIsAlreadyLinked(steamid)) ?? (await this.add(rawSteamProfile));
-    steamProfile.player = await this.playerService.add({
+    const playerDto: PlayerAddDto & { noUser: boolean } = {
       personaName: steamProfile.personaname,
       idSteamProfile: steamProfile.id,
       noUser: true,
-    });
+    };
+    if (steamProfile.loccountrycode) {
+      const possibleIdRegion = await this.regionService.findIdByShortName(steamProfile.loccountrycode);
+      if (possibleIdRegion) {
+        playerDto.idRegion = possibleIdRegion;
+      }
+    }
+    steamProfile.player = await this.playerService.add(playerDto);
     return this.mapperService.map(SteamProfile, SteamProfileWithPlayerViewModel, steamProfile);
   }
 
