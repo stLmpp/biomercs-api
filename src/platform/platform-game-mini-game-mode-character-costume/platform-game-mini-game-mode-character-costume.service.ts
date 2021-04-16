@@ -61,6 +61,20 @@ export class PlatformGameMiniGameModeCharacterCostumeService {
     );
   }
 
+  async findByPlatformGameMiniGameMode(
+    idPlatform: number,
+    idGame: number,
+    idMiniGame: number,
+    idMode: number
+  ): Promise<PlatformGameMiniGameModeCharacterCostume[]> {
+    return this.platformGameMiniGameModeCharacterCostumeRepository.findByPlatformGameMiniGameMode(
+      idPlatform,
+      idGame,
+      idMiniGame,
+      idMode
+    );
+  }
+
   async findRandom(idPlatformGameMiniGameMode: number): Promise<PlatformGameMiniGameModeCharacterCostume> {
     return this.platformGameMiniGameModeCharacterCostumeRepository
       .createQueryBuilder('pgmmcc')

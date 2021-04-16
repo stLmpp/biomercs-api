@@ -8,7 +8,7 @@ import { ScoreViewModel } from './view-model/score.view-model';
 import { Score } from './score.entity';
 import { AuthUser } from '../auth/auth-user.decorator';
 import { User } from '../user/user.entity';
-import { ScoreTopTableViewModel } from './view-model/score-table.view-model';
+import { ScoreTopTableViewModel, ScoreTopTableWorldRecordViewModel } from './view-model/score-table.view-model';
 import { OptionalQueryPipe } from '../shared/pipe/optional-query.pipe';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ScoreApprovalViewModel } from './view-model/score-approval.view-model';
@@ -188,6 +188,16 @@ export class ScoreController {
   @Get('world-record/history')
   async findWorldRecordHistory(@Query() dto: ScoreWorldRecordHistoryDto): Promise<ScoreViewModel[]> {
     return this.scoreService.findWorldRecordHistory(dto);
+  }
+
+  @Get('world-record/table')
+  async findWorldRecordTable(
+    @Query(Params.idPlatform) idPlatform: number,
+    @Query(Params.idGame) idGame: number,
+    @Query(Params.idMiniGame) idMiniGame: number,
+    @Query(Params.idMode) idMode: number
+  ): Promise<ScoreTopTableWorldRecordViewModel> {
+    return this.scoreService.findWorldRecordsTable(idPlatform, idGame, idMiniGame, idMode);
   }
 
   @ApiAdmin()

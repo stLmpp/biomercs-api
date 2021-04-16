@@ -23,4 +23,23 @@ export class PlatformGameMiniGameModeCharacterCostumeRepository extends Reposito
         .getOneOrFail()
     ).id;
   }
+
+  async findByPlatformGameMiniGameMode(
+    idPlatform: number,
+    idGame: number,
+    idMiniGame: number,
+    idMode: number
+  ): Promise<PlatformGameMiniGameModeCharacterCostume[]> {
+    return this.createQueryBuilder('pgmmcc')
+      .innerJoin('pgmmcc.platformGameMiniGameMode', 'pgmm')
+      .innerJoin('pgmm.platformGameMiniGame', 'pgm')
+      .innerJoin('pgm.gameMiniGame', 'gm')
+      .andWhere('pgm.idPlatform = :idPlatform', { idPlatform })
+      .andWhere('gm.idGame = :idGame', { idGame })
+      .andWhere('gm.idMiniGame = :idMiniGame', { idMiniGame })
+      .andWhere('pgmm.idMode = :idMode', { idMode })
+      .innerJoinAndSelect('pgmmcc.characterCostume', 'cc')
+      .innerJoinAndSelect('cc.character', 'c')
+      .getMany();
+  }
 }

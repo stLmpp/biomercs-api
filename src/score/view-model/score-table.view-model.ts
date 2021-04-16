@@ -16,3 +16,17 @@ export class ScoreTableViewModel {
   @Property() position!: number;
   @Property(() => ScoreViewModel) scores!: (ScoreViewModel | undefined)[];
 }
+
+export class ScoreTopTableWorldRecordViewModel {
+  @Property(() => StageViewModel) stages!: StageViewModel[];
+  @Property(() => ScoreTableWorldRecordViewModel) scoreTables!: ScoreTableWorldRecordViewModel[];
+}
+
+export class ScoreTableWorldRecordViewModel {
+  @Property() idCharacterCustome!: number;
+  @Property() idCharacter!: number;
+  @Property() characaterName!: string;
+  @Property() characterCostumeName!: string;
+  @Property() characterCostumeShortName!: string;
+  @Property(() => ScoreViewModel) scores!: (ScoreViewModel | undefined)[];
+}

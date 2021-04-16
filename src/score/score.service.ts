@@ -13,7 +13,12 @@ import { random } from '../util/util';
 import { ScorePlayer } from './score-player/score-player.entity';
 import { PlayerService } from '../player/player.service';
 import { PlatformGameMiniGameModeCharacterCostumeService } from '../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.service';
-import { ScoreTableViewModel, ScoreTopTableViewModel } from './view-model/score-table.view-model';
+import {
+  ScoreTableViewModel,
+  ScoreTableWorldRecordViewModel,
+  ScoreTopTableViewModel,
+  ScoreTopTableWorldRecordViewModel,
+} from './view-model/score-table.view-model';
 import { User } from '../user/user.entity';
 import { ScoreApprovalParams } from './score.params';
 import { ScorePlayerAddDto } from './score-player/score-player.dto';
@@ -261,6 +266,66 @@ export class ScoreService {
       platformGameMiniGameModeStages.reduce((acc, item) => [...acc, item.stage], [] as Stage[])
     );
     return { scoreTables: scoreTableViewModel, stages, meta };
+  }
+
+  async findWorldRecordsTable(
+    idPlatform: number,
+    idGame: number,
+    idMiniGame: number,
+    idMode: number
+  ): Promise<ScoreTopTableWorldRecordViewModel> {
+    const [platformGameMiniGameModeStages, platformGameMiniGameModeCharacterCostumes, scores] = await Promise.all([
+      this.platformGameMiniGameModeStageService.findByPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode),
+      this.platformGameMiniGameModeCharacterCostumeService.findByPlatformGameMiniGameMode(
+        idPlatform,
+        idGame,
+        idMiniGame,
+        idMode
+      ),
+      this.scoreRepository.findWorldRecordsTable(idPlatform, idGame, idMiniGame, idMode),
+    ]);
+    const scoreViewModels = this.mapperService.map(Score, ScoreViewModel, scores);
+    const scoreTableViewModel: ScoreTableWorldRecordViewModel[] = [];
+    for (const platformGameMiniGameModeCharacterCostume of platformGameMiniGameModeCharacterCostumes) {
+      const scoreTable = new ScoreTableWorldRecordViewModel();
+      scoreTable.idCharacter = platformGameMiniGameModeCharacterCostume.characterCostume.idCharacter;
+      scoreTable.idCharacterCustome = platformGameMiniGameModeCharacterCostume.idCharacterCostume;
+      scoreTable.characaterName = platformGameMiniGameModeCharacterCostume.characterCostume.character.name;
+      scoreTable.characterCostumeName = platformGameMiniGameModeCharacterCostume.characterCostume.name;
+      scoreTable.characterCostumeShortName = platformGameMiniGameModeCharacterCostume.characterCostume.shortName;
+      const scoresWithCharacter = scoreViewModels.filter(score =>
+        score.scorePlayers.some(
+          scorePlayer =>
+            scorePlayer.idPlatformGameMiniGameModeCharacterCostume === platformGameMiniGameModeCharacterCostume.id &&
+            scorePlayer.isCharacterWorldRecord
+        )
+      );
+      scoreTable.scores = platformGameMiniGameModeStages.map(platformGameMiniGameModeStage =>
+        scoresWithCharacter.find(score => score.idPlatformGameMiniGameModeStage === platformGameMiniGameModeStage.id)
+      );
+      scoreTableViewModel.push(scoreTable);
+    }
+    // WR
+    const scoreTableWorldRecord = new ScoreTableWorldRecordViewModel();
+    scoreTableWorldRecord.idCharacter = -1;
+    scoreTableWorldRecord.idCharacterCustome = -1;
+    scoreTableWorldRecord.characaterName = 'All';
+    scoreTableWorldRecord.characterCostumeName = 'All';
+    scoreTableWorldRecord.characterCostumeShortName = 'All';
+    scoreTableWorldRecord.scores = platformGameMiniGameModeStages.map(platformGameMiniGameModeStage =>
+      scoreViewModels.find(
+        score => score.idPlatformGameMiniGameModeStage === platformGameMiniGameModeStage.id && score.isWorldRecord
+      )
+    );
+    scoreTableViewModel.unshift(scoreTableWorldRecord);
+    const scoreTopTableViewModel = new ScoreTopTableWorldRecordViewModel();
+    scoreTopTableViewModel.scoreTables = scoreTableViewModel;
+    scoreTopTableViewModel.stages = this.mapperService.map(
+      Stage,
+      StageViewModel,
+      platformGameMiniGameModeStages.map(platformGameMiniGameModeStage => platformGameMiniGameModeStage.stage)
+    );
+    return scoreTopTableViewModel;
   }
 
   async findApprovalListAdmin(params: ScoreApprovalParams): Promise<ScoreApprovalViewModel> {

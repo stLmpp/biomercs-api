@@ -27,6 +27,8 @@ const ALL_RELATIONS = [
   'scorePlayers.platformGameMiniGameModeCharacterCostume.characterCostume',
   'scorePlayers.platformGameMiniGameModeCharacterCostume.characterCostume.character',
   'scorePlayers.player',
+  'scoreWorldRecords',
+  'scoreWorldRecords.scoreWorldRecordCharacters',
 ];
 
 @EntityRepository(Score)
@@ -518,5 +520,22 @@ export class ScoreRepository extends Repository<Score> {
       );
     }
     return queryBuilder.paginate(page, limit);
+  }
+
+  async findWorldRecordsTable(
+    idPlatform: number,
+    idGame: number,
+    idMiniGame: number,
+    idMode: number
+  ): Promise<Score[]> {
+    const ids = await this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode)
+      .andWhere('score.status = :status', { status: ScoreStatusEnum.Approved })
+      .innerJoinAndSelect(`score.scoreWorldRecords`, 'swr', 'swr.endDate is null')
+      .innerJoinAndSelect('swr.scoreWorldRecordCharacters', 'swrc')
+      .andWhere('swr.type = :type', { type: ScoreWorldRecordTypeEnum.CharacterWorldRecord })
+      .select('score.id')
+      .getMany()
+      .then(scores => scores.map(score => score.id));
+    return this.findByIdsWithAllRelations(ids);
   }
 }
