@@ -21,6 +21,7 @@ import { ScoreChangeRequest } from './score-change-request/score-change-request.
 import { ScoreStatusEnum } from './score-status.enum';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ApiPagination } from '../shared/decorator/api-pagination';
+import { ScoreWorldRecordHistoryDto } from './score-world-record/score-world-record.dto';
 
 @ApiAuth()
 @ApiTags('Score')
@@ -182,6 +183,11 @@ export class ScoreController {
     @Query(Params.limit, OptionalQueryPipe) limit?: number
   ): Promise<Pagination<ScoreViewModel>> {
     return this.scoreService.searchScores(term, status, page, limit ?? 10);
+  }
+
+  @Get('world-record/history')
+  async findWorldRecordHistory(@Query() dto: ScoreWorldRecordHistoryDto): Promise<ScoreViewModel[]> {
+    return this.scoreService.findWorldRecordHistory(dto);
   }
 
   @ApiAdmin()

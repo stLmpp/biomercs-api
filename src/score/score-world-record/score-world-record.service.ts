@@ -4,7 +4,8 @@ import { ScoreService } from '../score.service';
 import { ScoreWorldRecordTypeEnum } from './score-world-record-type.enum';
 import { IsNull } from 'typeorm';
 import { ModeService } from '../../mode/mode.service';
-import { ScoreWorldRecordCheckDto } from './score-world-record.dto';
+import { ScoreWorldRecordCheckDto, ScoreWorldRecordHistoryDto } from './score-world-record.dto';
+import { ScoreWorldRecord } from './score-world-record.entity';
 
 @Injectable()
 export class ScoreWorldRecordService {
@@ -36,6 +37,9 @@ export class ScoreWorldRecordService {
         idScore: maxScore.id,
         idPlatformGameMiniGameModeStage,
         type: ScoreWorldRecordTypeEnum.WorldRecord,
+        scoreWorldRecordCharacters: idPlatformGameMiniGameModeCharacterCostumes.map(
+          idPlatformGameMiniGameModeCharacterCostume => ({ idPlatformGameMiniGameModeCharacterCostume })
+        ),
       });
     }
     for (const idPlatformGameMiniGameModeCharacterCostume of idPlatformGameMiniGameModeCharacterCostumes) {
@@ -54,7 +58,7 @@ export class ScoreWorldRecordService {
           idScore: maxScoreCharacter.id,
           idPlatformGameMiniGameModeStage,
           type: ScoreWorldRecordTypeEnum.CharacterWorldRecord,
-          scoreWorldRecordCharacters: [{ idPlatformGameMiniGameModeCharacterCostume, createdBy: -1 }],
+          scoreWorldRecordCharacters: [{ idPlatformGameMiniGameModeCharacterCostume }],
         });
       }
     }
@@ -82,5 +86,9 @@ export class ScoreWorldRecordService {
         });
       }
     }
+  }
+
+  async findHistory(dto: ScoreWorldRecordHistoryDto): Promise<ScoreWorldRecord[]> {
+    return this.scoreWorldRecordRepository.findHistory(dto);
   }
 }

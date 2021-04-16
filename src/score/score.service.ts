@@ -33,6 +33,7 @@ import { ScoreChangeRequestService } from './score-change-request/score-change-r
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { StageViewModel } from '../stage/stage.view-model';
+import { ScoreWorldRecordHistoryDto } from './score-world-record/score-world-record.dto';
 
 @Injectable()
 export class ScoreService {
@@ -393,5 +394,16 @@ export class ScoreService {
       ...pagination,
       items: this.mapperService.map(Score, ScoreViewModel, pagination.items),
     };
+  }
+
+  async findWorldRecordHistory(dto: ScoreWorldRecordHistoryDto): Promise<ScoreViewModel[]> {
+    const scoreWorldRecords = await this.scoreWorldRecordService.findHistory(dto);
+    const scores = await this.scoreRepository.findByIdsWithAllRelations(
+      scoreWorldRecords.map(scoreWorldRecord => scoreWorldRecord.idScore)
+    );
+    const scoresOrdered = scoreWorldRecords.map(scoreWorldRecord =>
+      scores.find(score => score.id === scoreWorldRecord.idScore)
+    );
+    return this.mapperService.map(Score, ScoreViewModel, scoresOrdered);
   }
 }
