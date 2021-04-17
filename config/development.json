@@ -2,7 +2,6 @@
   "DB_HOST": "localhost",
   "DB_PORT": 5432,
   "DB_USERNAME": "root",
-  "DB_PASSWORD": "dev",
   "DB_DATABASE": "biomercs2",
   "DB_SYNCHRONIZE": true,
   "PORT": 3000,
