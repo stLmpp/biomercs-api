@@ -25,7 +25,7 @@ export class ScoreTopTableWorldRecordViewModel {
 export class ScoreTableWorldRecordViewModel {
   @Property() idCharacterCustome!: number;
   @Property() idCharacter!: number;
-  @Property() characaterName!: string;
+  @Property() characterName!: string;
   @Property() characterCostumeName!: string;
   @Property() characterCostumeShortName!: string;
   @Property(() => ScoreViewModel) scores!: (ScoreViewModel | undefined)[];

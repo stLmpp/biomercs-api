@@ -290,7 +290,7 @@ export class ScoreService {
       const scoreTable = new ScoreTableWorldRecordViewModel();
       scoreTable.idCharacter = platformGameMiniGameModeCharacterCostume.characterCostume.idCharacter;
       scoreTable.idCharacterCustome = platformGameMiniGameModeCharacterCostume.idCharacterCostume;
-      scoreTable.characaterName = platformGameMiniGameModeCharacterCostume.characterCostume.character.name;
+      scoreTable.characterName = platformGameMiniGameModeCharacterCostume.characterCostume.character.name;
       scoreTable.characterCostumeName = platformGameMiniGameModeCharacterCostume.characterCostume.name;
       scoreTable.characterCostumeShortName = platformGameMiniGameModeCharacterCostume.characterCostume.shortName;
       const scoresWithCharacter = scoreViewModels.filter(score =>
@@ -309,7 +309,7 @@ export class ScoreService {
     const scoreTableWorldRecord = new ScoreTableWorldRecordViewModel();
     scoreTableWorldRecord.idCharacter = -1;
     scoreTableWorldRecord.idCharacterCustome = -1;
-    scoreTableWorldRecord.characaterName = 'All';
+    scoreTableWorldRecord.characterName = 'All';
     scoreTableWorldRecord.characterCostumeName = 'All';
     scoreTableWorldRecord.characterCostumeShortName = 'All';
     scoreTableWorldRecord.scores = platformGameMiniGameModeStages.map(platformGameMiniGameModeStage =>
