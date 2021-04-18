@@ -9,7 +9,7 @@ import { ScorePlayerService } from './score-player/score-player.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { ScoreViewModel } from './view-model/score.view-model';
 import { MapperService } from '../mapper/mapper.service';
-import { random } from '../util/util';
+import { isNotNil, random } from '../util/util';
 import { ScorePlayer } from './score-player/score-player.entity';
 import { PlayerService } from '../player/player.service';
 import { PlatformGameMiniGameModeCharacterCostumeService } from '../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.service';
@@ -39,6 +39,63 @@ import { ScoreChangeRequest } from './score-change-request/score-change-request.
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { StageViewModel } from '../stage/stage.view-model';
 import { ScoreWorldRecordHistoryDto } from './score-world-record/score-world-record.dto';
+import { ScoreWorldRecordTypeEnum } from './score-world-record/score-world-record-type.enum';
+import { ScoreApproval } from './score-approval/score-approval.entity';
+import { UpdateResult } from 'typeorm/query-builder/result/UpdateResult';
+
+const evidencesMock = [
+  'https://www.youtube.com/watch?v=WXttCVCAld4',
+  'https://www.youtube.com/watch?v=6y-6lH7SdJU',
+  'https://www.youtube.com/watch?v=hdMdp_xbrYA',
+  'https://www.youtube.com/watch?v=vh_pTYz5d98',
+  'https://www.youtube.com/watch?v=ItCMs_zJGdI',
+  'https://www.youtube.com/watch?v=q8LLbZKY8Y0',
+  'https://www.youtube.com/watch?v=uy8Ol_CG8PE',
+  'www.youtube.com',
+  'https://www.youtube.com/watch?v=SZ_rjKixaA8',
+  'https://www.youtube.com/watch?v=CsYoi00MUg0',
+  'https://www.youtube.com/watch?v=iZ6oycl9hfY',
+  'https://www.youtube.com/watch?v=Ss55KGdwQCU',
+  'https://www.youtube.com/watch?v=Uw-usgqwyeg',
+  'https://www.youtube.com/watch?v=ryBk-N08xPw',
+  'https://www.youtube.com/watch?v=VUkbGIHnIb8',
+  'https://www.youtube.com/watch?v=av3TJSgBF7o',
+  'https://www.youtube.com/watch?v=DsZ0RD9yDXA',
+  'https://www.youtube.com/watch?v=0hg4mBcAW4U',
+  'https://www.youtube.com/watch?v=wi1fnuSZreU',
+  'https://www.youtube.com/watch?v=2uJOD6RBabc',
+  'https://www.youtube.com/watch?v=28WuWY2ZTxo',
+  'https://www.youtube.com/watch?v=ug-blf8hxT0',
+  'https://www.youtube.com/watch?v=8ilpJYjIRtQ',
+  'https://www.youtube.com/watch?v=9JzYRgbwmk4',
+  'https://www.youtube.com/watch?v=swnxYWE8HPE',
+  'https://www.youtube.com/watch?v=oxyN3miYWZM',
+  'https://www.youtube.com/watch?v=i8ifONVyTDA',
+  'https://www.youtube.com/watch?v=5e64LV4LLao',
+  'https://www.youtube.com/watch?v=0CCoAk2XPbk',
+  'https://www.youtube.com/watch?v=2aiMgBjnaZU',
+  'https://www.youtube.com/watch?v=y12LzwBPleQ',
+  'https://www.youtube.com/watch?v=wpD6MXSqNZ4',
+  'https://www.youtube.com/watch?v=54bBU0-HOco',
+  'https://www.youtube.com/watch?v=88nkHyRdIOA',
+  'https://www.youtube.com/watch?v=p0Li7979cD4',
+  'https://www.youtube.com/watch?v=xqxx4sOG1R8',
+  'https://www.youtube.com/watch?v=K_7J36z1p1Y',
+  'https://www.youtube.com/watch?v=ws1SYdz6o3Q',
+  'https://www.youtube.com/watch?v=1J7xXv0l2Xg',
+  'https://www.youtube.com/watch?v=JVTZCNB18hA',
+  'https://www.youtube.com/watch?v=iCbBdnujPII',
+  'https://www.youtube.com/watch?v=oUxIIZNAPjY',
+  'https://www.youtube.com/watch?v=eVSq6O86__8',
+  'https://www.youtube.com/watch?v=LqwOHwNvOhE',
+  'https://www.youtube.com/watch?v=oR3P73WRqUg',
+  'https://www.youtube.com/watch?v=dgMx6TJkAfs',
+  'https://www.youtube.com/watch?v=mNB-HCUSQp4',
+  'https://www.youtube.com/watch?v=hz3UGS1cIZk',
+  'https://www.youtube.com/watch?v=XWjllj2ZChU',
+  'https://www.youtube.com/watch?v=192QIf0qDNk',
+  'https://www.youtube.com/watch?v=QscMM-ffY1U',
+];
 
 @Injectable()
 export class ScoreService {
@@ -103,11 +160,12 @@ export class ScoreService {
     if (![ScoreStatusEnum.AwaitingApprovalAdmin, ScoreStatusEnum.RejectedByAdmin].includes(score.status)) {
       throw new BadRequestException(`Score is not awaiting for Admin approval`);
     }
-    const promises: Promise<any>[] = [
-      this.scoreApprovalService.addAdmin({ ...dto, idUser: user.id, action, actionDate: new Date(), idScore }),
+    const approvalDate = new Date();
+    const promises: Promise<ScoreApproval | UpdateResult | void>[] = [
+      this.scoreApprovalService.addAdmin({ ...dto, idUser: user.id, action, actionDate: approvalDate, idScore }),
       this.scoreRepository.update(idScore, {
         status: action === ScoreApprovalActionEnum.Approve ? ScoreStatusEnum.Approved : ScoreStatusEnum.RejectedByAdmin,
-        approvalDate: new Date(),
+        approvalDate,
       }),
     ];
     // This check is only needed if the score is approved
@@ -115,7 +173,7 @@ export class ScoreService {
       promises.push(
         this.scoreWorldRecordService.checkForWorldRecord({
           idPlatformGameMiniGameModeStage: score.idPlatformGameMiniGameModeStage,
-          fromDate: addSeconds(score.creationDate, -5),
+          fromDate: addSeconds(approvalDate, -5),
           idPlatformGameMiniGameModeCharacterCostumes: orderBy(
             score.scorePlayers.map(scorePlayer => scorePlayer.idPlatformGameMiniGameModeCharacterCostume)
           ),
@@ -192,10 +250,16 @@ export class ScoreService {
       game?: string;
       miniGame?: string;
       mode?: string;
-    } = {}
+      approved?: boolean;
+      characterCostume?: string;
+      stage?: string;
+    } = {},
+    user: User,
+    date: Date = new Date()
   ): Promise<Score> {
     const platformGameMiniGameModeStage = await this.platformGameMiniGameModeStageService.findRandom(options);
     const score = new Score();
+    const approved = options.approved ?? Math.random() > 0.5;
     score.score = random(700_000, 1_500_000);
     score.status = ScoreStatusEnum.AwaitingApprovalAdmin;
     score.idPlatformGameMiniGameModeStage = platformGameMiniGameModeStage.id;
@@ -205,29 +269,40 @@ export class ScoreService {
     ).padStart(2, '0')}`;
     score.lastUpdatedBy = 32;
     score.createdBy = 32;
+    score.creationDate = date;
+    const scorePlayers: ScorePlayer[] = [];
+    for (let index = 0; index < platformGameMiniGameModeStage.platformGameMiniGameMode.mode.playerQuantity; index++) {
+      const player = await this.playerService.findRandom(scorePlayers.map(scorePlayer => scorePlayer.idPlayer));
+      const platformGameMiniGameModeCharacterCostume = await this.platformGameMiniGameModeCharacterCostumeService.findRandom(
+        platformGameMiniGameModeStage.idPlatformGameMiniGameMode,
+        options.characterCostume
+      );
+      const scorePlayer = new ScorePlayer();
+      scorePlayer.bulletKills = random(0, 15);
+      scorePlayer.description = '';
+      scorePlayer.evidence = evidencesMock[random(0, evidencesMock.length - 1)];
+      scorePlayer.idPlayer = player.id;
+      scorePlayer.host = !index;
+      scorePlayer.idPlatformGameMiniGameModeCharacterCostume = platformGameMiniGameModeCharacterCostume.id;
+      scorePlayer.createdBy = 32;
+      scorePlayer.lastUpdatedBy = 32;
+      scorePlayer.creationDate = date;
+      scorePlayers.push(scorePlayer);
+    }
+    score.createdByIdPlayer = scorePlayers.find(p => p.host)!.idPlayer;
     const scoreDb = await this.scoreRepository.save(score);
-    const scorePlayers: ScorePlayer[] = await Promise.all(
-      Array.from({ length: platformGameMiniGameModeStage.platformGameMiniGameMode.mode.playerQuantity }).map(
-        async (_, index) => {
-          const player = await this.playerService.findRandom();
-          const platformGameMiniGameModeCharacterCostume = await this.platformGameMiniGameModeCharacterCostumeService.findRandom(
-            platformGameMiniGameModeStage.idPlatformGameMiniGameMode
-          );
-          const scorePlayer = new ScorePlayer();
-          scorePlayer.bulletKills = random(0, 15);
-          scorePlayer.description = '';
-          scorePlayer.evidence = 'www.google.com';
-          scorePlayer.idPlayer = player.id;
-          scorePlayer.host = !index;
-          scorePlayer.idPlatformGameMiniGameModeCharacterCostume = platformGameMiniGameModeCharacterCostume.id;
-          scorePlayer.createdBy = 32;
-          scorePlayer.lastUpdatedBy = 32;
-          scorePlayer.idScore = scoreDb.id;
-          return scorePlayer;
-        }
-      )
-    );
+    for (const p of scorePlayers) {
+      p.idScore = scoreDb.id;
+    }
     score.scorePlayers = await this.scorePlayerService.addManyRandom(scorePlayers);
+    if (approved) {
+      await this.approvalAdmin(
+        scoreDb.id,
+        { idScoreApprovalMotive: 1, description: 'Approved' },
+        user,
+        ScoreApprovalActionEnum.Approve
+      );
+    }
     return score;
   }
 
@@ -466,9 +541,29 @@ export class ScoreService {
     const scores = await this.scoreRepository.findByIdsWithAllRelations(
       scoreWorldRecords.map(scoreWorldRecord => scoreWorldRecord.idScore)
     );
-    const scoresOrdered = scoreWorldRecords.map(scoreWorldRecord =>
-      scores.find(score => score.id === scoreWorldRecord.idScore)
-    );
-    return this.mapperService.map(Score, ScoreViewModel, scoresOrdered);
+    const scoresViewModel = this.mapperService.map(Score, ScoreViewModel, scores);
+    const scoresViewModelMap = new Map<number, ScoreViewModel>(scoresViewModel.map(score => [score.idScore, score]));
+    const scoresOrdered = scoreWorldRecords.map(scoreWorldRecord => {
+      const score = scoresViewModelMap.get(scoreWorldRecord.idScore);
+      if (score) {
+        switch (dto.type) {
+          case ScoreWorldRecordTypeEnum.WorldRecord:
+            score.worldRecordEndDate = scoreWorldRecord.endDate ?? null;
+            break;
+          case ScoreWorldRecordTypeEnum.CombinationWorldRecord:
+            score.combinationWorldRecordEndDate = scoreWorldRecord.endDate ?? null;
+            break;
+          case ScoreWorldRecordTypeEnum.CharacterWorldRecord:
+            score.scorePlayers = score.scorePlayers.map(scorePlayer => {
+              if (scorePlayer.isCharacterWorldRecord) {
+                scorePlayer.characterWorldRecordEndDate = scoreWorldRecord.endDate ?? null;
+              }
+              return scorePlayer;
+            });
+        }
+      }
+      return score;
+    });
+    return scoresOrdered.filter(isNotNil);
   }
 }

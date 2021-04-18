@@ -90,22 +90,25 @@ export class PlatformGameMiniGameModeStageService {
     miniGame,
     mode,
     platform,
+    stage,
   }: {
     platform?: string;
     game?: string;
     miniGame?: string;
     mode?: string;
+    stage?: string;
   } = {}): Promise<PlatformGameMiniGameModeStage> {
     const qb = this.platformGameMiniGameModeStageRepository
       .createQueryBuilder('pgmms')
       .innerJoinAndSelect('pgmms.platformGameMiniGameMode', 'pgmm')
+      .innerJoinAndSelect('pgmms.stage', 's')
       .innerJoinAndSelect('pgmm.mode', 'm')
       .innerJoinAndSelect('pgmm.platformGameMiniGame', 'pgm')
       .innerJoinAndSelect('pgm.gameMiniGame', 'gm')
       .innerJoin('gm.game', 'g')
       .innerJoin('gm.miniGame', 'mg')
       .innerJoin('pgm.platform', 'p')
-      .orderBy('rand()');
+      .orderBy('random()');
     if (game) {
       qb.andWhere('g.shortName = :game', { game });
     }
@@ -117,6 +120,9 @@ export class PlatformGameMiniGameModeStageService {
     }
     if (platform) {
       qb.andWhere('p.shortName = :platform', { platform });
+    }
+    if (stage) {
+      qb.andWhere('s.shortName = :stage', { stage });
     }
     return qb.getOneOrFail();
   }

@@ -6,12 +6,11 @@ import { endOfDay, startOfDay } from 'date-fns';
 
 @EntityRepository(ScoreWorldRecord)
 export class ScoreWorldRecordRepository extends Repository<ScoreWorldRecord> {
-  async updateEndDateCharacterWorldRecordByIdPlatformGameMiniGameModeStageAndCharacterCostume(
+  async findCharacterWorldRecordByIdPlatformGameMiniGameModeStageAndCharacterCostume(
     idPlatformGameMiniGameModeStage: number,
-    idPlatformGameMiniGameModeCharacterCostume: number,
-    fromDate: Date
-  ): Promise<void> {
-    const scoreWorldRecord = await this.createQueryBuilder('s')
+    idPlatformGameMiniGameModeCharacterCostume: number
+  ): Promise<ScoreWorldRecord | undefined> {
+    return this.createQueryBuilder('s')
       .innerJoin('s.scoreWorldRecordCharacters', 'c')
       .andWhere('s.idPlatformGameMiniGameModeStage = :idPlatformGameMiniGameModeStage', {
         idPlatformGameMiniGameModeStage,
@@ -22,16 +21,12 @@ export class ScoreWorldRecordRepository extends Repository<ScoreWorldRecord> {
       })
       .andWhere('s.endDate is null')
       .getOne();
-    if (scoreWorldRecord) {
-      await this.update(scoreWorldRecord.id, { endDate: fromDate });
-    }
   }
 
-  async updateEndDateCombinationWordRecordByIdPlatformGameMiniGameModeStageAndCharacterCostumes(
+  async findCombinationWordRecordByIdPlatformGameMiniGameModeStageAndCharacterCostumes(
     idPlatformGameMiniGameModeStage: number,
-    idPlatformGameMiniGameModeCharacterCostumes: number[],
-    fromDate: Date
-  ): Promise<void> {
+    idPlatformGameMiniGameModeCharacterCostumes: number[]
+  ): Promise<ScoreWorldRecord | undefined> {
     const qb = this.createQueryBuilder('s')
       .andWhere('s.idPlatformGameMiniGameModeStage = :idPlatformGameMiniGameModeStage', {
         idPlatformGameMiniGameModeStage,
@@ -55,10 +50,7 @@ export class ScoreWorldRecordRepository extends Repository<ScoreWorldRecord> {
         }
       }
     }
-    const scoreWorldRecord = await qb.getOne();
-    if (scoreWorldRecord) {
-      await this.update(scoreWorldRecord.id, { endDate: fromDate });
-    }
+    return qb.getOne();
   }
 
   async findHistory({
@@ -82,6 +74,7 @@ export class ScoreWorldRecordRepository extends Repository<ScoreWorldRecord> {
       .innerJoin('pgmg.gameMiniGame', 'gmg')
       .andWhere('gmg.idGame = :idGame', { idGame })
       .andWhere('gmg.idMiniGame = :idMiniGame', { idMiniGame })
+      .andWhere('swr.type = :type', { type })
       .addOrderBy('swr.type');
     if (idCharacterCostume) {
       queryBuilder
@@ -97,9 +90,6 @@ export class ScoreWorldRecordRepository extends Repository<ScoreWorldRecord> {
     if (toDate) {
       queryBuilder.andWhere('coalesce(swr.endDate, now()) <= :toDate', { toDate: endOfDay(toDate) });
     }
-    if (type) {
-      queryBuilder.andWhere('swr.type = :type', { type });
-    }
-    return queryBuilder.addOrderBy('swr.endDate').getMany();
+    return queryBuilder.addOrderBy('swr.endDate', 'DESC').getMany();
   }
 }

@@ -12,25 +12,6 @@ import { ScoreSearchDto } from './score.dto';
 import { ScoreWorldRecordTypeEnum } from './score-world-record/score-world-record-type.enum';
 import { ScoreWorldRecord } from './score-world-record/score-world-record.entity';
 
-const ALL_RELATIONS = [
-  'platformGameMiniGameModeStage',
-  'platformGameMiniGameModeStage.stage',
-  'platformGameMiniGameModeStage.platformGameMiniGameMode',
-  'platformGameMiniGameModeStage.platformGameMiniGameMode.mode',
-  'platformGameMiniGameModeStage.platformGameMiniGameMode.platformGameMiniGame',
-  'platformGameMiniGameModeStage.platformGameMiniGameMode.platformGameMiniGame.gameMiniGame',
-  'platformGameMiniGameModeStage.platformGameMiniGameMode.platformGameMiniGame.gameMiniGame.game',
-  'platformGameMiniGameModeStage.platformGameMiniGameMode.platformGameMiniGame.gameMiniGame.miniGame',
-  'platformGameMiniGameModeStage.platformGameMiniGameMode.platformGameMiniGame.platform',
-  'scorePlayers',
-  'scorePlayers.platformGameMiniGameModeCharacterCostume',
-  'scorePlayers.platformGameMiniGameModeCharacterCostume.characterCostume',
-  'scorePlayers.platformGameMiniGameModeCharacterCostume.characterCostume.character',
-  'scorePlayers.player',
-  'scoreWorldRecords',
-  'scoreWorldRecords.scoreWorldRecordCharacters',
-];
-
 @EntityRepository(Score)
 export class ScoreRepository extends Repository<Score> {
   constructor(private connection: Connection) {
@@ -139,11 +120,17 @@ export class ScoreRepository extends Repository<Score> {
   }
 
   async findByIdWithAllRelations(idScore: number): Promise<Score> {
-    return this.findOneOrFail(idScore, { relations: ALL_RELATIONS });
+    return this._includeScoreWorldRecord('score', this._createQueryBuilderRelations())
+      .andWhere('score.id = :idScore', { idScore })
+      .getOneOrFail();
   }
 
   async findByIdsWithAllRelations(idsScores: number[]): Promise<Score[]> {
-    return this.findByIds(idsScores, { relations: ALL_RELATIONS });
+    const queryBuilder = this._includeScoreWorldRecord('score', this._createQueryBuilderRelations());
+    if (idsScores.length) {
+      queryBuilder.andWhere('score.id in (:...idsScores)', { idsScores });
+    }
+    return queryBuilder.getMany();
   }
 
   async findLeaderboards(
@@ -528,14 +515,20 @@ export class ScoreRepository extends Repository<Score> {
     idMiniGame: number,
     idMode: number
   ): Promise<Score[]> {
-    const ids = await this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode)
+    const queryBuilderBase = this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode)
       .andWhere('score.status = :status', { status: ScoreStatusEnum.Approved })
       .innerJoinAndSelect(`score.scoreWorldRecords`, 'swr', 'swr.endDate is null')
-      .innerJoinAndSelect('swr.scoreWorldRecordCharacters', 'swrc')
+      .innerJoinAndSelect('swr.scoreWorldRecordCharacters', 'swrc');
+    const ids = await queryBuilderBase
+      .clone()
       .andWhere('swr.type = :type', { type: ScoreWorldRecordTypeEnum.CharacterWorldRecord })
       .select('score.id')
       .getMany()
       .then(scores => scores.map(score => score.id));
-    return this.findByIdsWithAllRelations(ids);
+    let scores: Score[] = [];
+    if (ids.length) {
+      scores = await queryBuilderBase.clone().andWhere('score.id in (:...ids)', { ids }).getMany();
+    }
+    return scores;
   }
 }

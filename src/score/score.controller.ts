@@ -5,7 +5,6 @@ import { ScoreService } from './score.service';
 import { ScoreAddDto, ScoreChangeRequestsFulfilDto } from './score.dto';
 import { Params } from '../shared/type/params';
 import { ScoreViewModel } from './view-model/score.view-model';
-import { Score } from './score.entity';
 import { AuthUser } from '../auth/auth-user.decorator';
 import { User } from '../user/user.entity';
 import { ScoreTopTableViewModel, ScoreTopTableWorldRecordViewModel } from './view-model/score-table.view-model';
@@ -21,7 +20,8 @@ import { ScoreChangeRequest } from './score-change-request/score-change-request.
 import { ScoreStatusEnum } from './score-status.enum';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ApiPagination } from '../shared/decorator/api-pagination';
-import { ScoreWorldRecordHistoryDto } from './score-world-record/score-world-record.dto';
+import { ScoreWorldRecordTypeEnum } from './score-world-record/score-world-record-type.enum';
+import { addDays } from 'date-fns';
 
 @ApiAuth()
 @ApiTags('Score')
@@ -38,31 +38,57 @@ export class ScoreController {
   @ApiQuery({ name: 'game', required: false })
   @ApiQuery({ name: 'miniGame', required: false })
   @ApiQuery({ name: 'mode', required: false })
+  @ApiQuery({ name: 'approved', required: false })
+  @ApiQuery({ name: 'characterCostume', required: false })
+  @ApiQuery({ name: 'stage', required: false })
   @Post('insert-random')
   async insertRandom(
+    @AuthUser() user: User,
     @Query('platform') platform?: string,
     @Query('game') game?: string,
     @Query('miniGame') miniGame?: string,
-    @Query('mode') mode?: string
-  ): Promise<Score> {
-    return this.scoreService.insert({ miniGame, platform, mode, game });
+    @Query('mode') mode?: string,
+    @Query('approved') approved?: boolean,
+    @Query('characterCostume') characterCostume?: string,
+    @Query('stage') stage?: string
+  ): Promise<void> {
+    await this.scoreService.insert({ miniGame, platform, mode, game, approved, characterCostume, stage }, user);
   }
 
   @ApiQuery({ name: 'platform', required: false })
   @ApiQuery({ name: 'game', required: false })
   @ApiQuery({ name: 'miniGame', required: false })
   @ApiQuery({ name: 'mode', required: false })
+  @ApiQuery({ name: 'approved', required: false })
+  @ApiQuery({ name: 'characterCostume', required: false })
+  @ApiQuery({ name: 'stage', required: false })
+  @ApiQuery({ name: 'fromDate', required: false })
   @Post('insert-many-random')
   async insertManyRandom(
+    @AuthUser() user: User,
     @Query('q') q: number,
     @Query('platform') platform?: string,
     @Query('game') game?: string,
     @Query('miniGame') miniGame?: string,
-    @Query('mode') mode?: string
-  ): Promise<Score[]> {
-    return Promise.all(
-      Array.from({ length: q }).map(() => this.scoreService.insert({ miniGame, platform, mode, game }))
-    );
+    @Query('mode') mode?: string,
+    @Query('approved') approved?: boolean,
+    @Query('characterCostume') characterCostume?: string,
+    @Query('stage') stage?: string,
+    @Query('fromDate', OptionalQueryPipe) fromDate?: Date
+  ): Promise<void> {
+    if (fromDate) {
+      fromDate = new Date(fromDate);
+    }
+    for (let i = 0; i < q; i++) {
+      await this.scoreService.insert(
+        { miniGame, platform, mode, game, approved, characterCostume, stage },
+        user,
+        fromDate
+      );
+      if (fromDate) {
+        fromDate = addDays(fromDate, 1);
+      }
+    }
   }
 
   @ApiQuery({ name: Params.limit, required: false })
@@ -78,6 +104,48 @@ export class ScoreController {
     @Query(Params.limit, OptionalQueryPipe) limit?: number
   ): Promise<ScoreTopTableViewModel> {
     return this.scoreService.findLeaderboards(idPlatform, idGame, idMiniGame, idMode, page, limit ?? 10);
+  }
+
+  @Get(
+    `platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}/mode/:${Params.idMode}/world-record/table`
+  )
+  async findWorldRecordTable(
+    @Param(Params.idPlatform) idPlatform: number,
+    @Param(Params.idGame) idGame: number,
+    @Param(Params.idMiniGame) idMiniGame: number,
+    @Param(Params.idMode) idMode: number
+  ): Promise<ScoreTopTableWorldRecordViewModel> {
+    return this.scoreService.findWorldRecordsTable(idPlatform, idGame, idMiniGame, idMode);
+  }
+
+  @ApiQuery({ name: Params.idCharacterCostume, required: false })
+  @ApiQuery({ name: Params.fromDate, required: false })
+  @ApiQuery({ name: Params.toDate, required: false })
+  @Get(
+    `platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}/mode/:${Params.idMode}/stage/:${Params.idStage}/world-record/type/:${Params.type}/history`
+  )
+  async findWorldRecordHistory(
+    @Param(Params.idPlatform) idPlatform: number,
+    @Param(Params.idGame) idGame: number,
+    @Param(Params.idMiniGame) idMiniGame: number,
+    @Param(Params.idMode) idMode: number,
+    @Param(Params.idStage) idStage: number,
+    @Param(Params.type) type: ScoreWorldRecordTypeEnum,
+    @Query(Params.idCharacterCostume) idCharacterCostume?: number,
+    @Query(Params.fromDate, OptionalQueryPipe) fromDate?: Date,
+    @Query(Params.toDate, OptionalQueryPipe) toDate?: Date
+  ): Promise<ScoreViewModel[]> {
+    return this.scoreService.findWorldRecordHistory({
+      type,
+      idGame,
+      idMiniGame,
+      idMode,
+      idStage,
+      toDate,
+      fromDate,
+      idPlatform,
+      idCharacterCostume,
+    });
   }
 
   @ApiQuery({ name: Params.idPlatform, required: false })
@@ -183,21 +251,6 @@ export class ScoreController {
     @Query(Params.limit, OptionalQueryPipe) limit?: number
   ): Promise<Pagination<ScoreViewModel>> {
     return this.scoreService.searchScores(term, status, page, limit ?? 10);
-  }
-
-  @Get('world-record/history')
-  async findWorldRecordHistory(@Query() dto: ScoreWorldRecordHistoryDto): Promise<ScoreViewModel[]> {
-    return this.scoreService.findWorldRecordHistory(dto);
-  }
-
-  @Get('world-record/table')
-  async findWorldRecordTable(
-    @Query(Params.idPlatform) idPlatform: number,
-    @Query(Params.idGame) idGame: number,
-    @Query(Params.idMiniGame) idMiniGame: number,
-    @Query(Params.idMode) idMode: number
-  ): Promise<ScoreTopTableWorldRecordViewModel> {
-    return this.scoreService.findWorldRecordsTable(idPlatform, idGame, idMiniGame, idMode);
   }
 
   @ApiAdmin()

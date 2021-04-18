@@ -162,7 +162,7 @@ export class ScoreModule {
           dest => dest.scorePlayers,
           from =>
             this.mapperService.map(ScorePlayer, ScorePlayerViewModel, from.scorePlayers).map(scorePlayer => {
-              scorePlayer.isCharacterWorldRecord = (from.scoreWorldRecords ?? []).some(
+              const characterWorldRecord = (from.scoreWorldRecords ?? []).find(
                 scoreWorldRecord =>
                   scoreWorldRecord.type === ScoreWorldRecordTypeEnum.CharacterWorldRecord &&
                   scoreWorldRecord.scoreWorldRecordCharacters.some(
@@ -171,6 +171,8 @@ export class ScoreModule {
                       scorePlayer.idPlatformGameMiniGameModeCharacterCostume
                   )
               );
+              scorePlayer.isCharacterWorldRecord = !!characterWorldRecord;
+              scorePlayer.characterWorldRecordEndDate = characterWorldRecord?.endDate ?? null;
               return scorePlayer;
             })
         )
@@ -180,6 +182,13 @@ export class ScoreModule {
             (from.scoreWorldRecords ?? []).some(
               scoreWorldRecord => scoreWorldRecord.type === ScoreWorldRecordTypeEnum.WorldRecord
             )
+        )
+        .for(
+          dest => dest.worldRecordEndDate,
+          from =>
+            (from.scoreWorldRecords ?? []).find(
+              scoreWorldRecord => scoreWorldRecord.type === ScoreWorldRecordTypeEnum.WorldRecord
+            )?.endDate ?? null
         )
         .for(
           dest => dest.isCharacterWorldRecord,
@@ -194,6 +203,13 @@ export class ScoreModule {
             (from.scoreWorldRecords ?? []).some(
               scoreWorldRecord => scoreWorldRecord.type === ScoreWorldRecordTypeEnum.CombinationWorldRecord
             )
+        )
+        .for(
+          dest => dest.combinationWorldRecordEndDate,
+          from =>
+            (from.scoreWorldRecords ?? []).find(
+              scoreWorldRecord => scoreWorldRecord.type === ScoreWorldRecordTypeEnum.CombinationWorldRecord
+            )?.endDate ?? null
         );
 
     createScoreViewModeMap(ScoreViewModel);

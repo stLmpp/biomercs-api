@@ -52,7 +52,7 @@ export class ScoreWorldRecordHistoryDto {
   @IsDate()
   toDate?: Date;
 
-  @IsOptional()
+  @IsDefined()
   @IsEnum(ScoreWorldRecordTypeEnum)
-  type?: ScoreWorldRecordTypeEnum;
+  type!: ScoreWorldRecordTypeEnum;
 }

@@ -20,19 +20,16 @@ export class ScoreWorldRecordService {
     idPlatformGameMiniGameModeStage,
     fromDate,
   }: ScoreWorldRecordCheckDto): Promise<void> {
-    const maxScore = await this.scoreService.findTopScoreByIdPlatformGameMiniGameModeStage(
-      idPlatformGameMiniGameModeStage,
-      fromDate
-    );
-    if (maxScore) {
-      await this.scoreWorldRecordRepository.update(
-        {
-          idPlatformGameMiniGameModeStage,
-          type: ScoreWorldRecordTypeEnum.WorldRecord,
-          endDate: IsNull(),
-        },
-        { endDate: fromDate }
-      );
+    const [maxScore, currentWorldRecord] = await Promise.all([
+      this.scoreService.findTopScoreByIdPlatformGameMiniGameModeStage(idPlatformGameMiniGameModeStage, fromDate),
+      this.scoreWorldRecordRepository.findOne({
+        where: { type: ScoreWorldRecordTypeEnum.WorldRecord, idPlatformGameMiniGameModeStage, endDate: IsNull() },
+      }),
+    ]);
+    if (maxScore && maxScore.id !== currentWorldRecord?.idScore) {
+      if (currentWorldRecord) {
+        await this.scoreWorldRecordRepository.update(currentWorldRecord.id, { endDate: fromDate });
+      }
       await this.scoreWorldRecordRepository.save({
         idScore: maxScore.id,
         idPlatformGameMiniGameModeStage,
@@ -43,17 +40,21 @@ export class ScoreWorldRecordService {
       });
     }
     for (const idPlatformGameMiniGameModeCharacterCostume of idPlatformGameMiniGameModeCharacterCostumes) {
-      const maxScoreCharacter = await this.scoreService.findTopScoreByIdPlatformGameMiniGameModeStageAndCharacterCostume(
-        idPlatformGameMiniGameModeStage,
-        idPlatformGameMiniGameModeCharacterCostume,
-        fromDate
-      );
-      if (maxScoreCharacter) {
-        await this.scoreWorldRecordRepository.updateEndDateCharacterWorldRecordByIdPlatformGameMiniGameModeStageAndCharacterCostume(
+      const [maxScoreCharacter, currentCharacterWorldRecord] = await Promise.all([
+        this.scoreService.findTopScoreByIdPlatformGameMiniGameModeStageAndCharacterCostume(
           idPlatformGameMiniGameModeStage,
           idPlatformGameMiniGameModeCharacterCostume,
           fromDate
-        );
+        ),
+        this.scoreWorldRecordRepository.findCharacterWorldRecordByIdPlatformGameMiniGameModeStageAndCharacterCostume(
+          idPlatformGameMiniGameModeStage,
+          idPlatformGameMiniGameModeCharacterCostume
+        ),
+      ]);
+      if (maxScoreCharacter && maxScoreCharacter.id !== currentCharacterWorldRecord?.idScore) {
+        if (currentCharacterWorldRecord) {
+          await this.scoreWorldRecordRepository.update(currentCharacterWorldRecord.id, { endDate: fromDate });
+        }
         await this.scoreWorldRecordRepository.save({
           idScore: maxScoreCharacter.id,
           idPlatformGameMiniGameModeStage,
@@ -65,17 +66,21 @@ export class ScoreWorldRecordService {
     const mode = await this.modeService.findByIdPlatformGameMiniGameModeStage(idPlatformGameMiniGameModeStage);
     const playerQuantity = mode?.playerQuantity ?? 0;
     if (playerQuantity > 1) {
-      const maxScoreCombination = await this.scoreService.findTopCombinationScoreByIdPlatformGameMiniGameModeStageAndCharacterCostumes(
-        idPlatformGameMiniGameModeStage,
-        idPlatformGameMiniGameModeCharacterCostumes,
-        fromDate
-      );
-      if (maxScoreCombination) {
-        await this.scoreWorldRecordRepository.updateEndDateCombinationWordRecordByIdPlatformGameMiniGameModeStageAndCharacterCostumes(
+      const [maxScoreCombination, currentCombinationWorldRecord] = await Promise.all([
+        this.scoreService.findTopCombinationScoreByIdPlatformGameMiniGameModeStageAndCharacterCostumes(
           idPlatformGameMiniGameModeStage,
           idPlatformGameMiniGameModeCharacterCostumes,
           fromDate
-        );
+        ),
+        this.scoreWorldRecordRepository.findCombinationWordRecordByIdPlatformGameMiniGameModeStageAndCharacterCostumes(
+          idPlatformGameMiniGameModeStage,
+          idPlatformGameMiniGameModeCharacterCostumes
+        ),
+      ]);
+      if (maxScoreCombination && maxScoreCombination.id !== currentCombinationWorldRecord?.idScore) {
+        if (currentCombinationWorldRecord) {
+          await this.scoreWorldRecordRepository.update(currentCombinationWorldRecord.id, { endDate: fromDate });
+        }
         await this.scoreWorldRecordRepository.save({
           idScore: maxScoreCombination.id,
           idPlatformGameMiniGameModeStage: maxScoreCombination.idPlatformGameMiniGameModeStage,

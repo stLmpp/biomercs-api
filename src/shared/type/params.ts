@@ -29,6 +29,9 @@ export enum Params {
   url = 'url',
   term = 'term',
   status = 'status',
+  fromDate = 'fromDate',
+  toDate = 'toDate',
+  type = 'type',
 }
 
 export enum HeaderParams {
