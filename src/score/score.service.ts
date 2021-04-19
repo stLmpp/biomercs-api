@@ -255,7 +255,7 @@ export class ScoreService {
       stage?: string;
     } = {},
     user: User,
-    date: Date = new Date()
+    date?: Date
   ): Promise<Score> {
     const platformGameMiniGameModeStage = await this.platformGameMiniGameModeStageService.findRandom(options);
     const score = new Score();
@@ -269,7 +269,9 @@ export class ScoreService {
     ).padStart(2, '0')}`;
     score.lastUpdatedBy = 32;
     score.createdBy = 32;
-    score.creationDate = date;
+    if (date) {
+      score.creationDate = date;
+    }
     const scorePlayers: ScorePlayer[] = [];
     for (let index = 0; index < platformGameMiniGameModeStage.platformGameMiniGameMode.mode.playerQuantity; index++) {
       const player = await this.playerService.findRandom(scorePlayers.map(scorePlayer => scorePlayer.idPlayer));
@@ -286,7 +288,9 @@ export class ScoreService {
       scorePlayer.idPlatformGameMiniGameModeCharacterCostume = platformGameMiniGameModeCharacterCostume.id;
       scorePlayer.createdBy = 32;
       scorePlayer.lastUpdatedBy = 32;
-      scorePlayer.creationDate = date;
+      if (date) {
+        scorePlayer.creationDate = date;
+      }
       scorePlayers.push(scorePlayer);
     }
     score.createdByIdPlayer = scorePlayers.find(p => p.host)!.idPlayer;

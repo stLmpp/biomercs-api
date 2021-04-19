@@ -42,6 +42,7 @@ export class ScoreController {
   @ApiQuery({ name: 'characterCostume', required: false })
   @ApiQuery({ name: 'stage', required: false })
   @Post('insert-random')
+  // TODO REMOVE
   async insertRandom(
     @AuthUser() user: User,
     @Query('platform') platform?: string,
@@ -64,6 +65,7 @@ export class ScoreController {
   @ApiQuery({ name: 'stage', required: false })
   @ApiQuery({ name: 'fromDate', required: false })
   @Post('insert-many-random')
+  // TODO REMOVE
   async insertManyRandom(
     @AuthUser() user: User,
     @Query('q') q: number,

@@ -83,6 +83,7 @@ export class PlayerService {
     return this.playerRepository.findOneOrFail({ select: ['id'], where: { idUser } }).then(player => player.id);
   }
 
+  // TODO REMOVE
   async findRandom(idsNot: number[]): Promise<Player> {
     const qb = this.playerRepository.createQueryBuilder('p').orderBy('random()');
     if (idsNot.length) {
