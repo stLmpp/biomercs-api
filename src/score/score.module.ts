@@ -25,6 +25,7 @@ import {
 } from './view-model/score-change-request.view-model';
 import { Type } from '../util/type';
 import { ScoreChangeRequestModule } from './score-change-request/score-change-request.module';
+import { ScoreGateway } from './score.gateway';
 
 @Module({
   imports: [
@@ -41,7 +42,7 @@ import { ScoreChangeRequestModule } from './score-change-request/score-change-re
     forwardRef(() => ScoreWorldRecordModule),
     ScoreChangeRequestModule,
   ],
-  providers: [ScoreService],
+  providers: [ScoreService, ScoreGateway],
   controllers: [ScoreController],
   exports: [ScoreService, ScorePlayerModule, ScoreApprovalModule, ScoreApprovalMotiveModule, ScoreWorldRecordModule],
 })

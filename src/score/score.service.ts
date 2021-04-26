@@ -42,6 +42,7 @@ import { ScoreWorldRecordHistoryDto } from './score-world-record/score-world-rec
 import { ScoreWorldRecordTypeEnum } from './score-world-record/score-world-record-type.enum';
 import { ScoreApproval } from './score-approval/score-approval.entity';
 import { UpdateResult } from 'typeorm/query-builder/result/UpdateResult';
+import { ScoreGateway } from './score.gateway';
 
 const evidencesMock = [
   'https://www.youtube.com/watch?v=WXttCVCAld4',
@@ -109,7 +110,8 @@ export class ScoreService {
     private platformGameMiniGameModeCharacterCostumeService: PlatformGameMiniGameModeCharacterCostumeService,
     private scoreApprovalService: ScoreApprovalService,
     @Inject(forwardRef(() => ScoreWorldRecordService)) private scoreWorldRecordService: ScoreWorldRecordService,
-    private scoreChangeRequestService: ScoreChangeRequestService
+    private scoreChangeRequestService: ScoreChangeRequestService,
+    private scoreGateway: ScoreGateway
   ) {}
 
   @Transactional()
@@ -146,6 +148,7 @@ export class ScoreService {
       );
     }
     await this.scorePlayerService.addMany(score.id, idPlatform, idGame, idMiniGame, idMode, scorePlayers);
+    this.scoreGateway.updateCountApprovals();
     return this.findByIdMapped(score.id);
   }
 
@@ -181,6 +184,7 @@ export class ScoreService {
       );
     }
     await Promise.all(promises);
+    this.scoreGateway.updateCountApprovals();
   }
 
   @Transactional()
@@ -208,12 +212,15 @@ export class ScoreService {
             : ScoreStatusEnum.RejectedByPlayer,
       });
     }
+    this.scoreGateway.updateCountApprovals();
   }
 
   @Transactional()
   async requestChanges(idScore: number, dtos: string[]): Promise<ScoreChangeRequest[]> {
     await this.scoreRepository.update(idScore, { status: ScoreStatusEnum.ChangesRequested });
-    return this.scoreChangeRequestService.addMany(idScore, dtos);
+    const scoreChangeRequests = await this.scoreChangeRequestService.addMany(idScore, dtos);
+    this.scoreGateway.updateCountApprovals();
+    return scoreChangeRequests;
   }
 
   @Transactional()
@@ -231,6 +238,7 @@ export class ScoreService {
       await this.scorePlayerService.updateMany(scorePlayers);
     }
     await this.scoreRepository.update(idScore, updateScore);
+    this.scoreGateway.updateCountApprovals();
     return hasAnyRequestChanges;
   }
 
