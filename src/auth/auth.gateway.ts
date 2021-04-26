@@ -3,7 +3,7 @@ import { Server } from 'socket.io';
 import { AuthSteamLoginSocketViewModel } from './auth.view-model';
 
 export enum AuthGatewayEvents {
-  loginSteam = 'loginSteam',
+  loginSteam = 'login-steam',
 }
 
 @WebSocketGateway({ namespace: `auth` })
