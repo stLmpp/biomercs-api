@@ -1,19 +1,25 @@
-import { Body, Controller, Get, Param, Patch, Put, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { PlayerService } from './player.service';
-import { Player } from './player.entity';
 import { Params } from '../shared/type/params';
-import { PlayerUpdateDto } from './player.dto';
+import { PlayerAddDto, PlayerUpdateDto } from './player.dto';
 import { AuthUser } from '../auth/auth-user.decorator';
 import { User } from '../user/user.entity';
 import { PlayerViewModel, PlayerWithRegionViewModel } from './player.view-model';
+import { ApiAdmin } from '../auth/api-admin.decorator';
 
 @ApiAuth()
 @ApiTags('Player')
 @Controller('player')
 export class PlayerController {
   constructor(private playerService: PlayerService) {}
+
+  @ApiAdmin()
+  @Post()
+  async create(@Body() dto: PlayerAddDto): Promise<PlayerViewModel> {
+    return this.playerService.add({ ...dto, noUser: true });
+  }
 
   @Put(`:${Params.idPlayer}/link-steam`)
   async linkSteamProfile(@Param(Params.idPlayer) idPlayer: number): Promise<string> {
