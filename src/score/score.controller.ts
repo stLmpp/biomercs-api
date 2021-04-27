@@ -20,7 +20,6 @@ import { ScoreChangeRequest } from './score-change-request/score-change-request.
 import { ScoreStatusEnum } from './score-status.enum';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ApiPagination } from '../shared/decorator/api-pagination';
-import { ScoreWorldRecordTypeEnum } from './score-world-record/score-world-record-type.enum';
 import { addDays } from 'date-fns';
 
 @ApiAuth()
@@ -118,36 +117,6 @@ export class ScoreController {
     @Param(Params.idMode) idMode: number
   ): Promise<ScoreTopTableWorldRecordViewModel> {
     return this.scoreService.findWorldRecordsTable(idPlatform, idGame, idMiniGame, idMode);
-  }
-
-  @ApiQuery({ name: Params.idCharacterCostume, required: false })
-  @ApiQuery({ name: Params.fromDate, required: false })
-  @ApiQuery({ name: Params.toDate, required: false })
-  @Get(
-    `platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}/mode/:${Params.idMode}/stage/:${Params.idStage}/world-record/type/:${Params.type}/history`
-  )
-  async findWorldRecordHistory(
-    @Param(Params.idPlatform) idPlatform: number,
-    @Param(Params.idGame) idGame: number,
-    @Param(Params.idMiniGame) idMiniGame: number,
-    @Param(Params.idMode) idMode: number,
-    @Param(Params.idStage) idStage: number,
-    @Param(Params.type) type: ScoreWorldRecordTypeEnum,
-    @Query(Params.idCharacterCostume) idCharacterCostume?: number,
-    @Query(Params.fromDate, OptionalQueryPipe) fromDate?: Date,
-    @Query(Params.toDate, OptionalQueryPipe) toDate?: Date
-  ): Promise<ScoreViewModel[]> {
-    return this.scoreService.findWorldRecordHistory({
-      type,
-      idGame,
-      idMiniGame,
-      idMode,
-      idStage,
-      toDate,
-      fromDate,
-      idPlatform,
-      idCharacterCostume,
-    });
   }
 
   @ApiQuery({ name: Params.idPlatform, required: false })

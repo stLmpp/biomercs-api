@@ -10,7 +10,6 @@ import { OrderByDirection } from 'st-utils';
 import { ScorePlayer } from './score-player/score-player.entity';
 import { ScoreSearchDto } from './score.dto';
 import { ScoreWorldRecordTypeEnum } from './score-world-record/score-world-record-type.enum';
-import { ScoreWorldRecord } from './score-world-record/score-world-record.entity';
 
 @EntityRepository(Score)
 export class ScoreRepository extends Repository<Score> {
@@ -128,9 +127,10 @@ export class ScoreRepository extends Repository<Score> {
   async findByIdsWithAllRelations(idsScores: number[]): Promise<Score[]> {
     const queryBuilder = this._includeScoreWorldRecord('score', this._createQueryBuilderRelations());
     if (idsScores.length) {
-      queryBuilder.andWhere('score.id in (:...idsScores)', { idsScores });
+      return queryBuilder.andWhere('score.id in (:...idsScores)', { idsScores }).getMany();
+    } else {
+      return [];
     }
-    return queryBuilder.getMany();
   }
 
   async findLeaderboards(
@@ -454,7 +454,7 @@ export class ScoreRepository extends Repository<Score> {
     }
     if (miniGame) {
       miniGame = `%${miniGame}%`;
-      queryBuilder.andWhere('mg.name ilike :miniGame', { miniGame });
+      queryBuilder.andWhere(`replace(mg.name, ' ', '') ilike :miniGame`, { miniGame });
     }
     if (mode) {
       queryBuilder.andWhere('m.name ilike :mode', { mode });
@@ -462,31 +462,17 @@ export class ScoreRepository extends Repository<Score> {
     if (stage) {
       queryBuilder.andWhere('(s.shortName ilike :stage or s.name ilike :stage)', { stage });
     }
-    if (character || player) {
-      queryBuilder.andExists(subQuery => {
-        subQuery.from(ScorePlayer, 'spc_exists').andWhere('spc_exists.idScore = score.id');
-        if (character) {
-          character = `%${character}%`;
-          subQuery
-            .innerJoin('spc_exists.platformGameMiniGameModeCharacterCostume', 'pgmgmc_exists')
-            .innerJoin('pgmgmc_exists.characterCostume', 'cc_exists')
-            .innerJoin('cc_exists.character', 'c_exists')
-            .andWhere(
-              `
-                (replace(concat(c_exists.name, cc_exists.name), ' ', '') ilike :character 
-                or replace(replace(cc_exists.shortName, '.', ''), ' ', '') ilike :character)
-             `,
-              { character }
-            );
-        }
-        if (player) {
-          player = `%${player}%`;
-          subQuery
-            .innerJoin('spc_exists.player', 'p_exists')
-            .andWhere('p_exists.personaName ilike :player', { player });
-        }
-        return subQuery;
-      });
+    if (character) {
+      queryBuilder.andWhere(
+        `
+        (replace(concat(c.name, cc.name), ' ', '') ilike :character 
+        or replace(replace(cc.shortName, '.', ''), ' ', '') ilike :character)
+      `,
+        { character }
+      );
+    }
+    if (player) {
+      queryBuilder.andWhere('pl.personaName ilike :player', { player });
     }
     if (worldRecord || characterWorldRecord || combinationWorldRecord) {
       this._includeScoreWorldRecord('score', queryBuilder);
@@ -498,15 +484,14 @@ export class ScoreRepository extends Repository<Score> {
       } else {
         type = ScoreWorldRecordTypeEnum.WorldRecord;
       }
-      queryBuilder.andExists(subQuery =>
-        subQuery
-          .from(ScoreWorldRecord, 'swr_exists')
-          .andWhere('swr_exists.idScore = score.id')
-          .andWhere('swr_exists.endDate is null')
-          .andWhere('swr_exists.type = :type', { type })
-      );
+      queryBuilder.andWhere('swr.type = :type', { type });
     }
-    return queryBuilder.paginate(page, limit);
+    const { items, meta } = await queryBuilder.select('score.id').paginate(page, limit);
+    const scores = await this.findByIdsWithAllRelations(items.map(raw => raw.id));
+    return {
+      items: items.map(raw => scores.find(_score => _score.id === raw.id)!),
+      meta,
+    };
   }
 
   async findWorldRecordsTable(

@@ -4,8 +4,7 @@ import { ScoreService } from '../score.service';
 import { ScoreWorldRecordTypeEnum } from './score-world-record-type.enum';
 import { IsNull } from 'typeorm';
 import { ModeService } from '../../mode/mode.service';
-import { ScoreWorldRecordCheckDto, ScoreWorldRecordHistoryDto } from './score-world-record.dto';
-import { ScoreWorldRecord } from './score-world-record.entity';
+import { ScoreWorldRecordCheckDto } from './score-world-record.dto';
 
 @Injectable()
 export class ScoreWorldRecordService {
@@ -91,9 +90,5 @@ export class ScoreWorldRecordService {
         });
       }
     }
-  }
-
-  async findHistory(dto: ScoreWorldRecordHistoryDto): Promise<ScoreWorldRecord[]> {
-    return this.scoreWorldRecordRepository.findHistory(dto);
   }
 }

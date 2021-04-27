@@ -12,7 +12,6 @@ export class Mode extends BaseEntity {
 
   @Property()
   @Column()
-  @Index()
   playerQuantity!: number;
 
   @Property(() => PlatformGameMiniGameMode)

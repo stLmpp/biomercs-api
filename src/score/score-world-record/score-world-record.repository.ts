@@ -1,8 +1,6 @@
 import { EntityRepository, Repository } from 'typeorm';
 import { ScoreWorldRecord } from './score-world-record.entity';
 import { ScoreWorldRecordTypeEnum } from './score-world-record-type.enum';
-import { ScoreWorldRecordHistoryDto } from './score-world-record.dto';
-import { endOfDay, startOfDay } from 'date-fns';
 
 @EntityRepository(ScoreWorldRecord)
 export class ScoreWorldRecordRepository extends Repository<ScoreWorldRecord> {
@@ -51,45 +49,5 @@ export class ScoreWorldRecordRepository extends Repository<ScoreWorldRecord> {
       }
     }
     return qb.getOne();
-  }
-
-  async findHistory({
-    idPlatform,
-    idGame,
-    idMiniGame,
-    idMode,
-    idStage,
-    idCharacterCostume,
-    fromDate,
-    toDate,
-    type,
-  }: ScoreWorldRecordHistoryDto): Promise<ScoreWorldRecord[]> {
-    const queryBuilder = this.createQueryBuilder('swr')
-      .innerJoin('swr.platformGameMiniGameModeStage', 'pgmgms')
-      .andWhere('pgmgms.idStage = :idStage', { idStage })
-      .innerJoin('pgmgms.platformGameMiniGameMode', 'pgmgm')
-      .andWhere('pgmgm.idMode = :idMode', { idMode })
-      .innerJoin('pgmgm.platformGameMiniGame', 'pgmg')
-      .andWhere('pgmg.idPlatform = :idPlatform', { idPlatform })
-      .innerJoin('pgmg.gameMiniGame', 'gmg')
-      .andWhere('gmg.idGame = :idGame', { idGame })
-      .andWhere('gmg.idMiniGame = :idMiniGame', { idMiniGame })
-      .andWhere('swr.type = :type', { type })
-      .addOrderBy('swr.type');
-    if (idCharacterCostume) {
-      queryBuilder
-        .innerJoin('swr.scoreWorldRecordCharacters', 'swrc')
-        .innerJoin('swrc.platformGameMiniGameModeCharacterCostume', 'pgmgmcc')
-        .innerJoin('pgmgmcc.characterCostume', 'cc')
-        .andWhere('cc.id = :idCharacterCostume', { idCharacterCostume })
-        .addOrderBy('cc.id');
-    }
-    if (fromDate) {
-      queryBuilder.andWhere('coalesce(swr.endDate, now()) >= :fromDate', { fromDate: startOfDay(fromDate) });
-    }
-    if (toDate) {
-      queryBuilder.andWhere('coalesce(swr.endDate, now()) <= :toDate', { toDate: endOfDay(toDate) });
-    }
-    return queryBuilder.addOrderBy('swr.endDate', 'DESC').getMany();
   }
 }

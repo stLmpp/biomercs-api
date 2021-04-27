@@ -9,7 +9,7 @@ import { ScorePlayerService } from './score-player/score-player.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { ScoreViewModel } from './view-model/score.view-model';
 import { MapperService } from '../mapper/mapper.service';
-import { isNotNil, random } from '../util/util';
+import { random } from '../util/util';
 import { ScorePlayer } from './score-player/score-player.entity';
 import { PlayerService } from '../player/player.service';
 import { PlatformGameMiniGameModeCharacterCostumeService } from '../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.service';
@@ -38,8 +38,6 @@ import { ScoreChangeRequestService } from './score-change-request/score-change-r
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { StageViewModel } from '../stage/stage.view-model';
-import { ScoreWorldRecordHistoryDto } from './score-world-record/score-world-record.dto';
-import { ScoreWorldRecordTypeEnum } from './score-world-record/score-world-record-type.enum';
 import { ScoreApproval } from './score-approval/score-approval.entity';
 import { UpdateResult } from 'typeorm/query-builder/result/UpdateResult';
 import { ScoreGateway } from './score.gateway';
@@ -505,6 +503,7 @@ export class ScoreService {
     page: number,
     limit: number
   ): Promise<Pagination<ScoreViewModel>> {
+    term = ' ' + term;
     const dto = new ScoreSearchDto();
     dto.status = status;
     dto.combinationWorldRecord = /(combination wr|comb wr|comb world record|combwr|combination world record|combinationwr)/i.test(
@@ -528,7 +527,7 @@ export class ScoreService {
     const replace = (str: string | undefined, tokens: string[]): string | undefined =>
       isNil(str) ? str : tokens.reduce((acc, token) => acc.replace(token, ''), str);
     const resolveTest = (tokens: string[]): string | undefined =>
-      replace(term.match(new RegExp(`(${tokens.join('|')})\\w+`, 'ig'))?.[0], tokens);
+      replace(term.match(new RegExp(` (${tokens.join('|')})\\w+`, 'ig'))?.[0], tokens)?.trim();
     dto.game = resolveTest(['game:', 'g:']);
     dto.platform = resolveTest(['platform:', 'plat:', 'p:']);
     dto.mode = resolveTest(['mode:', 'm:']);
@@ -546,36 +545,5 @@ export class ScoreService {
       ...pagination,
       items: this.mapperService.map(Score, ScoreViewModel, pagination.items),
     };
-  }
-
-  async findWorldRecordHistory(dto: ScoreWorldRecordHistoryDto): Promise<ScoreViewModel[]> {
-    const scoreWorldRecords = await this.scoreWorldRecordService.findHistory(dto);
-    const scores = await this.scoreRepository.findByIdsWithAllRelations(
-      scoreWorldRecords.map(scoreWorldRecord => scoreWorldRecord.idScore)
-    );
-    const scoresViewModel = this.mapperService.map(Score, ScoreViewModel, scores);
-    const scoresViewModelMap = new Map<number, ScoreViewModel>(scoresViewModel.map(score => [score.idScore, score]));
-    const scoresOrdered = scoreWorldRecords.map(scoreWorldRecord => {
-      const score = scoresViewModelMap.get(scoreWorldRecord.idScore);
-      if (score) {
-        switch (dto.type) {
-          case ScoreWorldRecordTypeEnum.WorldRecord:
-            score.worldRecordEndDate = scoreWorldRecord.endDate ?? null;
-            break;
-          case ScoreWorldRecordTypeEnum.CombinationWorldRecord:
-            score.combinationWorldRecordEndDate = scoreWorldRecord.endDate ?? null;
-            break;
-          case ScoreWorldRecordTypeEnum.CharacterWorldRecord:
-            score.scorePlayers = score.scorePlayers.map(scorePlayer => {
-              if (scorePlayer.isCharacterWorldRecord) {
-                scorePlayer.characterWorldRecordEndDate = scoreWorldRecord.endDate ?? null;
-              }
-              return scorePlayer;
-            });
-        }
-      }
-      return score;
-    });
-    return scoresOrdered.filter(isNotNil);
   }
 }

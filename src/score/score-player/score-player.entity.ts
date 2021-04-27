@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, Index, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from '../../shared/super/base-entity';
 import { Score } from '../score.entity';
 import { Player } from '../../player/player.entity';
@@ -9,6 +9,7 @@ import { Property } from '../../mapper/property.decorator';
 export class ScorePlayer extends BaseEntity {
   @Property()
   @Column()
+  @Index()
   idScore!: number;
 
   @Property(() => Score)
