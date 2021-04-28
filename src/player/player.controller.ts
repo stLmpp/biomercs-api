@@ -8,6 +8,8 @@ import { AuthUser } from '../auth/auth-user.decorator';
 import { User } from '../user/user.entity';
 import { PlayerViewModel, PlayerWithRegionViewModel } from './player.view-model';
 import { ApiAdmin } from '../auth/api-admin.decorator';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { ApiPagination } from '../shared/decorator/api-pagination';
 
 @ApiAuth()
 @ApiTags('Player')
@@ -46,12 +48,15 @@ export class PlayerController {
     return this.playerService.findByIdUserOrThrow(user.id);
   }
 
+  @ApiPagination(PlayerViewModel)
   @Get('search')
   async findBySearch(
     @Query(Params.personaName) personaName: string,
-    @AuthUser() user: User
-  ): Promise<PlayerViewModel[]> {
-    return this.playerService.findBySearch(personaName, user.id);
+    @AuthUser() user: User,
+    @Query(Params.page) page: number,
+    @Query(Params.limit) limit: number
+  ): Promise<Pagination<PlayerViewModel>> {
+    return this.playerService.findBySearch(personaName, user.id, page, limit);
   }
 
   @Get('exists')

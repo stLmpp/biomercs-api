@@ -4,10 +4,12 @@ import { Player } from './player.entity';
 import { PlayerAddDto, PlayerUpdateDto } from './player.dto';
 import { SteamService } from '../steam/steam.service';
 import { RegionService } from '../region/region.service';
-import { LikeUppercase, NotOrNull } from '../util/find-operator';
+import { NotOrNull } from '../util/find-operator';
 import { PlayerViewModel, PlayerWithRegionViewModel } from './player.view-model';
 import { MapperService } from '../mapper/mapper.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
+import { ILike } from 'typeorm';
+import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class PlayerService {
@@ -113,11 +115,18 @@ export class PlayerService {
     return qb.getOneOrFail();
   }
 
-  async findBySearch(personaName: string, idUser: number): Promise<PlayerViewModel[]> {
-    const players = await this.playerRepository.find({
-      where: { personaName: LikeUppercase(`%${personaName}%`), idUser: NotOrNull(idUser) },
-    });
-    return this.mapperService.map(Player, PlayerViewModel, players);
+  async findBySearch(
+    personaName: string,
+    idUser: number,
+    page: number,
+    limit: number
+  ): Promise<Pagination<PlayerViewModel>> {
+    const { items, meta } = await this.playerRepository.paginate(
+      { page, limit },
+      { where: { personaName: ILike(`%${personaName}%`), idUser: NotOrNull(idUser) } }
+    );
+    const players = this.mapperService.map(Player, PlayerViewModel, items);
+    return new Pagination(players, meta);
   }
 
   async personaNameExists(personaName: string): Promise<boolean> {
