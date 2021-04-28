@@ -35,6 +35,12 @@ export class SteamController {
   }
 
   @ApiAuth()
+  @Get('exists')
+  async steamIdExists(@Query(Params.steamid) steamid: string): Promise<boolean> {
+    return this.steamService.steamIdExists(steamid);
+  }
+
+  @ApiAuth()
   @Put(`:${Params.idSteamProfile}/refresh`)
   async refresh(@Param(Params.idSteamProfile) idSteamProfile: number): Promise<SteamProfileViewModel> {
     return this.steamService.updateSteamProfile(idSteamProfile);
@@ -44,6 +50,6 @@ export class SteamController {
   @ApiAuth()
   @Post(`create/:${Params.steamid}`)
   async create(@Param(Params.steamid) steamid: string): Promise<SteamProfileWithPlayerViewModel> {
-    return this.steamService.create(steamid);
+    return this.steamService.createWithPlayer(steamid);
   }
 }

@@ -1,12 +1,10 @@
-import { IsDefined, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 import { IsNumber } from '../validation/is-number';
 
 export class PlayerAddDto {
+  @IsOptional()
   @IsString()
-  @IsDefined()
-  @IsNotEmpty()
-  @MinLength(3)
-  personaName!: string;
+  personaName?: string;
 
   @IsNumber()
   @IsOptional()
@@ -27,6 +25,10 @@ export class PlayerAddDto {
   @IsOptional()
   @IsNumber()
   idRegion?: number;
+
+  @IsOptional()
+  @IsString()
+  steamid?: string;
 }
 
 export class PlayerUpdateDto {

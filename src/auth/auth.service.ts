@@ -175,7 +175,7 @@ export class AuthService {
     if (hashed !== auth) {
       throw new UnauthorizedException();
     }
-    const steamProfile = await this.steamService.create(steamid);
+    const steamProfile = await this.steamService.createWithPlayer(steamid);
     const password = '' + random(100_000_000_000, 999_999_999_999);
     const user = await this._registerUser({ email, username: steamProfile.personaname, password });
     await this.playerService.update(steamProfile.player.id, { idUser: user.id });

@@ -69,12 +69,8 @@ export class SteamService {
   }
 
   @Transactional()
-  async create(steamid: string): Promise<SteamProfileWithPlayerViewModel> {
-    const rawSteamProfile = await this.getPlayerSummary(steamid);
-    if (!rawSteamProfile) {
-      throw new NotFoundException('Steam profile not found');
-    }
-    const steamProfile = (await this.checkIfSteamProfileIsAlreadyLinked(steamid)) ?? (await this.add(rawSteamProfile));
+  async createWithPlayer(steamid: string): Promise<SteamProfileWithPlayerViewModel> {
+    const steamProfile = await this.create(steamid);
     const playerDto: PlayerAddDto & { noUser: boolean } = {
       personaName: steamProfile.personaname,
       idSteamProfile: steamProfile.id,
@@ -88,6 +84,14 @@ export class SteamService {
     }
     steamProfile.player = await this.playerService.add(playerDto);
     return this.mapperService.map(SteamProfile, SteamProfileWithPlayerViewModel, steamProfile);
+  }
+
+  async create(steamid: string): Promise<SteamProfile> {
+    const rawSteamProfile = await this.getPlayerSummary(steamid);
+    if (!rawSteamProfile) {
+      throw new NotFoundException('Steam profile not found');
+    }
+    return (await this.checkIfSteamProfileIsAlreadyLinked(steamid)) ?? (await this.add(rawSteamProfile));
   }
 
   async updateSteamProfile(idSteamProfile: number): Promise<SteamProfileViewModel> {
@@ -186,5 +190,9 @@ export class SteamService {
 
   async findBySteamid(steamid: string): Promise<SteamProfile> {
     return this.steamProfileRepository.findOneOrFail({ where: { steamid } });
+  }
+
+  async steamIdExists(steamid: string): Promise<boolean> {
+    return this.steamProfileRepository.exists({ steamid });
   }
 }

@@ -7,6 +7,7 @@ import { RegionService } from '../region/region.service';
 import { LikeUppercase, NotOrNull } from '../util/find-operator';
 import { PlayerViewModel, PlayerWithRegionViewModel } from './player.view-model';
 import { MapperService } from '../mapper/mapper.service';
+import { Transactional } from 'typeorm-transactional-cls-hooked';
 
 @Injectable()
 export class PlayerService {
@@ -17,7 +18,27 @@ export class PlayerService {
     private mapperService: MapperService
   ) {}
 
-  async add(dto: PlayerAddDto & { noUser?: boolean }): Promise<Player> {
+  @Transactional()
+  async add({ steamid, ...dto }: PlayerAddDto & { noUser?: boolean }): Promise<Player> {
+    if (!dto.personaName && !steamid) {
+      throw new BadRequestException('personaName or steamid is required to create a player');
+    }
+    if (dto.personaName && dto.personaName.length < 3) {
+      throw new BadRequestException('personaName must have at least 3 characters');
+    }
+    if (!dto.idSteamProfile && steamid) {
+      const steamProfile = await this.steamService.create(steamid);
+      dto.idSteamProfile = steamProfile.id;
+      if (steamProfile.loccountrycode && !dto.idRegion) {
+        const possibleIdRegion = await this.regionService.findIdByShortName(steamProfile.loccountrycode);
+        if (possibleIdRegion) {
+          dto.idRegion = possibleIdRegion;
+        }
+      }
+      if (!dto.personaName) {
+        dto.personaName = steamProfile.personaname;
+      }
+    }
     if (!dto.idRegion) {
       dto.idRegion = await this.regionService.findDefaultIdRegion();
     }
@@ -97,5 +118,9 @@ export class PlayerService {
       where: { personaName: LikeUppercase(`%${personaName}%`), idUser: NotOrNull(idUser) },
     });
     return this.mapperService.map(Player, PlayerViewModel, players);
+  }
+
+  async personaNameExists(personaName: string): Promise<boolean> {
+    return this.playerRepository.exists({ personaName });
   }
 }

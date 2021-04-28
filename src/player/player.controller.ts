@@ -54,6 +54,11 @@ export class PlayerController {
     return this.playerService.findBySearch(personaName, user.id);
   }
 
+  @Get('exists')
+  async personaNameExists(@Query(Params.personaName) personaName: string): Promise<boolean> {
+    return this.playerService.personaNameExists(personaName);
+  }
+
   @Get(`:${Params.idPlayer}`)
   async findById(@Param(Params.idPlayer) idPlayer: number): Promise<PlayerWithRegionViewModel> {
     return this.playerService.findByIdMapped(idPlayer);
