@@ -14,7 +14,6 @@ import { AuthRegisterViewModel, AuthSteamLoginSocketErrorType } from './auth.vie
 import { isNumber } from 'st-utils';
 import { AuthConfirmationService } from './auth-confirmation/auth-confirmation.service';
 import { User } from '../user/user.entity';
-import { MailerService } from '@nestjs-modules/mailer';
 import { environment } from '../environment/environment';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
@@ -24,35 +23,40 @@ import { SteamService } from '../steam/steam.service';
 import { random } from '../util/util';
 import { UserViewModel } from '../user/user.view-model';
 import { MapperService } from '../mapper/mapper.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     private userService: UserService,
     private authConfirmationService: AuthConfirmationService,
-    private mailerService: MailerService,
     private jwtService: JwtService,
     private playerService: PlayerService,
     private authGateway: AuthGateway,
     private steamService: SteamService,
-    private mapperService: MapperService
+    private mapperService: MapperService,
+    private mailService: MailService
   ) {}
 
   private async _sendConfirmationCodeEmail(user: User): Promise<void> {
     const { email, id } = user;
     const authConfirmation = await this.authConfirmationService.generateConfirmationCode(user);
     await this.userService.update(id, { idCurrentAuthConfirmation: authConfirmation.id });
-    await this.mailerService.sendMail({
-      to: email,
-      from: environment.get('MAIL'),
-      subject: 'Biomercs - Confirmation code',
-      template: 'confirmation-code',
-      context: {
-        code: authConfirmation.code,
-        version: environment.appVersion,
-        year: new Date().getFullYear(),
+    await this.mailService.sendMailInfo(
+      {
+        to: email,
+        subject: 'Biomercs - Confirmation code',
       },
-    });
+      {
+        title: 'Confirmation code',
+        info: [
+          {
+            title: 'Code',
+            value: authConfirmation.code,
+          },
+        ],
+      }
+    );
   }
 
   private async _registerUser({ username, password, email }: AuthRegisterDto): Promise<User> {
