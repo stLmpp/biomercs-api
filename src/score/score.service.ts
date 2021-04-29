@@ -39,6 +39,8 @@ import { ScoreChangeRequest } from './score-change-request/score-change-request.
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { StageViewModel } from '../stage/stage.view-model';
 import { ScoreGateway } from './score.gateway';
+import { MailService } from '../mail/mail.service';
+import { MailInfo } from '../mail/mail-info.interface';
 
 const evidencesMock = [
   'https://www.youtube.com/watch?v=WXttCVCAld4',
@@ -107,8 +109,74 @@ export class ScoreService {
     private scoreApprovalService: ScoreApprovalService,
     @Inject(forwardRef(() => ScoreWorldRecordService)) private scoreWorldRecordService: ScoreWorldRecordService,
     private scoreChangeRequestService: ScoreChangeRequestService,
-    private scoreGateway: ScoreGateway
+    private scoreGateway: ScoreGateway,
+    private mailService: MailService
   ) {}
+
+  private async _sendEmailScoreApproved(idScore: number): Promise<void> {
+    const score = await this.scoreRepository.findByIdWithAllRelations(idScore);
+    const playerCreated = await this.playerService.findByIdWithUser(score.createdByIdPlayer);
+    if (playerCreated.user) {
+      const {
+        platformGameMiniGameModeStage: {
+          stage,
+          platformGameMiniGameMode: {
+            mode,
+            platformGameMiniGame: {
+              platform,
+              gameMiniGame: { game, miniGame },
+            },
+          },
+        },
+      } = score;
+      await this.mailService.sendMailInfo(
+        {
+          to: playerCreated.user.email,
+          subject: 'Biomercs2 - Score approved',
+        },
+        {
+          title: 'Score approved',
+          info: [
+            {
+              title: 'Platform',
+              value: platform.name,
+            },
+            {
+              title: 'Game',
+              value: game.name,
+            },
+            {
+              title: 'Mini game',
+              value: miniGame.name,
+            },
+            {
+              title: 'Mode',
+              value: mode.name,
+            },
+            {
+              title: 'Stage',
+              value: stage.name,
+            },
+            ...score.scorePlayers.reduce(
+              (acc, { player, evidence, platformGameMiniGameModeCharacterCostume: { characterCostume } }, index) => [
+                ...acc,
+                {
+                  title: `Player ${index + 1}`,
+                  value: `${player.personaName} (${characterCostume.character.name} ${characterCostume.name})`,
+                },
+                {
+                  title: 'Evidence',
+                  value: evidence,
+                },
+              ],
+              [] as MailInfo[]
+            ),
+            { title: 'Score', value: score.score.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) },
+          ],
+        }
+      );
+    }
+  }
 
   @Transactional()
   async add(
@@ -169,13 +237,16 @@ export class ScoreService {
     ]);
     // This check is only needed if the score is approved
     if (action === ScoreApprovalActionEnum.Approve) {
-      await this.scoreWorldRecordService.checkForWorldRecord({
-        idPlatformGameMiniGameModeStage: score.idPlatformGameMiniGameModeStage,
-        fromDate: addSeconds(approvalDate, -5),
-        idPlatformGameMiniGameModeCharacterCostumes: orderBy(
-          score.scorePlayers.map(scorePlayer => scorePlayer.idPlatformGameMiniGameModeCharacterCostume)
-        ),
-      });
+      await Promise.all([
+        this.scoreWorldRecordService.checkForWorldRecord({
+          idPlatformGameMiniGameModeStage: score.idPlatformGameMiniGameModeStage,
+          fromDate: addSeconds(approvalDate, -5),
+          idPlatformGameMiniGameModeCharacterCostumes: orderBy(
+            score.scorePlayers.map(scorePlayer => scorePlayer.idPlatformGameMiniGameModeCharacterCostume)
+          ),
+        }),
+        this._sendEmailScoreApproved(score.id),
+      ]);
     }
     this.scoreGateway.updateCountApprovals();
   }
