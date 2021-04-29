@@ -26,6 +26,7 @@ import {
 import { Type } from '../util/type';
 import { ScoreChangeRequestModule } from './score-change-request/score-change-request.module';
 import { ScoreGateway } from './score.gateway';
+import { MailModule } from '../mail/mail.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ScoreGateway } from './score.gateway';
     StageModule,
     forwardRef(() => ScoreWorldRecordModule),
     ScoreChangeRequestModule,
+    MailModule,
   ],
   providers: [ScoreService, ScoreGateway],
   controllers: [ScoreController],

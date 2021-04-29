@@ -68,6 +68,10 @@ export class PlayerService {
     return player;
   }
 
+  async findByIdWithUser(idPlayer: number): Promise<Player> {
+    return this.playerRepository.findOneOrFail(idPlayer, { relations: ['user'] });
+  }
+
   async findByIdMapped(idPlayer: number): Promise<PlayerWithRegionViewModel> {
     const player = await this.findById(idPlayer);
     return this.mapperService.map(Player, PlayerWithRegionViewModel, player);

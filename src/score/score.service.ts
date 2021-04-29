@@ -41,6 +41,7 @@ import { StageViewModel } from '../stage/stage.view-model';
 import { ScoreApproval } from './score-approval/score-approval.entity';
 import { UpdateResult } from 'typeorm/query-builder/result/UpdateResult';
 import { ScoreGateway } from './score.gateway';
+import { MailService } from '../mail/mail.service';
 
 const evidencesMock = [
   'https://www.youtube.com/watch?v=WXttCVCAld4',
@@ -109,8 +110,65 @@ export class ScoreService {
     private scoreApprovalService: ScoreApprovalService,
     @Inject(forwardRef(() => ScoreWorldRecordService)) private scoreWorldRecordService: ScoreWorldRecordService,
     private scoreChangeRequestService: ScoreChangeRequestService,
-    private scoreGateway: ScoreGateway
+    private scoreGateway: ScoreGateway,
+    private mailService: MailService
   ) {}
+
+  private async _sendEmailScoreApproved(idScore: number): Promise<void> {
+    const score = await this.scoreRepository.findByIdWithAllRelations(idScore);
+    const playerCreated = await this.playerService.findByIdWithUser(score.createdByIdPlayer);
+    if (playerCreated.user) {
+      const {
+        platformGameMiniGameModeStage: {
+          stage,
+          platformGameMiniGameMode: {
+            mode,
+            platformGameMiniGame: {
+              platform,
+              gameMiniGame: { game, miniGame },
+            },
+          },
+        },
+      } = score;
+      await this.mailService.sendMailInfo(
+        {
+          to: playerCreated.user.email,
+          subject: 'Biomercs2 - Score approved',
+        },
+        {
+          title: 'Score approved',
+          info: [
+            {
+              title: 'Platform',
+              value: platform.name,
+            },
+            {
+              title: 'Game',
+              value: game.name,
+            },
+            {
+              title: 'Mini game',
+              value: miniGame.name,
+            },
+            {
+              title: 'Mode',
+              value: mode.name,
+            },
+            {
+              title: 'Stage',
+              value: stage.name,
+            },
+            ...score.scorePlayers.map(
+              ({ player, platformGameMiniGameModeCharacterCostume: { characterCostume } }, index) => ({
+                title: `Player ${index + 1}`,
+                value: `${player.personaName} (${characterCostume.character.name} ${characterCostume.name})`,
+              })
+            ),
+          ],
+        }
+      );
+    }
+  }
 
   @Transactional()
   async add(
@@ -178,7 +236,8 @@ export class ScoreService {
           idPlatformGameMiniGameModeCharacterCostumes: orderBy(
             score.scorePlayers.map(scorePlayer => scorePlayer.idPlatformGameMiniGameModeCharacterCostume)
           ),
-        })
+        }),
+        this._sendEmailScoreApproved(score.id)
       );
     }
     await Promise.all(promises);
