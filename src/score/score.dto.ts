@@ -13,6 +13,7 @@ import { IsNumber } from '../validation/is-number';
 import { ScorePlayerAddDto, ScorePlayerUpdateDto } from './score-player/score-player.dto';
 import { Type } from 'class-transformer';
 import { ScoreStatusEnum } from './score-status.enum';
+import { IsArrayNumber } from '../validation/is-array-number';
 
 export class ScoreAddDto {
   @IsNumber()
@@ -83,33 +84,17 @@ export class ScoreChangeRequestsFulfilDto {
 }
 
 export class ScoreSearchDto {
-  @IsOptional()
-  @IsString()
-  score?: string | null | undefined;
+  @IsDefined()
+  @IsNumber()
+  page!: number;
+
+  @IsDefined()
+  @IsNumber()
+  limit!: number;
 
   @IsOptional()
-  @IsString()
-  platform?: string | null | undefined;
-
-  @IsOptional()
-  @IsString()
-  game?: string | null | undefined;
-
-  @IsOptional()
-  @IsString()
-  miniGame?: string | null | undefined;
-
-  @IsOptional()
-  @IsString()
-  mode?: string | null | undefined;
-
-  @IsOptional()
-  @IsString()
-  stage?: string | null | undefined;
-
-  @IsOptional()
-  @IsString()
-  character?: string | null | undefined;
+  @IsEnum(ScoreStatusEnum)
+  status?: ScoreStatusEnum;
 
   @IsOptional()
   @IsBoolean()
@@ -125,9 +110,29 @@ export class ScoreSearchDto {
 
   @IsOptional()
   @IsString()
-  player?: string | null | undefined;
+  score?: string | null | undefined;
 
-  @IsDefined()
-  @IsEnum(ScoreStatusEnum)
-  status!: ScoreStatusEnum;
+  @IsOptional()
+  @IsArrayNumber()
+  idPlatforms?: number[] | null | undefined;
+
+  @IsOptional()
+  @IsArrayNumber()
+  idGames?: number[] | null | undefined;
+
+  @IsOptional()
+  @IsArrayNumber()
+  idMiniGames?: number[] | null | undefined;
+
+  @IsOptional()
+  @IsArrayNumber()
+  idModes?: number[] | null | undefined;
+
+  @IsOptional()
+  @IsArrayNumber()
+  idStages?: number[] | null | undefined;
+
+  @IsOptional()
+  @IsArrayNumber()
+  idCharacterCustomes?: number[] | null | undefined;
 }

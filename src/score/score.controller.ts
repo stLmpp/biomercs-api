@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseArrayPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { ScoreService } from './score.service';
-import { ScoreAddDto, ScoreChangeRequestsFulfilDto } from './score.dto';
+import { ScoreAddDto, ScoreChangeRequestsFulfilDto, ScoreSearchDto } from './score.dto';
 import { Params } from '../shared/type/params';
 import { ScoreViewModel } from './view-model/score.view-model';
 import { AuthUser } from '../auth/auth-user.decorator';
@@ -211,17 +211,21 @@ export class ScoreController {
     return this.scoreService.findScoresWithChangeRequestsCount(user);
   }
 
+  @ApiQuery({ name: Params.worldRecord, required: false })
+  @ApiQuery({ name: Params.characterWorldRecord, required: false })
+  @ApiQuery({ name: Params.combinationWorldRecord, required: false })
+  @ApiQuery({ name: Params.score, required: false })
+  @ApiQuery({ name: Params.idPlatforms, required: false, isArray: true, type: Number })
+  @ApiQuery({ name: Params.idGames, required: false, isArray: true, type: Number })
+  @ApiQuery({ name: Params.idMiniGames, required: false, isArray: true, type: Number })
+  @ApiQuery({ name: Params.idModes, required: false, isArray: true, type: Number })
+  @ApiQuery({ name: Params.idStages, required: false, isArray: true, type: Number })
+  @ApiQuery({ name: Params.idCharacterCustomes, required: false, isArray: true, type: Number })
+  @ApiQuery({ name: Params.status, enum: ScoreStatusEnum })
   @ApiPagination(ScoreViewModel)
-  @ApiQuery({ name: Params.status, required: true, enum: ScoreStatusEnum })
-  @ApiQuery({ name: Params.limit, required: false })
-  @Get('search')
-  async searchScores(
-    @Query(Params.term) term: string,
-    @Query(Params.status) status: ScoreStatusEnum,
-    @Query(Params.page) page: number,
-    @Query(Params.limit, OptionalQueryPipe) limit?: number
-  ): Promise<Pagination<ScoreViewModel>> {
-    return this.scoreService.searchScores(term, status, page, limit ?? 10);
+  @Get('search2')
+  async searchScores(@Query() dto: ScoreSearchDto): Promise<Pagination<ScoreViewModel>> {
+    return this.scoreService.searchScores(dto);
   }
 
   @ApiAdmin()

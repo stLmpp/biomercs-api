@@ -12,6 +12,12 @@ export enum Params {
   idScoreApprovalMotive = 'idScoreApprovalMotive',
   idSteamProfile = 'idSteamProfile',
   idUser = 'idUser',
+  idPlatforms = 'idPlatforms',
+  idGames = 'idGames',
+  idMiniGames = 'idMiniGames',
+  idModes = 'idModes',
+  idStages = 'idStages',
+  idCharacterCustomes = 'idCharacterCustomes',
 
   // OTHERS
   steamid = 'steamid',
@@ -32,6 +38,10 @@ export enum Params {
   fromDate = 'fromDate',
   toDate = 'toDate',
   type = 'type',
+  worldRecord = 'worldRecord',
+  characterWorldRecord = 'characterWorldRecord',
+  combinationWorldRecord = 'combinationWorldRecord',
+  score = 'score',
 }
 
 export enum HeaderParams {

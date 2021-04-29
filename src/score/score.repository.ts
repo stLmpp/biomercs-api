@@ -412,81 +412,54 @@ export class ScoreRepository extends Repository<Score> {
       .getCount();
   }
 
-  async searchScores(
-    {
-      score,
-      character,
-      characterWorldRecord,
-      combinationWorldRecord,
-      game,
-      miniGame,
-      mode,
-      worldRecord,
-      stage,
-      platform,
-      player,
-      status,
-    }: ScoreSearchDto,
-    page: number,
-    limit: number
-  ): Promise<Pagination<Score>> {
-    const queryBuilder = this._createQueryBuilderRelations().andWhere('score.status = :status', { status });
-    if (score) {
-      if (score.toLowerCase().endsWith('k')) {
-        score = score.slice(0, -1);
-        const scoreStart = +(score + '000');
-        const scoreEnd = +(score + '999');
+  async searchScores(dto: ScoreSearchDto): Promise<Pagination<Score>> {
+    const queryBuilder = this._createQueryBuilderRelations();
+    this._includeScoreWorldRecord('score', queryBuilder);
+    if (dto.status) {
+      queryBuilder.andWhere('score.status = :status', { status: dto.status });
+    }
+    if (dto.score) {
+      if (dto.score.toLowerCase().endsWith('k')) {
+        dto.score = dto.score.slice(0, -1);
+        const scoreStart = +(dto.score + '000');
+        const scoreEnd = +(dto.score + '999');
         if (!isNaN(scoreStart) && !isNaN(scoreEnd)) {
           queryBuilder.andWhere('score.score between :scoreStart and :scoreEnd', { scoreStart, scoreEnd });
         }
       } else {
-        const scoreNumber = +score;
+        const scoreNumber = +dto.score;
         if (!isNaN(scoreNumber)) {
           queryBuilder.andWhere('score.score = :score', { score: scoreNumber });
         }
       }
     }
-    if (platform) {
-      queryBuilder.andWhere('(p.shortName ilike :platform or p.name ilike :platform)', { platform });
+    if (dto.idPlatforms?.length) {
+      queryBuilder.andWhere('p.id in (:...idPlatforms)', { idPlatforms: dto.idPlatforms });
     }
-    if (game) {
-      queryBuilder.andWhere('(g.shortName ilike :game or g.name ilike :game)', { game });
+    if (dto.idGames?.length) {
+      queryBuilder.andWhere('g.id in (:...idGames)', { idGames: dto.idGames });
     }
-    if (miniGame) {
-      miniGame = `%${miniGame}%`;
-      queryBuilder.andWhere(`replace(mg.name, ' ', '') ilike :miniGame`, { miniGame });
+    if (dto.idMiniGames?.length) {
+      queryBuilder.andWhere('mg.id in (:...idMiniGames)', { idMiniGames: dto.idMiniGames });
     }
-    if (mode) {
-      queryBuilder.andWhere('m.name ilike :mode', { mode });
+    if (dto.idModes?.length) {
+      queryBuilder.andWhere('m.id in (:...idModes)', { idModes: dto.idModes });
     }
-    if (stage) {
-      queryBuilder.andWhere('(s.shortName ilike :stage or s.name ilike :stage)', { stage });
+    if (dto.idCharacterCustomes?.length) {
+      queryBuilder.andWhere('cc.id in (:...idCharacterCostumes)', { idCharacterCostumes: dto.idCharacterCustomes });
     }
-    if (character) {
-      queryBuilder.andWhere(
-        `
-        (replace(concat(c.name, cc.name), ' ', '') ilike :character 
-        or replace(replace(cc.shortName, '.', ''), ' ', '') ilike :character)
-      `,
-        { character }
-      );
-    }
-    if (player) {
-      queryBuilder.andWhere('pl.personaName ilike :player', { player });
-    }
-    if (worldRecord || characterWorldRecord || combinationWorldRecord) {
-      this._includeScoreWorldRecord('score', queryBuilder);
+    if (dto.worldRecord || dto.characterWorldRecord || dto.combinationWorldRecord) {
       let type: ScoreWorldRecordTypeEnum;
-      if (characterWorldRecord) {
+      if (dto.characterWorldRecord) {
         type = ScoreWorldRecordTypeEnum.CharacterWorldRecord;
-      } else if (combinationWorldRecord) {
+      } else if (dto.combinationWorldRecord) {
         type = ScoreWorldRecordTypeEnum.CombinationWorldRecord;
       } else {
         type = ScoreWorldRecordTypeEnum.WorldRecord;
       }
       queryBuilder.andWhere('swr.type = :type', { type });
     }
-    const { items, meta } = await queryBuilder.select('score.id').paginate(page, limit);
+    const { items, meta } = await queryBuilder.select('score.id').paginate(dto.page, dto.limit);
     const scores = await this.findByIdsWithAllRelations(items.map(raw => raw.id));
     return {
       items: items.map(raw => scores.find(_score => _score.id === raw.id)!),
