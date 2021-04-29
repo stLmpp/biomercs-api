@@ -40,6 +40,7 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { StageViewModel } from '../stage/stage.view-model';
 import { ScoreGateway } from './score.gateway';
 import { MailService } from '../mail/mail.service';
+import { MailInfo } from '../mail/mail-info.interface';
 
 const evidencesMock = [
   'https://www.youtube.com/watch?v=WXttCVCAld4',
@@ -156,12 +157,21 @@ export class ScoreService {
               title: 'Stage',
               value: stage.name,
             },
-            ...score.scorePlayers.map(
-              ({ player, platformGameMiniGameModeCharacterCostume: { characterCostume } }, index) => ({
-                title: `Player ${index + 1}`,
-                value: `${player.personaName} (${characterCostume.character.name} ${characterCostume.name})`,
-              })
+            ...score.scorePlayers.reduce(
+              (acc, { player, evidence, platformGameMiniGameModeCharacterCostume: { characterCostume } }, index) => [
+                ...acc,
+                {
+                  title: `Player ${index + 1}`,
+                  value: `${player.personaName} (${characterCostume.character.name} ${characterCostume.name})`,
+                },
+                {
+                  title: 'Evidence',
+                  value: evidence,
+                },
+              ],
+              [] as MailInfo[]
             ),
+            { title: 'Score', value: score.score.toLocaleString('pt-BR', { maximumFractionDigits: 0 }) },
           ],
         }
       );
