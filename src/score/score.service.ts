@@ -38,8 +38,6 @@ import { ScoreChangeRequestService } from './score-change-request/score-change-r
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { StageViewModel } from '../stage/stage.view-model';
-import { ScoreApproval } from './score-approval/score-approval.entity';
-import { UpdateResult } from 'typeorm/query-builder/result/UpdateResult';
 import { ScoreGateway } from './score.gateway';
 import { MailService } from '../mail/mail.service';
 
@@ -220,16 +218,16 @@ export class ScoreService {
       throw new BadRequestException(`Score is not awaiting for Admin approval`);
     }
     const approvalDate = new Date();
-    const promises: Promise<ScoreApproval | UpdateResult | void>[] = [
+    await Promise.all([
       this.scoreApprovalService.addAdmin({ ...dto, idUser: user.id, action, actionDate: approvalDate, idScore }),
       this.scoreRepository.update(idScore, {
         status: action === ScoreApprovalActionEnum.Approve ? ScoreStatusEnum.Approved : ScoreStatusEnum.RejectedByAdmin,
         approvalDate,
       }),
-    ];
+    ]);
     // This check is only needed if the score is approved
     if (action === ScoreApprovalActionEnum.Approve) {
-      promises.push(
+      await Promise.all([
         this.scoreWorldRecordService.checkForWorldRecord({
           idPlatformGameMiniGameModeStage: score.idPlatformGameMiniGameModeStage,
           fromDate: addSeconds(approvalDate, -5),
@@ -237,10 +235,9 @@ export class ScoreService {
             score.scorePlayers.map(scorePlayer => scorePlayer.idPlatformGameMiniGameModeCharacterCostume)
           ),
         }),
-        this._sendEmailScoreApproved(score.id)
-      );
+        this._sendEmailScoreApproved(score.id),
+      ]);
     }
-    await Promise.all(promises);
     this.scoreGateway.updateCountApprovals();
   }
 
