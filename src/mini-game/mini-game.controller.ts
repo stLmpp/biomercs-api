@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { MiniGameService } from './mini-game.service';
 import { MiniGame } from './mini-game.entity';
-import { MiniGameAddDto, MiniGameUpdateDto } from './mini-game.dto';
+import { MiniGameAddDto, MiniGamePlatformsGamesDto, MiniGameUpdateDto } from './mini-game.dto';
 import { Params } from '../shared/type/params';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ApiAuth } from '../auth/api-auth.decorator';
@@ -31,6 +31,11 @@ export class MiniGameController {
     @Param(Params.idGame) idGame: number
   ): Promise<MiniGame[]> {
     return this.miniGameService.findByIdPlatformGame(idPlatform, idGame);
+  }
+
+  @Get(`platforms/games`)
+  async findByIdPlatformsGames(@Query() dto: MiniGamePlatformsGamesDto): Promise<MiniGame[]> {
+    return this.miniGameService.findByIdPlatformsGames(dto);
   }
 
   @Get(`:${Params.idMiniGame}`)

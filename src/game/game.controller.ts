@@ -1,8 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { GameService } from './game.service';
 import { Game } from './game.entity';
-import { GameAddDto, GameUpdateDto } from './game.dto';
+import { GameAddDto, GamePlatformsDto, GameUpdateDto } from './game.dto';
 import { Params } from '../shared/type/params';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ApiAuth } from '../auth/api-auth.decorator';
@@ -43,6 +43,11 @@ export class GameController {
     @Param(Params.idMiniGame) idMiniGame: number
   ): Promise<void> {
     await this.gameMiniGameService.unlink(idGame, idMiniGame);
+  }
+
+  @Get('platforms')
+  async findByIdPlatforms(@Query() dto: GamePlatformsDto): Promise<Game[]> {
+    return this.gameService.findByIdPlatforms(dto);
   }
 
   @Get(`platform/:${Params.idPlatform}`)

@@ -1,9 +1,7 @@
 import { BaseExceptionFilter } from '@nestjs/core';
 import {
   ArgumentsHost,
-  BadRequestException,
   Catch,
-  ConflictException,
   HttpException,
   InternalServerErrorException,
   Logger,
@@ -11,8 +9,10 @@ import {
 } from '@nestjs/common';
 import { environment } from './environment';
 import { isObject } from 'st-utils';
-import { EntityNotFoundError } from 'typeorm/error/EntityNotFoundError';
-import { Response } from 'express';
+import { EntityNotFoundError, QueryFailedError } from 'typeorm';
+import { PostgresQueryError } from '../shared/type/postgress-error';
+import { PostgresError } from 'pg-error-enum';
+import { Type } from '../util/type';
 
 @Catch()
 export class HandleErrorFilter extends BaseExceptionFilter {
@@ -32,11 +32,9 @@ export class HandleErrorFilter extends BaseExceptionFilter {
     let error: HttpException;
     if (this.isEntityNotFoundError(exception)) {
       error = this.handleEntityNotFoundError(exception);
-    } /*else if (this.isSqlError(exception)) { // TODO HANDLE SQL ERRORS
+    } else if (this.isQueryFailedError(exception)) {
       error = this.handleSqlError(exception);
-    }*/ else if (
-      this.isThrownError(exception)
-    ) {
+    } else if (this.isThrownError(exception)) {
       error = this.handleThrownError(exception);
     } else {
       super.catch(exception, host);
@@ -56,41 +54,30 @@ export class HandleErrorFilter extends BaseExceptionFilter {
     if (!environment.production) {
       Logger.error(errorObj);
     }
-    (host.switchToHttp().getResponse() as Response).status(status).json(errorObj);
+    host.switchToHttp().getResponse().status(status).json(errorObj);
   }
 
-  // handleSqlError(exception: MysqlError): HttpException {
-  //   const { message, errno } = exception;
-  //   const errorObj = { sqlMessage: message, sqlErrno: errno };
-  //   switch (errno) {
-  //     case 1452:
-  //       return new NotFoundException(errorObj);
-  //     case 1169:
-  //     case 1557:
-  //     case 1062:
-  //       return new ConflictException(errorObj);
-  //     case 1451:
-  //       return new ConflictException({
-  //         ...errorObj,
-  //         message: `Can't finish operation because of relationship`,
-  //       });
-  //     case 1048:
-  //     case 1054:
-  //     case 1265:
-  //     case 1364:
-  //       return new BadRequestException(errorObj);
-  //     default:
-  //       return new InternalServerErrorException(errorObj);
-  //   }
-  // }
+  handleSqlError({ message, name, stack, ...sqlError }: PostgresQueryError): HttpException {
+    const objError = { message, sqlError };
+    let exception: Type<HttpException>;
+    switch (sqlError.code) {
+      // TODO implement more errors
+      case PostgresError.SYNTAX_ERROR:
+        exception = InternalServerErrorException;
+        break;
+      default:
+        exception = InternalServerErrorException;
+    }
+    return new exception(objError);
+  }
 
   handleEntityNotFoundError(error: EntityNotFoundError): HttpException {
     return new NotFoundException(error.message);
   }
 
-  // isSqlError(exception: any): exception is MysqlError {
-  //   return !!exception?.sql;
-  // }
+  isQueryFailedError(exception: any): exception is PostgresQueryError {
+    return exception instanceof QueryFailedError;
+  }
 
   isEntityNotFoundError(exception: any): exception is EntityNotFoundError {
     return exception instanceof EntityNotFoundError;

@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ModeService } from './mode.service';
 import { Mode } from './mode.entity';
-import { ModeAddDto, ModeUpdateDto } from './mode.dto';
+import { ModeAddDto, ModePlatformsGamesMiniGamesDto, ModeUpdateDto } from './mode.dto';
 import { Params } from '../shared/type/params';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ApiAuth } from '../auth/api-auth.decorator';
@@ -32,6 +32,11 @@ export class ModeController {
     @Param(Params.idMiniGame) idMiniGame: number
   ): Promise<Mode[]> {
     return this.modeService.findByIdPlatformGameMiniGame(idPlatform, idGame, idMiniGame);
+  }
+
+  @Get(`platforms/games/mini-games`)
+  async findByIdPlatformsGamesMiniGames(@Query() dto: ModePlatformsGamesMiniGamesDto): Promise<Mode[]> {
+    return this.modeService.findByIdPlatformsGamesMiniGames(dto);
   }
 
   @Get(`:${Params.idMode}`)

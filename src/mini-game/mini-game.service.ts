@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { MiniGameRepository } from './mini-game.repository';
 import { MiniGame } from './mini-game.entity';
-import { MiniGameAddDto, MiniGameUpdateDto } from './mini-game.dto';
+import { MiniGameAddDto, MiniGamePlatformsGamesDto, MiniGameUpdateDto } from './mini-game.dto';
 
 @Injectable()
 export class MiniGameService {
@@ -22,5 +22,9 @@ export class MiniGameService {
 
   async findByIdPlatformGame(idPlatform: number, idGame: number): Promise<MiniGame[]> {
     return this.miniGameRepository.findByIdPlatformGame(idPlatform, idGame);
+  }
+
+  async findByIdPlatformsGames(dto: MiniGamePlatformsGamesDto): Promise<MiniGame[]> {
+    return this.miniGameRepository.findByIdPlatformsGames(dto);
   }
 }

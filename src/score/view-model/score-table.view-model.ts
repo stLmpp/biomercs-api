@@ -23,7 +23,7 @@ export class ScoreTopTableWorldRecordViewModel {
 }
 
 export class ScoreTableWorldRecordViewModel {
-  @Property() idCharacterCustome!: number;
+  @Property() idCharacterCostume!: number;
   @Property() idCharacter!: number;
   @Property() characterName!: string;
   @Property() characterCostumeName!: string;

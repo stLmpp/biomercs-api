@@ -1,5 +1,6 @@
 import { EntityRepository, Repository } from 'typeorm';
 import { Game } from './game.entity';
+import { GamePlatformsDto } from './game.dto';
 
 @EntityRepository(Game)
 export class GameRepository extends Repository<Game> {
@@ -8,6 +9,14 @@ export class GameRepository extends Repository<Game> {
       .innerJoin('g.gameMiniGames', 'gm')
       .innerJoin('gm.platformGameMiniGames', 'gmg')
       .andWhere('gmg.idPlatform = :idPlatform', { idPlatform })
+      .getMany();
+  }
+
+  async findByIdPlatforms({ idPlatforms }: GamePlatformsDto): Promise<Game[]> {
+    return this.createQueryBuilder('g')
+      .innerJoin('g.gameMiniGames', 'gm')
+      .innerJoin('gm.platformGameMiniGames', 'pgmg')
+      .andWhere('pgmg.idPlatform in (:...idPlatforms)', { idPlatforms })
       .getMany();
   }
 }

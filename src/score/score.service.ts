@@ -440,7 +440,7 @@ export class ScoreService {
     for (const platformGameMiniGameModeCharacterCostume of platformGameMiniGameModeCharacterCostumes) {
       const scoreTable = new ScoreTableWorldRecordViewModel();
       scoreTable.idCharacter = platformGameMiniGameModeCharacterCostume.characterCostume.idCharacter;
-      scoreTable.idCharacterCustome = platformGameMiniGameModeCharacterCostume.idCharacterCostume;
+      scoreTable.idCharacterCostume = platformGameMiniGameModeCharacterCostume.idCharacterCostume;
       scoreTable.characterName = platformGameMiniGameModeCharacterCostume.characterCostume.character.name;
       scoreTable.characterCostumeName = platformGameMiniGameModeCharacterCostume.characterCostume.name;
       scoreTable.characterCostumeShortName = platformGameMiniGameModeCharacterCostume.characterCostume.shortName;
@@ -459,7 +459,7 @@ export class ScoreService {
     // WR
     const scoreTableWorldRecord = new ScoreTableWorldRecordViewModel();
     scoreTableWorldRecord.idCharacter = -1;
-    scoreTableWorldRecord.idCharacterCustome = -1;
+    scoreTableWorldRecord.idCharacterCostume = -1;
     scoreTableWorldRecord.characterName = 'All';
     scoreTableWorldRecord.characterCostumeName = 'All';
     scoreTableWorldRecord.characterCostumeShortName = 'All';
@@ -563,8 +563,12 @@ export class ScoreService {
     return this.scoreRepository.findScoresWithChangeRequestsCount(idPlayer);
   }
 
-  async searchScores(dto: ScoreSearchDto): Promise<Pagination<ScoreViewModel>> {
-    const pagination = await this.scoreRepository.searchScores(dto);
+  async searchScores(dto: ScoreSearchDto, idUser: number): Promise<Pagination<ScoreViewModel>> {
+    let idPlayer: number | undefined;
+    if (dto.onlyMyScores) {
+      idPlayer = await this.playerService.findIdByIdUser(idUser);
+    }
+    const pagination = await this.scoreRepository.searchScores(dto, idPlayer);
     return {
       ...pagination,
       items: this.mapperService.map(Score, ScoreViewModel, pagination.items),

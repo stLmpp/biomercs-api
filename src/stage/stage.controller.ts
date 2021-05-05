@@ -1,7 +1,7 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { StageService } from './stage.service';
-import { StageAddDto, StageUpdateDto } from './stage.dto';
+import { StageAddDto, StagePlatformsGamesMiniGamesModesDto, StageUpdateDto } from './stage.dto';
 import { Params } from '../shared/type/params';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ApiAuth } from '../auth/api-auth.decorator';
@@ -33,6 +33,13 @@ export class StageController {
     @Param(Params.idMode) idMode: number
   ): Promise<StageViewModel[]> {
     return this.stageService.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode);
+  }
+
+  @Get(`platforms/games/mini-games/modes`)
+  async findByIdPlatformsGamesMiniGamesModes(
+    @Query() dto: StagePlatformsGamesMiniGamesModesDto
+  ): Promise<StageViewModel[]> {
+    return this.stageService.findByIdPlatformsGamesMiniGamesModes(dto);
   }
 
   @Get(`:${Params.idStage}`)

@@ -1,4 +1,5 @@
-import { IsDefined, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { ArrayMinSize, IsDefined, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
+import { IsArrayNumberQuery } from '../validation/is-array-number';
 
 export class StageAddDto {
   @IsDefined()
@@ -24,4 +25,26 @@ export class StageUpdateDto {
   @IsNotEmpty()
   @MaxLength(10)
   shortName?: string;
+}
+
+export class StagePlatformsGamesMiniGamesModesDto {
+  @IsDefined()
+  @IsArrayNumberQuery()
+  @ArrayMinSize(1)
+  idPlatforms!: number[];
+
+  @IsDefined()
+  @IsArrayNumberQuery()
+  @ArrayMinSize(1)
+  idGames!: number[];
+
+  @IsDefined()
+  @IsArrayNumberQuery()
+  @ArrayMinSize(1)
+  idMiniGames!: number[];
+
+  @IsDefined()
+  @IsArrayNumberQuery()
+  @ArrayMinSize(1)
+  idModes!: number[];
 }

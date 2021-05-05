@@ -412,7 +412,7 @@ export class ScoreRepository extends Repository<Score> {
       .getCount();
   }
 
-  async searchScores(dto: ScoreSearchDto): Promise<Pagination<Score>> {
+  async searchScores(dto: ScoreSearchDto, idPlayer?: number): Promise<Pagination<Score>> {
     const queryBuilder = this._createQueryBuilderRelations();
     this._includeScoreWorldRecord('score', queryBuilder);
     if (dto.status) {
@@ -445,8 +445,8 @@ export class ScoreRepository extends Repository<Score> {
     if (dto.idModes?.length) {
       queryBuilder.andWhere('m.id in (:...idModes)', { idModes: dto.idModes });
     }
-    if (dto.idCharacterCustomes?.length) {
-      queryBuilder.andWhere('cc.id in (:...idCharacterCostumes)', { idCharacterCostumes: dto.idCharacterCustomes });
+    if (dto.idCharacterCostumes?.length) {
+      queryBuilder.andWhere('cc.id in (:...idCharacterCostumes)', { idCharacterCostumes: dto.idCharacterCostumes });
     }
     if (dto.worldRecord || dto.characterWorldRecord || dto.combinationWorldRecord) {
       let type: ScoreWorldRecordTypeEnum;
@@ -458,6 +458,9 @@ export class ScoreRepository extends Repository<Score> {
         type = ScoreWorldRecordTypeEnum.WorldRecord;
       }
       queryBuilder.andWhere('swr.type = :type', { type });
+    }
+    if (dto.onlyMyScores && idPlayer) {
+      queryBuilder.andWhere('pl.id = :idPlayer', { idPlayer });
     }
     const { items, meta } = await queryBuilder.select('score.id').paginate(dto.page, dto.limit);
     const scores = await this.findByIdsWithAllRelations(items.map(raw => raw.id));

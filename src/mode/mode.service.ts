@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ModeRepository } from './mode.repository';
 import { Mode } from './mode.entity';
-import { ModeAddDto, ModeUpdateDto } from './mode.dto';
+import { ModeAddDto, ModePlatformsGamesMiniGamesDto, ModeUpdateDto } from './mode.dto';
 
 @Injectable()
 export class ModeService {
@@ -22,6 +22,10 @@ export class ModeService {
 
   async findByIdPlatformGameMiniGame(idPlatform: number, idGame: number, idMiniGame: number): Promise<Mode[]> {
     return this.modeRepository.findByIdPlatformGameMiniGame(idPlatform, idGame, idMiniGame);
+  }
+
+  async findByIdPlatformsGamesMiniGames(dto: ModePlatformsGamesMiniGamesDto): Promise<Mode[]> {
+    return this.modeRepository.findByIdPlatformsGamesMiniGames(dto);
   }
 
   async findByIdPlatformGameMiniGameModeStage(idPlatformGameMiniGameModeStage: number): Promise<Mode | undefined> {

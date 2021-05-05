@@ -1,6 +1,5 @@
 import {
   IsArray,
-  IsBoolean,
   IsDefined,
   IsEnum,
   IsNotEmpty,
@@ -13,7 +12,8 @@ import { IsNumber } from '../validation/is-number';
 import { ScorePlayerAddDto, ScorePlayerUpdateDto } from './score-player/score-player.dto';
 import { Type } from 'class-transformer';
 import { ScoreStatusEnum } from './score-status.enum';
-import { IsArrayNumber } from '../validation/is-array-number';
+import { IsArrayNumberQuery } from '../validation/is-array-number';
+import { IsBoolean } from '../validation/is-boolean';
 
 export class ScoreAddDto {
   @IsNumber()
@@ -113,26 +113,30 @@ export class ScoreSearchDto {
   score?: string | null | undefined;
 
   @IsOptional()
-  @IsArrayNumber()
+  @IsArrayNumberQuery()
   idPlatforms?: number[] | null | undefined;
 
   @IsOptional()
-  @IsArrayNumber()
+  @IsArrayNumberQuery()
   idGames?: number[] | null | undefined;
 
   @IsOptional()
-  @IsArrayNumber()
+  @IsArrayNumberQuery()
   idMiniGames?: number[] | null | undefined;
 
   @IsOptional()
-  @IsArrayNumber()
+  @IsArrayNumberQuery()
   idModes?: number[] | null | undefined;
 
   @IsOptional()
-  @IsArrayNumber()
+  @IsArrayNumberQuery()
   idStages?: number[] | null | undefined;
 
   @IsOptional()
-  @IsArrayNumber()
-  idCharacterCustomes?: number[] | null | undefined;
+  @IsArrayNumberQuery()
+  idCharacterCostumes?: number[] | null | undefined;
+
+  @IsOptional()
+  @IsBoolean()
+  onlyMyScores?: boolean;
 }

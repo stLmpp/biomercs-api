@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { GameRepository } from './game.repository';
 import { Game } from './game.entity';
-import { GameAddDto, GameUpdateDto } from './game.dto';
+import { GameAddDto, GamePlatformsDto, GameUpdateDto } from './game.dto';
 
 @Injectable()
 export class GameService {
@@ -22,5 +22,9 @@ export class GameService {
 
   async findByIdPlatform(idPlatform: number): Promise<Game[]> {
     return this.gameRepository.findByIdPlatform(idPlatform);
+  }
+
+  async findByIdPlatforms(dto: GamePlatformsDto): Promise<Game[]> {
+    return this.gameRepository.findByIdPlatforms(dto);
   }
 }

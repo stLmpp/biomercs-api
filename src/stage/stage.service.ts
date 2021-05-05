@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { StageRepository } from './stage.repository';
 import { Stage } from './stage.entity';
-import { StageAddDto, StageUpdateDto } from './stage.dto';
+import { StageAddDto, StagePlatformsGamesMiniGamesModesDto, StageUpdateDto } from './stage.dto';
 import { StageViewModel } from './stage.view-model';
 import { MapperService } from '../mapper/mapper.service';
 
@@ -32,6 +32,11 @@ export class StageService {
     idMode: number
   ): Promise<StageViewModel[]> {
     const stages = await this.stageRepository.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode);
+    return this.mapperService.map(Stage, StageViewModel, stages);
+  }
+
+  async findByIdPlatformsGamesMiniGamesModes(dto: StagePlatformsGamesMiniGamesModesDto): Promise<StageViewModel[]> {
+    const stages = await this.stageRepository.findByIdPlatformsGamesMiniGamesModes(dto);
     return this.mapperService.map(Stage, StageViewModel, stages);
   }
 }

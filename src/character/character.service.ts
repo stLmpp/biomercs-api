@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CharacterRepository } from './character.repository';
 import { Character } from './character.entity';
-import { CharacterAddDto, CharacterUpdateDto } from './character.dto';
+import { CharacterAddDto, CharacterPlatformsGamesMiniGamesModesDto, CharacterUpdateDto } from './character.dto';
 
 @Injectable()
 export class CharacterService {
@@ -27,5 +27,9 @@ export class CharacterService {
     idMode: number
   ): Promise<Character[]> {
     return this.characterRepository.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode);
+  }
+
+  async findByIdPlatformsGamesMiniGamesModes(dto: CharacterPlatformsGamesMiniGamesModesDto): Promise<Character[]> {
+    return this.characterRepository.findByIdPlatformsGamesMiniGamesModes(dto);
   }
 }
