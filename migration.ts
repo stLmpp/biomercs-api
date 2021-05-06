@@ -1,40 +1,83 @@
 import { config } from 'dotenv';
-import { readFileSync, writeFileSync } from 'fs';
-import { transpileModule } from 'typescript';
-import { resolve } from 'path';
-// TODO use typescript function to import the compiler options
-import { compilerOptions } from './tsconfig.json';
-import { format, resolveConfig } from 'prettier';
-import { execSync } from 'child_process';
+import { promises as fs } from 'fs';
+import { resolve as pathResolve } from 'path';
+import { format as prettierFormat, Options, resolveConfig } from 'prettier';
+import { exec as cpExec } from 'child_process';
+import * as ora from 'ora';
+import { promisify } from 'util';
+import { format } from 'date-fns';
+import { coerceArray } from 'st-utils';
+import * as yargs from 'yargs';
+
+const exec = promisify(cpExec);
+
 config();
 
+const spinner = ora({ spinner: 'dots' });
+
+const args = yargs.parse(process.argv.slice(2))
+
+function getArg<T>(argNames: string | string[]): T | undefined {
+  for (const argName of coerceArray(argNames)) {
+    if (argName in args) {
+      return args[argName] as T
+    }
+  }
+  return undefined;
+}
+
+const migrationName = getArg(['n', 'name'])
+
+if (!migrationName) {
+  throw new Error('Name of the migration is required');
+}
+
+async function build(): Promise<void> {
+  spinner.start('Building project');
+  await exec('yarn build');
+  spinner.stopAndPersist();
+}
+
+async function resolvePrettierrc(): Promise<Options> {
+  spinner.start('Getting prettierrc');
+  const prettierrc = await resolveConfig(process.cwd());
+  spinner.stopAndPersist();
+  return { ...prettierrc, parser: 'babel' };
+}
+
+async function writeOrmConfig(file: string): Promise<void> {
+  spinner.start('Writing ormconfig.js');
+  await fs.writeFile(pathResolve(process.cwd() + '/ormconfig.js'), file);
+  spinner.stopAndPersist();
+}
+
+async function generateMigration(): Promise<void> {
+  spinner.start('Generating migration');
+  await exec('yarn generate-migration -o -n ' + migrationName);
+  spinner.stopAndPersist();
+}
+
 (async () => {
-  execSync('yarn build');
+
+  const skipBuild = getArg<boolean>('skip-build');
+  if (!skipBuild) {
+    await build();
+  }
 
   const { DB_TYPEORM_CONFIG } = await import('./src/environment/db.config');
 
-  // TODO find a better and more secure way to do this
-  const namingStrategy = readFileSync(resolve(__dirname + '/src/environment/naming.strategy.ts')).toString();
-
-  // TODO this replace export will generate some pain, try a better solution
-  let file = transpileModule(namingStrategy.replace('export', ''), {
-    compilerOptions: { ...(compilerOptions as any), sourceMap: false },
-  }).outputText;
-
-  file += `module.exports = ${JSON.stringify({
+  let file = `const { NamingStategy } = require('./dist/src/environment/naming.strategy');\n\nmodule.exports = ${JSON.stringify({
     ...DB_TYPEORM_CONFIG,
     synchronize: false,
     namingStrategy: 'new NamingStategy()',
-    entities: [resolve(process.cwd() + '/dist/**/*.entity.js')],
+    entities: [pathResolve(process.cwd() + '/dist/**/*.entity.js')],
   })};`.replace(`"new NamingStategy()"`, 'new NamingStategy()');
 
-  const prettierrc = await resolveConfig(process.cwd());
+  const prettierrc = await resolvePrettierrc();
+  spinner.start('Formatting with prettier');
+  file = prettierFormat(file, prettierrc);
+  spinner.stopAndPersist();
 
-  file = format(file, prettierrc ?? undefined);
-
-  writeFileSync(__dirname + '/ormconfig.js', file, { encoding: 'utf-8' });
-
-  const name = 'Migration ';
-
-  execSync('yarn generate-migration -n ' + name);
+  await writeOrmConfig(file);
+  await generateMigration();
 })();

@@ -1,5 +1,4 @@
 {
-  "ignorePatterns": ["**/*.js"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "project": "tsconfig.json",
@@ -12,6 +11,7 @@
     "node": true,
     "jest": true
   },
+  "ignorePatterns": ["**/*.js", "migration", "node_modules", "migration.ts"],
   "rules": {
     "object-shorthand": ["error"],
     "object-curly-spacing": ["error", "always"],
