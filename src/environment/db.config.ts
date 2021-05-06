@@ -11,14 +11,10 @@ export const DB_TYPEORM_CONFIG: TypeOrmModuleOptions = {
   database: environment.get('DB_DATABASE'),
   synchronize: environment.get('DB_SYNCHRONIZE'),
   type: 'postgres',
-  // TODO do not use __dirname
-  entities: [resolve(__dirname + '/../**/*.entity{.ts,.js}')],
+  entities: [resolve(process.cwd() + '/{src,dist}/**/*.entity.{js,ts}')],
   logging: !environment.production ? 'all' : false,
   namingStrategy: new NamingStategy(),
   dropSchema: false,
-  // TODO do not use __dirname
-  migrations: [resolve(__dirname + '/../../migration/*.js')],
-  cli: {
-    migrationsDir: 'migration',
-  },
+  migrations: [resolve(process.cwd() + '/migration/*.{js,ts}')],
+  cli: { migrationsDir: 'migration' },
 };
