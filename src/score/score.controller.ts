@@ -20,7 +20,6 @@ import { ScoreChangeRequest } from './score-change-request/score-change-request.
 import { ScoreStatusEnum } from './score-status.enum';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ApiPagination } from '../shared/decorator/api-pagination';
-import { addDays } from 'date-fns';
 
 @ApiAuth()
 @ApiTags('Score')
@@ -31,65 +30,6 @@ export class ScoreController {
   @Post()
   async add(@Body() dto: ScoreAddDto, @AuthUser() user: User): Promise<ScoreViewModel> {
     return this.scoreService.add(dto, user);
-  }
-
-  @ApiQuery({ name: 'platform', required: false })
-  @ApiQuery({ name: 'game', required: false })
-  @ApiQuery({ name: 'miniGame', required: false })
-  @ApiQuery({ name: 'mode', required: false })
-  @ApiQuery({ name: 'approved', required: false })
-  @ApiQuery({ name: 'characterCostume', required: false })
-  @ApiQuery({ name: 'stage', required: false })
-  @Post('insert-random')
-  // TODO REMOVE
-  async insertRandom(
-    @AuthUser() user: User,
-    @Query('platform') platform?: string,
-    @Query('game') game?: string,
-    @Query('miniGame') miniGame?: string,
-    @Query('mode') mode?: string,
-    @Query('approved') approved?: boolean,
-    @Query('characterCostume') characterCostume?: string,
-    @Query('stage') stage?: string
-  ): Promise<void> {
-    await this.scoreService.insert({ miniGame, platform, mode, game, approved, characterCostume, stage }, user);
-  }
-
-  @ApiQuery({ name: 'platform', required: false })
-  @ApiQuery({ name: 'game', required: false })
-  @ApiQuery({ name: 'miniGame', required: false })
-  @ApiQuery({ name: 'mode', required: false })
-  @ApiQuery({ name: 'approved', required: false })
-  @ApiQuery({ name: 'characterCostume', required: false })
-  @ApiQuery({ name: 'stage', required: false })
-  @ApiQuery({ name: 'fromDate', required: false })
-  @Post('insert-many-random')
-  // TODO REMOVE
-  async insertManyRandom(
-    @AuthUser() user: User,
-    @Query('q') q: number,
-    @Query('platform') platform?: string,
-    @Query('game') game?: string,
-    @Query('miniGame') miniGame?: string,
-    @Query('mode') mode?: string,
-    @Query('approved') approved?: boolean,
-    @Query('characterCostume') characterCostume?: string,
-    @Query('stage') stage?: string,
-    @Query('fromDate', OptionalQueryPipe) fromDate?: Date
-  ): Promise<void> {
-    if (fromDate) {
-      fromDate = new Date(fromDate);
-    }
-    for (let i = 0; i < q; i++) {
-      await this.scoreService.insert(
-        { miniGame, platform, mode, game, approved, characterCostume, stage },
-        user,
-        fromDate
-      );
-      if (fromDate) {
-        fromDate = addDays(fromDate, 1);
-      }
-    }
   }
 
   @ApiQuery({ name: Params.limit, required: false })
