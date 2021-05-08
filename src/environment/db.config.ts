@@ -11,10 +11,10 @@ export const DB_TYPEORM_CONFIG: TypeOrmModuleOptions = {
   database: environment.get('DB_DATABASE'),
   synchronize: environment.get('DB_SYNCHRONIZE'),
   type: 'postgres',
-  entities: [resolve(process.cwd() + '/{src,dist}/**/*.entity.{js,ts}')],
+  entities: [resolve(process.cwd() + '/dist/**/*.entity.js')],
   logging: !environment.production ? 'all' : false,
   namingStrategy: new NamingStategy(),
   dropSchema: false,
-  migrations: [resolve(process.cwd() + '/migration/*.{js,ts}')],
+  migrations: [resolve(process.cwd() + '/migration/*.js')],
   cli: { migrationsDir: 'migration' },
 };

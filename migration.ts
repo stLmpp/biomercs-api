@@ -70,7 +70,6 @@ async function generateMigration(): Promise<void> {
     ...DB_TYPEORM_CONFIG,
     synchronize: false,
     namingStrategy: 'new NamingStategy()',
-    entities: [pathResolve(process.cwd() + '/dist/**/*.entity.js')],
   }).replace(`"new NamingStategy()"`, 'new NamingStategy()');
 
   let file = `const { NamingStategy } = require('./dist/src/environment/naming.strategy');\n\nmodule.exports = ${dbOptions};`;
