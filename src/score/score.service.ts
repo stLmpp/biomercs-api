@@ -9,8 +9,6 @@ import { ScorePlayerService } from './score-player/score-player.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { ScoreViewModel } from './view-model/score.view-model';
 import { MapperService } from '../mapper/mapper.service';
-import { random } from '../util/util';
-import { ScorePlayer } from './score-player/score-player.entity';
 import { PlayerService } from '../player/player.service';
 import { PlatformGameMiniGameModeCharacterCostumeService } from '../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.service';
 import {
@@ -41,60 +39,6 @@ import { StageViewModel } from '../stage/stage.view-model';
 import { ScoreGateway } from './score.gateway';
 import { MailService } from '../mail/mail.service';
 import { MailInfo } from '../mail/mail-info.interface';
-
-const evidencesMock = [
-  'https://www.youtube.com/watch?v=WXttCVCAld4',
-  'https://www.youtube.com/watch?v=6y-6lH7SdJU',
-  'https://www.youtube.com/watch?v=hdMdp_xbrYA',
-  'https://www.youtube.com/watch?v=vh_pTYz5d98',
-  'https://www.youtube.com/watch?v=ItCMs_zJGdI',
-  'https://www.youtube.com/watch?v=q8LLbZKY8Y0',
-  'https://www.youtube.com/watch?v=uy8Ol_CG8PE',
-  'www.youtube.com',
-  'https://www.youtube.com/watch?v=SZ_rjKixaA8',
-  'https://www.youtube.com/watch?v=CsYoi00MUg0',
-  'https://www.youtube.com/watch?v=iZ6oycl9hfY',
-  'https://www.youtube.com/watch?v=Ss55KGdwQCU',
-  'https://www.youtube.com/watch?v=Uw-usgqwyeg',
-  'https://www.youtube.com/watch?v=ryBk-N08xPw',
-  'https://www.youtube.com/watch?v=VUkbGIHnIb8',
-  'https://www.youtube.com/watch?v=av3TJSgBF7o',
-  'https://www.youtube.com/watch?v=DsZ0RD9yDXA',
-  'https://www.youtube.com/watch?v=0hg4mBcAW4U',
-  'https://www.youtube.com/watch?v=wi1fnuSZreU',
-  'https://www.youtube.com/watch?v=2uJOD6RBabc',
-  'https://www.youtube.com/watch?v=28WuWY2ZTxo',
-  'https://www.youtube.com/watch?v=ug-blf8hxT0',
-  'https://www.youtube.com/watch?v=8ilpJYjIRtQ',
-  'https://www.youtube.com/watch?v=9JzYRgbwmk4',
-  'https://www.youtube.com/watch?v=swnxYWE8HPE',
-  'https://www.youtube.com/watch?v=oxyN3miYWZM',
-  'https://www.youtube.com/watch?v=i8ifONVyTDA',
-  'https://www.youtube.com/watch?v=5e64LV4LLao',
-  'https://www.youtube.com/watch?v=0CCoAk2XPbk',
-  'https://www.youtube.com/watch?v=2aiMgBjnaZU',
-  'https://www.youtube.com/watch?v=y12LzwBPleQ',
-  'https://www.youtube.com/watch?v=wpD6MXSqNZ4',
-  'https://www.youtube.com/watch?v=54bBU0-HOco',
-  'https://www.youtube.com/watch?v=88nkHyRdIOA',
-  'https://www.youtube.com/watch?v=p0Li7979cD4',
-  'https://www.youtube.com/watch?v=xqxx4sOG1R8',
-  'https://www.youtube.com/watch?v=K_7J36z1p1Y',
-  'https://www.youtube.com/watch?v=ws1SYdz6o3Q',
-  'https://www.youtube.com/watch?v=1J7xXv0l2Xg',
-  'https://www.youtube.com/watch?v=JVTZCNB18hA',
-  'https://www.youtube.com/watch?v=iCbBdnujPII',
-  'https://www.youtube.com/watch?v=oUxIIZNAPjY',
-  'https://www.youtube.com/watch?v=eVSq6O86__8',
-  'https://www.youtube.com/watch?v=LqwOHwNvOhE',
-  'https://www.youtube.com/watch?v=oR3P73WRqUg',
-  'https://www.youtube.com/watch?v=dgMx6TJkAfs',
-  'https://www.youtube.com/watch?v=mNB-HCUSQp4',
-  'https://www.youtube.com/watch?v=hz3UGS1cIZk',
-  'https://www.youtube.com/watch?v=XWjllj2ZChU',
-  'https://www.youtube.com/watch?v=192QIf0qDNk',
-  'https://www.youtube.com/watch?v=QscMM-ffY1U',
-];
 
 @Injectable()
 export class ScoreService {
@@ -313,73 +257,6 @@ export class ScoreService {
 
   async findByIdMapped(idScore: number): Promise<ScoreViewModel> {
     return this.mapperService.map(Score, ScoreViewModel, await this.scoreRepository.findByIdWithAllRelations(idScore));
-  }
-
-  // TODO REMOVE
-  async insert(
-    options: {
-      platform?: string;
-      game?: string;
-      miniGame?: string;
-      mode?: string;
-      approved?: boolean;
-      characterCostume?: string;
-      stage?: string;
-    } = {},
-    user: User,
-    date?: Date
-  ): Promise<Score> {
-    const platformGameMiniGameModeStage = await this.platformGameMiniGameModeStageService.findRandom(options);
-    const score = new Score();
-    const approved = options.approved ?? Math.random() > 0.5;
-    score.score = random(700_000, 1_500_000);
-    score.status = ScoreStatusEnum.AwaitingApprovalAdmin;
-    score.idPlatformGameMiniGameModeStage = platformGameMiniGameModeStage.id;
-    score.maxCombo = random(100, 150);
-    score.time = `${('' + random(8, 16)).padStart(2, '0')}'${('' + random(0, 59)).padStart(2, '0')}"${(
-      '' + random(0, 99)
-    ).padStart(2, '0')}`;
-    score.lastUpdatedBy = 32;
-    score.createdBy = 32;
-    if (date) {
-      score.creationDate = date;
-    }
-    const scorePlayers: ScorePlayer[] = [];
-    for (let index = 0; index < platformGameMiniGameModeStage.platformGameMiniGameMode.mode.playerQuantity; index++) {
-      const player = await this.playerService.findRandom(scorePlayers.map(scorePlayer => scorePlayer.idPlayer));
-      const platformGameMiniGameModeCharacterCostume = await this.platformGameMiniGameModeCharacterCostumeService.findRandom(
-        platformGameMiniGameModeStage.idPlatformGameMiniGameMode,
-        options.characterCostume
-      );
-      const scorePlayer = new ScorePlayer();
-      scorePlayer.bulletKills = random(0, 15);
-      scorePlayer.description = '';
-      scorePlayer.evidence = evidencesMock[random(0, evidencesMock.length - 1)];
-      scorePlayer.idPlayer = player.id;
-      scorePlayer.host = !index;
-      scorePlayer.idPlatformGameMiniGameModeCharacterCostume = platformGameMiniGameModeCharacterCostume.id;
-      scorePlayer.createdBy = 32;
-      scorePlayer.lastUpdatedBy = 32;
-      if (date) {
-        scorePlayer.creationDate = date;
-      }
-      scorePlayers.push(scorePlayer);
-    }
-    score.createdByIdPlayer = scorePlayers.find(p => p.host)!.idPlayer;
-    const scoreDb = await this.scoreRepository.save(score);
-    for (const p of scorePlayers) {
-      p.idScore = scoreDb.id;
-    }
-    score.scorePlayers = await this.scorePlayerService.addManyRandom(scorePlayers);
-    if (approved) {
-      await this.approvalAdmin(
-        scoreDb.id,
-        { idScoreApprovalMotive: 1, description: 'Approved' },
-        user,
-        ScoreApprovalActionEnum.Approve
-      );
-    }
-    return score;
   }
 
   async findLeaderboards(

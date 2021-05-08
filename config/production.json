@@ -1,3 +1,5 @@
 {
-  "DB_SYNCHRONIZE": false
+  "DB_SYNCHRONIZE": false,
+  "FRONT_END_HOST": "http://localhost",
+  "FRONT_END_PORT": 80
 }

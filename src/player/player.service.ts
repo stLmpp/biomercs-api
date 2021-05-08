@@ -110,15 +110,6 @@ export class PlayerService {
     return this.playerRepository.findOneOrFail({ select: ['id'], where: { idUser } }).then(player => player.id);
   }
 
-  // TODO REMOVE
-  async findRandom(idsNot: number[]): Promise<Player> {
-    const qb = this.playerRepository.createQueryBuilder('p').orderBy('random()');
-    if (idsNot.length) {
-      qb.andWhere('p.id not in (:...ids)', { ids: idsNot });
-    }
-    return qb.getOneOrFail();
-  }
-
   async findBySearch(
     personaName: string,
     idUser: number,

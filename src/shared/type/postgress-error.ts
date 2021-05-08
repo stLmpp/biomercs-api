@@ -9,6 +9,6 @@ export class PostgresQueryError extends QueryFailedError {
   line!: string;
   routine!: string;
   query!: string;
-  parameters!: any[]; // TODO type
+  parameters!: any[];
   // TODO missing properties
 }

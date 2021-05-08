@@ -10,8 +10,6 @@ import * as yargs from 'yargs';
 
 const exec = promisify(cpExec);
 
-config();
-
 const spinner = ora({ spinner: 'dots' });
 
 const args = yargs.parse(process.argv.slice(2));
@@ -24,6 +22,10 @@ function getArg<T>(argNames: string | string[]): T | undefined {
   }
   return undefined;
 }
+
+const path = getArg<boolean>(['p', 'prod', 'production']) ? '/.env-prod' : '/.env';
+
+config({ path: pathResolve(process.cwd() + path) });
 
 const migrationName = getArg<string>(['n', 'name']);
 
