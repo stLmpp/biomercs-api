@@ -1,6 +1,6 @@
 import { FindConditions, FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { isNumber, isString } from 'st-utils';
-import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { IPaginationMeta, IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
 
 declare module 'typeorm/repository/Repository' {
   interface Repository<Entity> {
@@ -11,7 +11,7 @@ declare module 'typeorm/repository/Repository' {
       options?: FindOneOptions<Entity>
     ): Promise<boolean>;
     paginate(
-      options: IPaginationOptions,
+      options: IPaginationOptions<IPaginationMeta>,
       searchOptions?: FindConditions<Entity> | FindManyOptions<Entity>
     ): Promise<Pagination<Entity>>;
   }
@@ -26,7 +26,7 @@ Repository.prototype.exists = async function (where: any) {
 };
 
 Repository.prototype.paginate = async function (
-  options: IPaginationOptions,
+  options: IPaginationOptions<IPaginationMeta>,
   findOptions: FindConditions<any> | FindManyOptions | undefined
 ) {
   return paginate(this, options, findOptions);

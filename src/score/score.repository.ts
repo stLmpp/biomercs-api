@@ -84,13 +84,10 @@ export class ScoreRepository extends Repository<Score> {
     idPlayer: number,
     queryBuilder: SelectQueryBuilder<Score>
   ): SelectQueryBuilder<Score> {
-    return this._createQueryBuilderScore(
-      idPlatform,
-      idGame,
-      idMiniGame,
-      idMode,
-      queryBuilder
-    ).andWhere('sp.idPlayer = :idPlayer', { idPlayer });
+    return this._createQueryBuilderScore(idPlatform, idGame, idMiniGame, idMode, queryBuilder).andWhere(
+      'sp.idPlayer = :idPlayer',
+      { idPlayer }
+    );
   }
 
   private _resolveOrderByApproval(orderBy: string): string {

@@ -136,13 +136,14 @@ export class ScoreService {
         `This mode requires ${mode.playerQuantity} player(s), but we received ${scorePlayers.length}`
       );
     }
-    const idPlatformGameMiniGameModeStage = await this.platformGameMiniGameModeStageService.findIdByPlatformGameMiniGameModeStage(
-      idPlatform,
-      idGame,
-      idMiniGame,
-      idMode,
-      idStage
-    );
+    const idPlatformGameMiniGameModeStage =
+      await this.platformGameMiniGameModeStageService.findIdByPlatformGameMiniGameModeStage(
+        idPlatform,
+        idGame,
+        idMiniGame,
+        idMode,
+        idStage
+      );
     const status =
       mode.playerQuantity > 1 ? ScoreStatusEnum.AwaitingApprovalPlayer : ScoreStatusEnum.AwaitingApprovalAdmin;
     const score = await this.scoreRepository.save(
@@ -275,8 +276,9 @@ export class ScoreService {
     const scoreTableViewModel: ScoreTableViewModel[] = [];
     let position = (page - 1) * limit + 1;
     for (const [idPlayer, scores] of scoreMap) {
-      const player = scores.find(score => score)!.scorePlayers.find(scorePlayer => scorePlayer.idPlayer === idPlayer)!
-        .player;
+      const player = scores
+        .find(score => score)!
+        .scorePlayers.find(scorePlayer => scorePlayer.idPlayer === idPlayer)!.player;
       const scoreTable = new ScoreTableViewModel();
       scoreTable.idPlayer = player.id;
       scoreTable.personaName = player.personaName;
