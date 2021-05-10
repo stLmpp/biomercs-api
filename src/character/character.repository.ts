@@ -20,6 +20,8 @@ export class CharacterRepository extends Repository<Character> {
       .andWhere('gm.idGame = :idGame', { idGame })
       .andWhere('gm.idMiniGame = :idMiniGame', { idMiniGame })
       .andWhere('pgmm.idMode = :idMode', { idMode })
+      .addOrderBy('c.id')
+      .addOrderBy('cc.id')
       .getMany();
   }
 
@@ -39,6 +41,8 @@ export class CharacterRepository extends Repository<Character> {
       .andWhere('gm.idGame in (:...idGames)', { idGames })
       .andWhere('gm.idMiniGame in (:...idMiniGames)', { idMiniGames })
       .andWhere('pgmm.idMode in (:...idModes)', { idModes })
+      .addOrderBy('c.id')
+      .addOrderBy('cc.id')
       .getMany();
   }
 }

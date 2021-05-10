@@ -21,7 +21,7 @@ export class PlatformGameMiniGameModeStage extends BaseEntity {
   idStage!: number;
 
   @Property(() => Stage)
-  @ManyToOne(() => Stage)
+  @ManyToOne(() => Stage, stage => stage.platformGameMiniGameModeStages)
   @JoinColumn()
   stage!: Stage;
 }

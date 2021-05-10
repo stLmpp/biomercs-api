@@ -46,6 +46,7 @@
     "prefer-arrow-callback": ["error"],
     "prefer-arrow/prefer-arrow-functions": ["off"],
     "no-shadow": ["off"],
+    "prefer-const": ["error", { "destructuring": "all" }],
     "@typescript-eslint/explicit-member-accessibility": ["off", { "accessibility": "explicit" }],
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/unified-signatures": "off",

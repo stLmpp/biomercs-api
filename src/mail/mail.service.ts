@@ -11,7 +11,7 @@ export class MailService {
     await this.mailerService.sendMail({
       ...options,
       from: environment.get('MAIL'),
-      template: 'info',
+      template: './info.hbs',
       context: {
         title: mailInfoTemplate.title,
         version: environment.appVersion,

@@ -12,6 +12,7 @@ export class ModeRepository extends Repository<Mode> {
       .andWhere('pgm.idPlatform = :idPlatform', { idPlatform })
       .andWhere('gm.idGame = :idGame', { idGame })
       .andWhere('gm.idMiniGame = :idMiniGame', { idMiniGame })
+      .orderBy('m.id')
       .getMany();
   }
 
@@ -27,6 +28,7 @@ export class ModeRepository extends Repository<Mode> {
       .andWhere('pgm.idPlatform in (:...idPlatforms)', { idPlatforms })
       .andWhere('gm.idGame in (:...idGames)', { idGames })
       .andWhere('gm.idMiniGame in (:...idMiniGames)', { idMiniGames })
+      .orderBy('m.id')
       .getMany();
   }
 

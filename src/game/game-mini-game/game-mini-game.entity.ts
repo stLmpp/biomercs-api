@@ -13,7 +13,7 @@ export class GameMiniGame extends BaseEntity {
   idGame!: number;
 
   @Property(() => Game)
-  @ManyToOne(() => Game)
+  @ManyToOne(() => Game, game => game.gameMiniGames)
   @JoinColumn()
   game!: Game;
 
@@ -22,7 +22,7 @@ export class GameMiniGame extends BaseEntity {
   idMiniGame!: number;
 
   @Property(() => MiniGame)
-  @ManyToOne(() => MiniGame)
+  @ManyToOne(() => MiniGame, miniGame => miniGame.gameMiniGames)
   @JoinColumn()
   miniGame!: MiniGame;
 

@@ -37,3 +37,4 @@ package.json.yarn
 .env
 .env-prod
 ormconfig.js
+yarn.lock

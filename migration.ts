@@ -78,5 +78,8 @@ async function generateMigration(): Promise<void> {
   file = prettierFormat(file, prettierrc);
 
   await writeOrmConfig(file);
-  await generateMigration();
+  const skipMigration = getArg<boolean>('skip-migration');
+  if (!skipMigration) {
+    await generateMigration();
+  }
 })();

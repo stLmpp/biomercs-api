@@ -11,7 +11,7 @@ import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { environment } from './environment/environment';
-import { join } from 'path';
+import { resolve } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { PlayerModule } from './player/player.module';
 import { SteamModule } from './steam/steam.module';
@@ -42,7 +42,7 @@ import { UrlMetadataModule } from './url-metadata/url-metadata.module';
         from: `"Biomercs" <${environment.get('MAIL_ADDRRESS')}>`,
       },
       template: {
-        dir: join(__dirname, '..', '..', 'mail', 'templates'),
+        dir: resolve(process.cwd() + '/mail/templates/'),
         adapter: new HandlebarsAdapter(),
         options: {
           strict: true,
