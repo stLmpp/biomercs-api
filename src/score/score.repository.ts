@@ -446,15 +446,17 @@ export class ScoreRepository extends Repository<Score> {
       queryBuilder.andWhere('cc.id in (:...idCharacterCostumes)', { idCharacterCostumes: dto.idCharacterCostumes });
     }
     if (dto.worldRecord || dto.characterWorldRecord || dto.combinationWorldRecord) {
-      let type: ScoreWorldRecordTypeEnum;
+      const types: ScoreWorldRecordTypeEnum[] = [];
       if (dto.characterWorldRecord) {
-        type = ScoreWorldRecordTypeEnum.CharacterWorldRecord;
+        types.push(ScoreWorldRecordTypeEnum.CharacterWorldRecord);
       } else if (dto.combinationWorldRecord) {
-        type = ScoreWorldRecordTypeEnum.CombinationWorldRecord;
-      } else {
-        type = ScoreWorldRecordTypeEnum.WorldRecord;
+        types.push(ScoreWorldRecordTypeEnum.CombinationWorldRecord);
+      } else if (dto.worldRecord) {
+        types.push(ScoreWorldRecordTypeEnum.WorldRecord);
       }
-      queryBuilder.andWhere('swr.type = :type', { type });
+      if (types.length) {
+        queryBuilder.andWhere('swr.type in (:...types)', { types });
+      }
     }
     if (dto.onlyMyScores && idPlayer) {
       queryBuilder.andWhere('pl.id = :idPlayer', { idPlayer });
