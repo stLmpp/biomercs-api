@@ -40,10 +40,6 @@ export class PlayerUpdateDto {
 
   @IsNumber()
   @IsOptional()
-  idUser?: number;
-
-  @IsNumber()
-  @IsOptional()
   idSteamProfile?: number;
 
   @IsString()

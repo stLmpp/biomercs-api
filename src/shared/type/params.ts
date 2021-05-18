@@ -10,6 +10,7 @@ export enum Params {
   idStage = 'idStage',
   idScore = 'idScore',
   idScoreApprovalMotive = 'idScoreApprovalMotive',
+  idScoreStatus = 'idScoreStatus',
   idSteamProfile = 'idSteamProfile',
   idUser = 'idUser',
   idPlatforms = 'idPlatforms',

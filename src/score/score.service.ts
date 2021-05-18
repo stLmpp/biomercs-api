@@ -4,7 +4,6 @@ import { ScoreAddDto, ScoreChangeRequestsFulfilDto, ScoreSearchDto } from './sco
 import { Score } from './score.entity';
 import { PlatformGameMiniGameModeStageService } from '../platform/platform-game-mini-game-mode-stage/platform-game-mini-game-mode-stage.service';
 import { ModeService } from '../mode/mode.service';
-import { ScoreStatusEnum } from './score-status.enum';
 import { ScorePlayerService } from './score-player/score-player.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { ScoreViewModel } from './view-model/score.view-model';
@@ -26,7 +25,7 @@ import { ScoreApprovalAddDto } from './score-approval/score-approval.dto';
 import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.enum';
 import { Stage } from '../stage/stage.entity';
 import { ScoreWorldRecordService } from './score-world-record/score-world-record.service';
-import { orderBy } from 'st-utils';
+import { arrayRemoveMutate, orderBy } from 'st-utils';
 import { addSeconds } from 'date-fns';
 import {
   ScoreChangeRequestsPaginationViewModel,
@@ -39,6 +38,9 @@ import { StageViewModel } from '../stage/stage.view-model';
 import { ScoreGateway } from './score.gateway';
 import { MailService } from '../mail/mail.service';
 import { MailInfo } from '../mail/mail-info.interface';
+import { ScoreGroupedByStatusViewModel } from './view-model/score-grouped-by-status.view-model';
+import { ScoreStatusEnum } from './score-status/score-status.enum';
+import { ScoreStatusService } from './score-status/score-status.service';
 
 @Injectable()
 export class ScoreService {
@@ -54,7 +56,8 @@ export class ScoreService {
     @Inject(forwardRef(() => ScoreWorldRecordService)) private scoreWorldRecordService: ScoreWorldRecordService,
     private scoreChangeRequestService: ScoreChangeRequestService,
     private scoreGateway: ScoreGateway,
-    private mailService: MailService
+    private mailService: MailService,
+    private scoreStatusService: ScoreStatusService
   ) {}
 
   private async _sendEmailScoreApproved(idScore: number): Promise<void> {
@@ -144,10 +147,10 @@ export class ScoreService {
         idMode,
         idStage
       );
-    const status =
+    const idScoreStatus =
       mode.playerQuantity > 1 ? ScoreStatusEnum.AwaitingApprovalPlayer : ScoreStatusEnum.AwaitingApprovalAdmin;
     const score = await this.scoreRepository.save(
-      new Score().extendDto({ ...dto, idPlatformGameMiniGameModeStage, status, createdByIdPlayer })
+      new Score().extendDto({ ...dto, idPlatformGameMiniGameModeStage, idScoreStatus, createdByIdPlayer })
     );
     if (scorePlayers.every(scorePlayer => !scorePlayer.host)) {
       const hostPlayer =
@@ -169,14 +172,15 @@ export class ScoreService {
     action: ScoreApprovalActionEnum
   ): Promise<void> {
     const score = await this.scoreRepository.findOneOrFail(idScore, { relations: ['scorePlayers'] });
-    if (![ScoreStatusEnum.AwaitingApprovalAdmin, ScoreStatusEnum.RejectedByAdmin].includes(score.status)) {
+    if (![ScoreStatusEnum.AwaitingApprovalAdmin, ScoreStatusEnum.RejectedByAdmin].includes(score.idScoreStatus)) {
       throw new BadRequestException(`Score is not awaiting for Admin approval`);
     }
     const approvalDate = new Date();
     await Promise.all([
       this.scoreApprovalService.addAdmin({ ...dto, idUser: user.id, action, actionDate: approvalDate, idScore }),
       this.scoreRepository.update(idScore, {
-        status: action === ScoreApprovalActionEnum.Approve ? ScoreStatusEnum.Approved : ScoreStatusEnum.RejectedByAdmin,
+        idScoreStatus:
+          action === ScoreApprovalActionEnum.Approve ? ScoreStatusEnum.Approved : ScoreStatusEnum.RejectedByAdmin,
         approvalDate,
       }),
     ]);
@@ -204,7 +208,7 @@ export class ScoreService {
     action: ScoreApprovalActionEnum
   ): Promise<void> {
     const score = await this.scoreRepository.findOneOrFail(idScore);
-    if (![ScoreStatusEnum.AwaitingApprovalPlayer, ScoreStatusEnum.RejectedByPlayer].includes(score.status)) {
+    if (![ScoreStatusEnum.AwaitingApprovalPlayer, ScoreStatusEnum.RejectedByPlayer].includes(score.idScoreStatus)) {
       throw new BadRequestException(`Score is not awaiting for Player approval`);
     }
     const idPlayer = await this.playerService.findIdByIdUser(user.id);
@@ -215,7 +219,7 @@ export class ScoreService {
     ]);
     if (countPlayers === countApprovals || action === ScoreApprovalActionEnum.Reject) {
       await this.scoreRepository.update(idScore, {
-        status:
+        idScoreStatus:
           action === ScoreApprovalActionEnum.Approve
             ? ScoreStatusEnum.AwaitingApprovalAdmin
             : ScoreStatusEnum.RejectedByPlayer,
@@ -226,7 +230,7 @@ export class ScoreService {
 
   @Transactional()
   async requestChanges(idScore: number, dtos: string[]): Promise<ScoreChangeRequest[]> {
-    await this.scoreRepository.update(idScore, { status: ScoreStatusEnum.ChangesRequested });
+    await this.scoreRepository.update(idScore, { idScoreStatus: ScoreStatusEnum.ChangesRequested });
     const scoreChangeRequests = await this.scoreChangeRequestService.addMany(idScore, dtos);
     this.scoreGateway.updateCountApprovals();
     return scoreChangeRequests;
@@ -241,7 +245,7 @@ export class ScoreService {
     const updateScore: Partial<Score> = dto;
     const hasAnyRequestChanges = await this.scoreChangeRequestService.hasAnyRequestChanges(idScore);
     if (!hasAnyRequestChanges) {
-      updateScore.status = ScoreStatusEnum.AwaitingApprovalAdmin;
+      updateScore.idScoreStatus = ScoreStatusEnum.AwaitingApprovalAdmin;
     }
     if (scorePlayers?.length) {
       await this.scorePlayerService.updateMany(scorePlayers);
@@ -448,9 +452,28 @@ export class ScoreService {
       idPlayer = await this.playerService.findIdByIdUser(idUser);
     }
     const pagination = await this.scoreRepository.searchScores(dto, idPlayer);
-    return {
-      ...pagination,
-      items: this.mapperService.map(Score, ScoreViewModel, pagination.items),
-    };
+    return { ...pagination, items: this.mapperService.map(Score, ScoreViewModel, pagination.items) };
+  }
+
+  async findRejectedAndPendingScoresByIdUser(idUser: number): Promise<ScoreGroupedByStatusViewModel[]> {
+    const idPlayer = await this.playerService.findIdByIdUser(idUser);
+    const scoresRaw = await this.scoreRepository.findRejectedAndPendingScoresByIdUser(idPlayer);
+    const scoreViewModels = this.mapperService.map(Score, ScoreViewModel, scoresRaw);
+    const allStatus = await this.scoreStatusService.findByIds([
+      ScoreStatusEnum.AwaitingApprovalAdmin,
+      ScoreStatusEnum.AwaitingApprovalPlayer,
+      ScoreStatusEnum.RejectedByAdmin,
+      ScoreStatusEnum.RejectedByPlayer,
+    ]);
+    return allStatus.map(status => {
+      const scoreGroupedByStatusViewModel = new ScoreGroupedByStatusViewModel();
+      scoreGroupedByStatusViewModel.scores = arrayRemoveMutate(
+        scoreViewModels,
+        score => score.idScoreStatus === status.id
+      );
+      scoreGroupedByStatusViewModel.idScoreStatus = status.id;
+      scoreGroupedByStatusViewModel.description = status.description;
+      return scoreGroupedByStatusViewModel;
+    });
   }
 }

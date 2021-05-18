@@ -1,12 +1,12 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { BaseEntity } from '../shared/super/base-entity';
 import { PlatformGameMiniGameModeStage } from '../platform/platform-game-mini-game-mode-stage/platform-game-mini-game-mode-stage.entity';
-import { ScoreStatusEnum } from './score-status.enum';
 import { ScorePlayer } from './score-player/score-player.entity';
 import { Player } from '../player/player.entity';
 import { ScoreWorldRecord } from './score-world-record/score-world-record.entity';
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
 import { Property } from '../mapper/property.decorator';
+import { ScoreStatus } from './score-status/score-status.entity';
 
 @Entity()
 export class Score extends BaseEntity {
@@ -32,9 +32,13 @@ export class Score extends BaseEntity {
   time!: string;
 
   @Property()
-  @Column({ type: 'enum', enum: ScoreStatusEnum })
-  @Index()
-  status!: ScoreStatusEnum;
+  @Column({ default: 1 })
+  idScoreStatus!: number;
+
+  @Property(() => ScoreStatus)
+  @ManyToOne(() => ScoreStatus, scoreStatus => scoreStatus.scores)
+  @JoinColumn()
+  scoreStatus!: ScoreStatus;
 
   @Property(() => ScorePlayer)
   @OneToMany(() => ScorePlayer, scorePlayer => scorePlayer.score)

@@ -86,6 +86,10 @@ export class PlayerService {
     return this.mapperService.map(Player, PlayerWithRegionViewModel, new Player().extendDto({ ...player, ...dto }));
   }
 
+  async updateIdUser(idPlayer: number, idUser: number): Promise<void> {
+    await this.playerRepository.update(idPlayer, { idUser });
+  }
+
   async delete(idPlayer: number): Promise<void> {
     await this.playerRepository.delete(idPlayer);
   }

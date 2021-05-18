@@ -17,9 +17,10 @@ import { ApiOrderByAndDir } from '../shared/order-by/api-order-by';
 import { OrderByDirection } from 'st-utils';
 import { ScoreChangeRequestsPaginationViewModel } from './view-model/score-change-request.view-model';
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
-import { ScoreStatusEnum } from './score-status.enum';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ApiPagination } from '../shared/decorator/api-pagination';
+import { ScoreGroupedByStatusViewModel } from './view-model/score-grouped-by-status.view-model';
+import { ScoreStatusEnum } from './score-status/score-status.enum';
 
 @ApiAuth()
 @ApiTags('Score')
@@ -151,6 +152,11 @@ export class ScoreController {
     return this.scoreService.findScoresWithChangeRequestsCount(user);
   }
 
+  @Get('player/rejected-and-pending')
+  async findRejectedAndPendingScoresByIdUser(@AuthUser() user: User): Promise<ScoreGroupedByStatusViewModel[]> {
+    return this.scoreService.findRejectedAndPendingScoresByIdUser(user.id);
+  }
+
   @ApiQuery({ name: Params.worldRecord, required: false })
   @ApiQuery({ name: Params.characterWorldRecord, required: false })
   @ApiQuery({ name: Params.combinationWorldRecord, required: false })
@@ -161,7 +167,7 @@ export class ScoreController {
   @ApiQuery({ name: Params.idModes, required: false, isArray: true, type: Number })
   @ApiQuery({ name: Params.idStages, required: false, isArray: true, type: Number })
   @ApiQuery({ name: Params.idCharacterCostumes, required: false, isArray: true, type: Number })
-  @ApiQuery({ name: Params.status, enum: ScoreStatusEnum })
+  @ApiQuery({ name: Params.idScoreStatus, enum: ScoreStatusEnum, required: false })
   @ApiPagination(ScoreViewModel)
   @Get('search')
   async searchScores(@Query() dto: ScoreSearchDto, @AuthUser() user: User): Promise<Pagination<ScoreViewModel>> {
