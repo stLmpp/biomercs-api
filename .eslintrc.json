@@ -44,9 +44,9 @@
     ],
     "arrow-body-style": ["error", "as-needed"],
     "prefer-arrow-callback": ["error"],
-    "prefer-arrow/prefer-arrow-functions": ["off"],
     "no-shadow": ["off"],
     "prefer-const": ["error", { "destructuring": "all" }],
+    "eqeqeq": ["error", "always", { "null": "ignore" }],
     "@typescript-eslint/explicit-member-accessibility": ["off", { "accessibility": "explicit" }],
     "@typescript-eslint/no-non-null-assertion": "off",
     "@typescript-eslint/unified-signatures": "off",
@@ -76,7 +76,6 @@
         "format": ["camelCase"],
         "leadingUnderscore": "allow"
       },
-
       {
         "selector": "memberLike",
         "modifiers": ["private"],
@@ -86,6 +85,11 @@
       {
         "selector": "memberLike",
         "modifiers": ["protected"],
+        "format": ["camelCase"],
+        "leadingUnderscore": "allow"
+      },
+      {
+        "selector": "memberLike",
         "format": ["camelCase"],
         "leadingUnderscore": "allow"
       },
@@ -165,17 +169,16 @@
           "abstract-method",
           "method",
 
-          "private-static-method",
-          "protected-static-method",
-          "public-static-method",
-
-          "static-method",
-
           "private-static-field",
           "protected-static-field",
           "public-static-field",
-
           "static-field",
+
+          "private-static-method",
+          "protected-static-method",
+          "public-static-method",
+          "static-method",
+
           "instance-field",
           "abstract-field"
         ]
