@@ -62,6 +62,9 @@ export class HandleErrorFilter extends BaseExceptionFilter {
     let exception: Type<HttpException>;
     switch (sqlError.code) {
       // TODO implement more errors
+      case PostgresError.NO_DATA_FOUND:
+        exception = NotFoundException;
+        break;
       case PostgresError.SYNTAX_ERROR:
         exception = InternalServerErrorException;
         break;

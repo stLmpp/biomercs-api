@@ -24,11 +24,17 @@ import { UserService } from '../user/user.service';
 import { SteamService } from '../steam/steam.service';
 import { Request, Response } from 'express';
 import { UserViewModel } from '../user/user.view-model';
+import { PlayerService } from '../player/player.service';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService, private userService: UserService, private steamService: SteamService) {}
+  constructor(
+    private authService: AuthService,
+    private userService: UserService,
+    private steamService: SteamService,
+    private playerService: PlayerService
+  ) {}
 
   @Post('register')
   async register(@Body() dto: AuthRegisterDto): Promise<AuthRegisterViewModel> {
@@ -73,7 +79,10 @@ export class AuthController {
   @ApiQuery({ name: Params.username, required: false })
   @Get(`user/exists`)
   async userExists(@Query(Params.email) email?: string, @Query(Params.username) username?: string): Promise<boolean> {
-    return this.userService.anyByEmailOrUsername(username, email);
+    return (
+      (await this.userService.anyByEmailOrUsername(username, email)) ||
+      (!!username && (await this.playerService.personaNameExistsWithoutUser(username)))
+    );
   }
 
   @HttpCode(200)

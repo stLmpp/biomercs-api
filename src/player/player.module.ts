@@ -8,7 +8,7 @@ import { RegionModule } from '../region/region.module';
 import { MapperModule } from '../mapper/mapper.module';
 import { MapperService } from '../mapper/mapper.service';
 import { Player } from './player.entity';
-import { PlayerViewModel, PlayerWithRegionViewModel } from './player.view-model';
+import { PlayerViewModel, PlayerWithRegionSteamProfileViewModel } from './player.view-model';
 
 @Module({
   imports: [TypeOrmModule.forFeature([PlayerRepository]), forwardRef(() => SteamModule), RegionModule, MapperModule],
@@ -19,6 +19,6 @@ import { PlayerViewModel, PlayerWithRegionViewModel } from './player.view-model'
 export class PlayerModule {
   constructor(private mapperService: MapperService) {
     this.mapperService.create(Player, PlayerViewModel);
-    this.mapperService.create(Player, PlayerWithRegionViewModel);
+    this.mapperService.create(Player, PlayerWithRegionSteamProfileViewModel);
   }
 }

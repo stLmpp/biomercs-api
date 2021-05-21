@@ -6,7 +6,7 @@ import { Params } from '../shared/type/params';
 import { PlayerAddDto, PlayerUpdateDto } from './player.dto';
 import { AuthUser } from '../auth/auth-user.decorator';
 import { User } from '../user/user.entity';
-import { PlayerViewModel, PlayerWithRegionViewModel } from './player.view-model';
+import { PlayerViewModel, PlayerWithRegionSteamProfileViewModel } from './player.view-model';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ApiPagination } from '../shared/decorator/api-pagination';
@@ -65,7 +65,7 @@ export class PlayerController {
   }
 
   @Get(`:${Params.idPlayer}`)
-  async findById(@Param(Params.idPlayer) idPlayer: number): Promise<PlayerWithRegionViewModel> {
+  async findById(@Param(Params.idPlayer) idPlayer: number): Promise<PlayerWithRegionSteamProfileViewModel> {
     return this.playerService.findByIdMapped(idPlayer);
   }
 
@@ -73,7 +73,7 @@ export class PlayerController {
   async update(
     @Param(Params.idPlayer) idPlayer: number,
     @Body() dto: PlayerUpdateDto
-  ): Promise<PlayerWithRegionViewModel> {
+  ): Promise<PlayerWithRegionSteamProfileViewModel> {
     return this.playerService.update(idPlayer, dto);
   }
 }

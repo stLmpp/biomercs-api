@@ -16,6 +16,7 @@ import { MapperService } from '../mapper/mapper.service';
 import { ScoreService } from '../score/score.service';
 import { RegionService } from '../region/region.service';
 import { PlayerAddDto } from '../player/player.dto';
+import { SteamGateway } from './steam.gateway';
 
 @Injectable()
 export class SteamService {
@@ -25,7 +26,8 @@ export class SteamService {
     @Inject(forwardRef(() => PlayerService)) private playerService: PlayerService,
     private mapperService: MapperService,
     private scoreService: ScoreService,
-    private regionService: RegionService
+    private regionService: RegionService,
+    private steamGateway: SteamGateway
   ) {}
 
   private async _createOrReplaceSteamProfile(req: Request, player?: Player, returnUrl?: string): Promise<SteamProfile> {
@@ -33,6 +35,7 @@ export class SteamService {
       throw new NotFoundException('Player not found');
     }
     if (player.idSteamProfile) {
+      this.steamGateway.playerLinked(player.id, { error: 'Player already has a Steam Profile linked' });
       throw new BadRequestException('Player already has a Steam Profile linked');
     }
     const rawSteamProfile = await this.authenticate(req, returnUrl);
@@ -40,6 +43,7 @@ export class SteamService {
     if (steamProfile) {
       if (steamProfile.player) {
         if (!steamProfile.player.noUser) {
+          this.steamGateway.playerLinked(player.id, { error: 'Steam profile already has a Player linked to it' });
           throw new BadRequestException('Steam profile already has a Player linked to it');
         } else {
           // TODO test this out
@@ -55,6 +59,9 @@ export class SteamService {
       steamProfile = await this.add(rawSteamProfile);
       await this.playerService.update(player.id, { idSteamProfile: steamProfile.id });
     }
+    this.steamGateway.playerLinked(player.id, {
+      steamProfile: this.mapperService.map(SteamProfile, SteamProfileViewModel, steamProfile),
+    });
     return steamProfile;
   }
 

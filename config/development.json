@@ -1,7 +1,7 @@
 {
   "DB_SYNCHRONIZE": false,
   "PORT": 3000,
-  "HOST": "http://localhost",
+  "HOST": "localhost",
   "CONFIG_USE_HANDLE_ERROR": true,
   "CONFIG_USE_AUTH": true,
   "FRONT_END_HOST": "http://localhost",
