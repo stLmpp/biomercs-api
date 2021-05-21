@@ -11,7 +11,7 @@ export const DB_TYPEORM_CONFIG: TypeOrmModuleOptions = {
   database: environment.get('DB_DATABASE'),
   synchronize: environment.get('DB_SYNCHRONIZE'),
   type: 'postgres',
-  entities: [resolve(process.cwd() + '/dist/**/*.entity.js')],
+  entities: [...environment.entitiesPaths],
   logging: !environment.production ? 'all' : false,
   namingStrategy: new NamingStategy(),
   dropSchema: false,

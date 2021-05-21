@@ -11,7 +11,7 @@
     "node": true,
     "jest": true
   },
-  "ignorePatterns": ["**/*.js", "migration", "node_modules", "migration.ts"],
+  "ignorePatterns": ["**/*.js", "migration", "node_modules", "migration.ts", "build.ts"],
   "rules": {
     "object-shorthand": ["error"],
     "object-curly-spacing": ["error", "always"],

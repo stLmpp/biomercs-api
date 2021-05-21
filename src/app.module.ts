@@ -26,6 +26,7 @@ import { PlatformModule } from './platform/platform.module';
 import { ScoreModule } from './score/score.module';
 import { MapperModule } from './mapper/mapper.module';
 import { UrlMetadataModule } from './url-metadata/url-metadata.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
 
 @Module({
   imports: [
@@ -49,9 +50,9 @@ import { UrlMetadataModule } from './url-metadata/url-metadata.module';
         },
       },
     }),
-    // ServeStaticModule.forRoot({
-    //   rootPath: join(__dirname, '..', '..', '..', 'biomercs-v2', 'dist', 'biomercs-v2'),
-    // }),
+    ServeStaticModule.forRoot({
+      rootPath: resolve(process.cwd() + '/frontend'),
+    }),
     CoreModule,
     ValidationModule,
     UserModule,
