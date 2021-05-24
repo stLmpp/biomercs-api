@@ -76,4 +76,12 @@ export class PlayerController {
   ): Promise<PlayerWithRegionSteamProfileViewModel> {
     return this.playerService.update(idPlayer, dto);
   }
+
+  @Put(`:${Params.idPlayer}/personaName`)
+  async updatePersonaName(
+    @Param(Params.idPlayer) idPlayer: number,
+    @Body(Params.personaName) personaName: string
+  ): Promise<void> {
+    await this.playerService.updatePersonaName(idPlayer, personaName);
+  }
 }

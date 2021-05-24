@@ -10,6 +10,7 @@ import { MapperService } from '../mapper/mapper.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { ILike } from 'typeorm';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { isAfter, subDays } from 'date-fns';
 
 @Injectable()
 export class PlayerService {
@@ -138,5 +139,19 @@ export class PlayerService {
 
   async personaNameExistsWithoutUser(personaName: string): Promise<boolean> {
     return this.playerRepository.exists({ personaName, noUser: true });
+  }
+
+  async updatePersonaName(idPlayer: number, personaName: string): Promise<void> {
+    const player = await this.playerRepository.findOneOrFail(idPlayer);
+    if (player.personaName === personaName) {
+      throw new BadRequestException('New personaName is the same as the old personaname');
+    }
+    if (await this.personaNameExists(personaName)) {
+      throw new BadRequestException('PersonaName already taken');
+    }
+    if (player.lastUpdatedPersonaNameDate && isAfter(player.lastUpdatedPersonaNameDate, subDays(new Date(), 7))) {
+      throw new BadRequestException(`Too many updates in the last 7 days`);
+    }
+    await this.playerRepository.update(idPlayer, { personaName, lastUpdatedPersonaNameDate: new Date() });
   }
 }

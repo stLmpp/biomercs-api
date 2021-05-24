@@ -32,7 +32,7 @@ export class Score extends BaseEntity {
   time!: string;
 
   @Property()
-  @Column({ default: 1 })
+  @Column()
   idScoreStatus!: number;
 
   @Property(() => ScoreStatus)
