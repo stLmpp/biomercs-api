@@ -38,3 +38,4 @@ package.json.yarn
 .env-prod
 ormconfig.js
 yarn.lock
+/frontend

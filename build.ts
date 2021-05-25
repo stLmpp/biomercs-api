@@ -1,14 +1,34 @@
 import { resolve } from 'path';
 import * as ora from 'ora';
 import { spawn, SpawnOptions } from 'child_process';
-import { copy, writeFile } from 'fs-extra';
+import { copy, rm, writeFile } from 'fs-extra';
 import * as AdmZip from 'adm-zip';
 import { environment } from './src/environment/environment';
+import { coerceArray } from 'st-utils';
+import * as yargs from 'yargs';
 
 const spinner = ora({ spinner: 'dots' });
 
 const pathFrontEnd = resolve(process.cwd() + '/../biomercs-ng');
 const pathBackEndDist = resolve(process.cwd() + '/dist');
+
+const rawArgs = yargs.parse(process.argv.slice(2));
+
+function getArg<T>(argNames: string | string[]): T | undefined {
+  for (const argName of coerceArray(argNames)) {
+    if (argName in rawArgs) {
+      return (rawArgs as any)[argName] as T;
+    }
+  }
+  return undefined;
+}
+
+const args = {
+  skipZip: getArg<boolean>('skip-zip'),
+  skipBackEnd: getArg<boolean>('skip-back-end'),
+  skipInstall: getArg<boolean>('skip-install'),
+  dev: getArg<boolean>(['dev', 'd']),
+};
 
 async function asyncSpawn(command: string, options?: SpawnOptions): Promise<void> {
   const newOptions = { ...options, shell: true };
@@ -41,6 +61,10 @@ async function buildBackEnd(): Promise<void> {
 async function copyFrontEndDistToBackEndDist(): Promise<void> {
   spinner.start('Copying front-end to back-end dist...');
   await copy(resolve(pathFrontEnd + '/dist/biomercs-ng'), resolve(pathBackEndDist + '/frontend'));
+  if (args.dev) {
+    await rm(resolve(process.cwd() + '/frontend'), { force: true, recursive: true });
+    await copy(resolve(pathFrontEnd + '/dist/biomercs-ng'), resolve(process.cwd() + '/frontend'));
+  }
   spinner.stopAndPersist({ symbol: '✔', text: 'Copy front-end completed' });
 }
 
@@ -76,12 +100,18 @@ async function zipFile(version: string): Promise<void> {
 
 async function main(): Promise<void> {
   await buildFrontEnd();
-  await buildBackEnd();
+  if (!args.skipBackEnd) {
+    await buildBackEnd();
+  }
   await copyFrontEndDistToBackEndDist();
   await copyConfigToDist();
   await addEngineToPackageJson();
-  await installDependencies();
-  await zipFile(environment.appVersion);
+  if (!args.skipInstall) {
+    await installDependencies();
+  }
+  if (!args.skipZip) {
+    await zipFile(environment.appVersion);
+  }
 }
 
 main().then();

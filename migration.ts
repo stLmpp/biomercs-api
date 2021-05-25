@@ -28,8 +28,9 @@ const path = getArg<boolean>(['p', 'prod', 'production']) ? '/.env-prod' : '/.en
 config({ path: pathResolve(process.cwd() + path) });
 
 const migrationName = getArg<string>(['n', 'name']);
+const skipMigration = getArg<boolean>('skip-migration');
 
-if (!migrationName) {
+if (!migrationName && !skipMigration) {
   throw new Error('Name of the migration is required');
 }
 
@@ -78,7 +79,6 @@ async function generateMigration(): Promise<void> {
   file = prettierFormat(file, prettierrc);
 
   await writeOrmConfig(file);
-  const skipMigration = getArg<boolean>('skip-migration');
   if (!skipMigration) {
     await generateMigration();
   }
