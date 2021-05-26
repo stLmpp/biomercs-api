@@ -16,7 +16,7 @@ import { Type } from '../util/type';
 
 @Catch()
 export class HandleErrorFilter extends BaseExceptionFilter {
-  catch(exception: any, host: ArgumentsHost): void {
+  override catch(exception: any, host: ArgumentsHost): void {
     if (!environment.config('USE_HANDLE_ERROR')) {
       super.catch(exception, host);
       return;
