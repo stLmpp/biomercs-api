@@ -17,6 +17,7 @@ import { ScoreService } from '../score/score.service';
 import { RegionService } from '../region/region.service';
 import { PlayerAddDto } from '../player/player.dto';
 import { SteamGateway } from './steam.gateway';
+import { lastValueFrom } from 'rxjs';
 
 @Injectable()
 export class SteamService {
@@ -116,18 +117,19 @@ export class SteamService {
   }
 
   async getPlayerSummary(steamid: string): Promise<RawSteamProfile> {
-    return this.http
-      .get<{ response: { players: SteamProfile[] } }>(
-        `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002`,
-        {
-          params: {
-            key: environment.steamKey,
-            steamids: steamid,
-          },
-        }
-      )
-      .pipe(map(response => response?.data?.response?.players?.[0]))
-      .toPromise();
+    return lastValueFrom(
+      this.http
+        .get<{ response: { players: SteamProfile[] } }>(
+          `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002`,
+          {
+            params: {
+              key: environment.steamKey,
+              steamids: steamid,
+            },
+          }
+        )
+        .pipe(map(response => response?.data?.response?.players?.[0]))
+    );
   }
 
   getRelyingParty(returnUrl = '/steam/auth'): RelyingParty {
