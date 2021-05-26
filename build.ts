@@ -24,9 +24,9 @@ function getArg<T>(argNames: string | string[]): T | undefined {
 }
 
 const args = {
-  skipZip: getArg<boolean>('skip-zip'),
-  skipBackEnd: getArg<boolean>('skip-back-end'),
-  skipInstall: getArg<boolean>('skip-install'),
+  skipZip: getArg<boolean>(['skip-zip', 'sz']),
+  skipBackEnd: getArg<boolean>(['skip-back-end', 'sbe']),
+  skipInstall: getArg<boolean>(['skip-install', 'si']),
   dev: getArg<boolean>(['dev', 'd']),
 };
 

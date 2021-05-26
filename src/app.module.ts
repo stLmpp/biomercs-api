@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DB_TYPEORM_CONFIG } from './environment/db.config';
+import { DB_TYPEORM_CONFIG } from './environment/database';
 import { CoreModule } from './core/core.module';
 import { ValidationModule } from './validation/validation.module';
 import { HandleErrorFilter } from './environment/handle-error.filter';

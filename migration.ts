@@ -65,7 +65,7 @@ async function generateMigration(): Promise<void> {
     await build();
   }
 
-  const { DB_TYPEORM_CONFIG } = await import('./src/environment/db.config');
+  const { DB_TYPEORM_CONFIG } = await import('./src/environment/database');
 
   const dbOptions = JSON.stringify({
     ...DB_TYPEORM_CONFIG,
