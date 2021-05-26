@@ -12,6 +12,7 @@ export class PlayerViewModel implements PlayerInterface {
   @Property() noUser!: boolean;
   @Property() personaName!: string;
   @Property() title?: string;
+  @Property() lastUpdatedPersonaNameDate?: Date;
 }
 
 export class PlayerWithRegionSteamProfileViewModel extends PlayerViewModel {

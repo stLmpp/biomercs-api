@@ -141,7 +141,7 @@ export class PlayerService {
     return this.playerRepository.exists({ personaName, noUser: true });
   }
 
-  async updatePersonaName(idPlayer: number, personaName: string): Promise<void> {
+  async updatePersonaName(idPlayer: number, personaName: string): Promise<string> {
     const player = await this.playerRepository.findOneOrFail(idPlayer);
     if (player.personaName === personaName) {
       throw new BadRequestException('New personaName is the same as the old personaname');
@@ -152,6 +152,8 @@ export class PlayerService {
     if (player.lastUpdatedPersonaNameDate && isAfter(player.lastUpdatedPersonaNameDate, subDays(new Date(), 7))) {
       throw new BadRequestException(`Too many updates in the last 7 days`);
     }
-    await this.playerRepository.update(idPlayer, { personaName, lastUpdatedPersonaNameDate: new Date() });
+    const lastUpdatedPersonaNameDate = new Date();
+    await this.playerRepository.update(idPlayer, { personaName, lastUpdatedPersonaNameDate });
+    return lastUpdatedPersonaNameDate.toISOString();
   }
 }
