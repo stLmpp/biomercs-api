@@ -6,7 +6,7 @@ import { DB_TYPEORM_CONFIG } from './environment/database';
 import { CoreModule } from './core/core.module';
 import { ValidationModule } from './validation/validation.module';
 import { HandleErrorFilter } from './environment/handle-error.filter';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { MailerModule } from '@nestjs-modules/mailer';
@@ -27,6 +27,8 @@ import { ScoreModule } from './score/score.module';
 import { MapperModule } from './mapper/mapper.module';
 import { UrlMetadataModule } from './url-metadata/url-metadata.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { ContactModule } from './contact/contact.module';
+import { RateLimiterInterceptor, RateLimiterModule } from 'nestjs-rate-limiter';
 
 @Module({
   imports: [
@@ -35,12 +37,12 @@ import { ServeStaticModule } from '@nestjs/serve-static';
       transport: {
         service: environment.get('MAIL_SERVICE'),
         auth: {
-          user: environment.get('MAIL_ADDRESS'),
+          user: environment.mail,
           pass: environment.get('MAIL_PASSWORD'),
         },
       },
       defaults: {
-        from: `"Biomercs" <${environment.get('MAIL_ADDRRESS')}>`,
+        from: `"Biomercs" <${environment.mail}>`,
       },
       template: {
         dir: resolve(process.cwd() + '/mail/templates/'),
@@ -69,15 +71,16 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     ScoreModule,
     MapperModule,
     UrlMetadataModule,
+    ContactModule,
+    // TODO use rate limiter in other parts of the application
+    RateLimiterModule.register({ points: 10 }),
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    {
-      provide: APP_FILTER,
-      useClass: HandleErrorFilter,
-    },
+    { provide: APP_FILTER, useClass: HandleErrorFilter },
     AuthSubscriber,
+    { provide: APP_INTERCEPTOR, useClass: RateLimiterInterceptor },
   ],
 })
 export class AppModule {}

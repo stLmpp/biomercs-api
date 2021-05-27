@@ -8,9 +8,10 @@ export class MailService {
   constructor(private mailerService: MailerService) {}
 
   async sendMailInfo(options: ISendMailOptions, mailInfoTemplate: MailInfoTemplate): Promise<void> {
+    options = { ...options };
+    options.from ??= environment.mail;
     await this.mailerService.sendMail({
       ...options,
-      from: environment.get('MAIL'),
       template: './info.hbs',
       context: {
         title: mailInfoTemplate.title,

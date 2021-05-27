@@ -41,14 +41,6 @@ async function bootstrap(): Promise<void> {
     SwaggerModule.setup('help', app, document, {
       customCss: `.swagger-ui .scheme-container { position: sticky; top: 0; z-index: 1; margin-bottom: 0; padding: 0.25rem 0; }`,
     });
-  } else {
-    // TODO use expressRateLimit in specific routes, I just don't know which yet
-    // app.use(
-    //   expressRateLimit({
-    //     windowMs: 15 * 60 * 1000,
-    //     max: 500,
-    //   })
-    // );
   }
 
   // TODO remove the contentSecurityPolicy when the domain is ready

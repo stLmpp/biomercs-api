@@ -116,6 +116,10 @@ class Env {
     return this.config('WEBSOCKET_TRANSPORTS');
   }
 
+  get mail(): string {
+    return this.get('MAIL_ADDRESS');
+  }
+
   static create(): Env {
     return new Env();
   }
