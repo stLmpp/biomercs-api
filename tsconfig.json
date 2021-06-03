@@ -22,5 +22,7 @@
     "strictFunctionTypes": true,
     "strictPropertyInitialization": true
   },
-  "exclude": ["migration.ts", "migration", "build.ts"]
+  "exclude": ["migration.ts", "migration", "build.ts",
+    "env.ts"
+  ]
 }

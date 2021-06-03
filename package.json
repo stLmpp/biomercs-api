@@ -23,7 +23,8 @@
     "generate-migration": "typeorm migration:generate",
     "create-migration": "ts-node migration.ts",
     "run-migration": "typeorm migration:run",
-    "build-prod": "ts-node build.ts"
+    "build-prod": "ts-node build.ts",
+    "create-env": "ts-node env.ts"
   },
   "dependencies": {
     "@nestjs-modules/mailer": "~1.6.0",
