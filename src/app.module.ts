@@ -29,6 +29,7 @@ import { UrlMetadataModule } from './url-metadata/url-metadata.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ContactModule } from './contact/contact.module';
 import { RateLimiterInterceptor, RateLimiterModule } from 'nestjs-rate-limiter';
+import { RuleModule } from './rule/rule.module';
 
 @Module({
   imports: [
@@ -74,6 +75,7 @@ import { RateLimiterInterceptor, RateLimiterModule } from 'nestjs-rate-limiter';
     ContactModule,
     // TODO use rate limiter in other parts of the application
     RateLimiterModule.register({ points: 10 }),
+    RuleModule,
   ],
   controllers: [AppController],
   providers: [

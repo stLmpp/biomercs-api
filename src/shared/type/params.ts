@@ -18,6 +18,7 @@ export enum Params {
   idMiniGames = 'idMiniGames',
   idModes = 'idModes',
   idStages = 'idStages',
+  idRule = 'idRule',
   idCharacterCostumes = 'idCharacterCostumes',
 
   // OTHERS
