@@ -47,7 +47,6 @@ export class SteamService {
           this.steamGateway.playerLinked(player.id, { error: 'Steam profile already has a Player linked to it' });
           throw new BadRequestException('Steam profile already has a Player linked to it');
         } else {
-          // TODO test this out
           await this.scoreService.transferScores(steamProfile.player.id, player.id);
           await this.playerService.delete(steamProfile.player.id);
           await this.playerService.update(player.id, { idSteamProfile: steamProfile.id });
