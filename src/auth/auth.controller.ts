@@ -3,7 +3,6 @@ import {
   Controller,
   Get,
   Headers,
-  HttpCode,
   NotFoundException,
   Param,
   Post,
@@ -25,6 +24,7 @@ import { SteamService } from '../steam/steam.service';
 import { Request, Response } from 'express';
 import { UserViewModel } from '../user/user.view-model';
 import { PlayerService } from '../player/player.service';
+import { RateLimit } from 'nestjs-rate-limiter';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -36,6 +36,12 @@ export class AuthController {
     private playerService: PlayerService
   ) {}
 
+  @RateLimit({
+    keyPrefix: 'auth/register',
+    points: 3,
+    duration: 15 * 60,
+    errorMessage: 'Wait a while before trying to register again',
+  })
   @Post('register')
   async register(@Body() dto: AuthRegisterDto): Promise<AuthRegisterViewModel> {
     return this.authService.register(dto);
@@ -47,7 +53,7 @@ export class AuthController {
     return this.authService.login(dto);
   }
 
-  @HttpCode(200)
+  @ApiOkResponse()
   @ApiAuth()
   @Post('auto-login')
   async autoLogin(@AuthUser() user: User): Promise<UserViewModel> {
@@ -85,7 +91,7 @@ export class AuthController {
     );
   }
 
-  @HttpCode(200)
+  @ApiOkResponse()
   @Post(`steam/login/:${Params.uuid}`)
   async loginSteam(@Param(Params.uuid) uuid: string): Promise<string> {
     return this.steamService.openIdUrl(`/auth/steam/login/${uuid}/return`);
@@ -103,6 +109,12 @@ export class AuthController {
     res.send(`Logged succesfully! You can close this window, if it's not closed automatically`);
   }
 
+  @RateLimit({
+    keyPrefix: 'auth/steam/register',
+    points: 3,
+    duration: 15 * 60,
+    errorMessage: 'Wait a while before trying to register again',
+  })
   @Post(`steam/register`)
   async registerSteam(
     @Body() dto: AuthRegisterSteamDto,
@@ -111,7 +123,7 @@ export class AuthController {
     return this.authService.registerSteam(dto, auth);
   }
 
-  @HttpCode(200)
+  @ApiOkResponse()
   @Post(`steam/:${Params.steamid}/validate-token`)
   async validateSteamToken(
     @Param(Params.steamid) steamid: string,
@@ -120,13 +132,13 @@ export class AuthController {
     return this.authService.validateSteamToken(steamid, token);
   }
 
-  @HttpCode(200)
+  @ApiOkResponse()
   @Post('forgot-password')
   async sendForgotPasswordConfirmationCode(@Query(Params.email) email: string): Promise<void> {
     return this.authService.sendForgotPasswordConfirmationCode(email);
   }
 
-  @Post(`forgot-password/change-password`)
+  @Post('forgot-password/change-password')
   async changeForgottenPassword(@Body() dto: AuthChangePasswordDto): Promise<UserViewModel> {
     return this.authService.changeForgottenPassword(dto);
   }
