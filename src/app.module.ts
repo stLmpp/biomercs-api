@@ -73,7 +73,6 @@ import { RuleModule } from './rule/rule.module';
     MapperModule,
     UrlMetadataModule,
     ContactModule,
-    // TODO use rate limiter in other parts of the application
     RateLimiterModule.register({ points: 10 }),
     RuleModule,
   ],
