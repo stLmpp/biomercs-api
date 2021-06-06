@@ -8,24 +8,26 @@ import { RuleAddDto, RuleUpdateDto, RuleUpsertDto } from './rule.dto';
 import { Params } from '../shared/type/params';
 import { RuleUpsertRemoveInvalidPipe } from './rule-upsert-remove-invalid.pipe';
 
-@ApiAuth()
 @ApiTags('Rule')
 @Controller('rule')
 export class RuleController {
   constructor(private ruleService: RuleService) {}
 
+  @ApiAuth()
   @ApiAdmin()
   @Post()
   async add(@Body() dto: RuleAddDto): Promise<RuleViewModel> {
     return this.ruleService.add(dto);
   }
 
+  @ApiAuth()
   @ApiAdmin()
   @Patch(`:${Params.idRule}`)
   async update(@Param(Params.idRule) idRule: string, @Body() dto: RuleUpdateDto): Promise<RuleViewModel> {
     return this.ruleService.update(idRule, dto);
   }
 
+  @ApiAuth()
   @ApiAdmin()
   @ApiBody({ isArray: true, type: RuleUpsertDto, required: true, description: 'Make sure to send all fields' })
   @Post('upsert')
