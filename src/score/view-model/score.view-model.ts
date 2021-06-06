@@ -1,4 +1,3 @@
-import { ScoreStatusEnum } from '../score-status.enum';
 import { Property } from '../../mapper/property.decorator';
 
 export class ScorePlayerViewModel {
@@ -43,7 +42,8 @@ export class ScoreViewModel {
   @Property() maxCombo!: number;
   @Property() time!: string;
   @Property() approvalDate?: Date;
-  @Property() status!: ScoreStatusEnum;
+  @Property() idScoreStatus!: number;
+  @Property() scoreStatusDescription!: string;
   @Property(() => ScorePlayerViewModel) scorePlayers!: ScorePlayerViewModel[];
   @Property() creationDate!: Date;
   @Property() lastUpdatedDate!: Date | null;

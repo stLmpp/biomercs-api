@@ -25,6 +25,9 @@ Repository.prototype.exists = async function (where: any) {
   }
 };
 
-Repository.prototype.paginate = async function (options, findOptions) {
+Repository.prototype.paginate = async function (
+  options: IPaginationOptions,
+  findOptions: FindConditions<any> | FindManyOptions | undefined
+) {
   return paginate(this, options, findOptions);
 };

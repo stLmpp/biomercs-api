@@ -27,3 +27,8 @@ export class SteamProfileViewModel implements SteamProfileInterface {
 export class SteamProfileWithPlayerViewModel extends SteamProfileViewModel {
   @Property(() => PlayerViewModel) player!: PlayerViewModel;
 }
+
+export class SteamPlayerLinkedSocketViewModel {
+  @Property() steamProfile?: SteamProfileViewModel;
+  @Property() error?: string;
+}

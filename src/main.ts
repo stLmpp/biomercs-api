@@ -5,7 +5,6 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { environment } from './environment/environment';
 import * as helmet from 'helmet';
-import * as expressRateLimit from 'express-rate-limit';
 import * as compression from 'compression';
 import * as morgan from 'morgan';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -23,9 +22,6 @@ async function bootstrap(): Promise<void> {
 
   useContainer(app.select(ValidationModule), { fallbackOnErrors: true });
 
-  app.use(helmet());
-  app.use(compression());
-  app.use(morgan('combined'));
   app.useGlobalInterceptors(
     registerRequestContext(AUTH_USER_CONTEXT_TOKEN, context => context.switchToHttp().getRequest().user)
   );
@@ -45,16 +41,14 @@ async function bootstrap(): Promise<void> {
     SwaggerModule.setup('help', app, document, {
       customCss: `.swagger-ui .scheme-container { position: sticky; top: 0; z-index: 1; margin-bottom: 0; padding: 0.25rem 0; }`,
     });
-  } else {
-    app.use(
-      expressRateLimit({
-        windowMs: 15 * 60 * 1000,
-        max: 100,
-      })
-    );
   }
 
-  await app.listen(environment.port, environment.host);
+  // TODO remove the contentSecurityPolicy when the domain is ready
+  app.use(helmet({ contentSecurityPolicy: false }));
+  app.use(compression());
+  app.use(morgan('combined'));
+
+  await app.listen(environment.port);
 }
 
 bootstrap()

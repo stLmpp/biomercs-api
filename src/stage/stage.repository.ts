@@ -19,6 +19,7 @@ export class StageRepository extends Repository<Stage> {
       .andWhere('gm.idGame = :idGame', { idGame })
       .andWhere('gm.idMiniGame = :idMiniGame', { idMiniGame })
       .andWhere('pgmm.idMode = :idMode', { idMode })
+      .orderBy('s.id')
       .getMany();
   }
 
@@ -37,6 +38,7 @@ export class StageRepository extends Repository<Stage> {
       .andWhere('gm.idGame in (:...idGames)', { idGames })
       .andWhere('gm.idMiniGame in (:...idMiniGames)', { idMiniGames })
       .andWhere('pgmm.idMode in (:...idModes)', { idModes })
+      .orderBy('s.id')
       .getMany();
   }
 }

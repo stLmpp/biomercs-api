@@ -27,6 +27,7 @@ import { Type } from '../util/type';
 import { ScoreChangeRequestModule } from './score-change-request/score-change-request.module';
 import { ScoreGateway } from './score.gateway';
 import { MailModule } from '../mail/mail.module';
+import { ScoreStatusModule } from './score-status/score-status.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { MailModule } from '../mail/mail.module';
     forwardRef(() => ScoreWorldRecordModule),
     ScoreChangeRequestModule,
     MailModule,
+    ScoreStatusModule,
   ],
   providers: [ScoreService, ScoreGateway],
   controllers: [ScoreController],
@@ -213,6 +215,14 @@ export class ScoreModule {
             (from.scoreWorldRecords ?? []).find(
               scoreWorldRecord => scoreWorldRecord.type === ScoreWorldRecordTypeEnum.CombinationWorldRecord
             )?.endDate ?? null
+        )
+        .for(
+          dest => dest.idScoreStatus,
+          from => from.scoreStatus.id
+        )
+        .for(
+          dest => dest.scoreStatusDescription,
+          from => from.scoreStatus.description
         );
 
     createScoreViewModeMap(ScoreViewModel);

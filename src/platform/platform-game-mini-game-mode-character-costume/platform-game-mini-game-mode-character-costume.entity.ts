@@ -12,7 +12,10 @@ export class PlatformGameMiniGameModeCharacterCostume extends BaseEntity {
   idPlatformGameMiniGameMode!: number;
 
   @Property(() => PlatformGameMiniGameMode)
-  @ManyToOne(() => PlatformGameMiniGameMode)
+  @ManyToOne(
+    () => PlatformGameMiniGameMode,
+    platformGameMiniGameMode => platformGameMiniGameMode.platformGameMiniGameModeCharacterCostumes
+  )
   @JoinColumn()
   platformGameMiniGameMode!: PlatformGameMiniGameMode;
 
@@ -21,7 +24,7 @@ export class PlatformGameMiniGameModeCharacterCostume extends BaseEntity {
   idCharacterCostume!: number;
 
   @Property(() => CharacterCostume)
-  @ManyToOne(() => CharacterCostume)
+  @ManyToOne(() => CharacterCostume, characterCostume => characterCostume.platformGameMiniGameModeCharacterCostumes)
   @JoinColumn()
   characterCostume!: CharacterCostume;
 }

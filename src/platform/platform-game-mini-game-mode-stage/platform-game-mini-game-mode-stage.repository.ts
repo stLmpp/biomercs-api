@@ -25,12 +25,10 @@ export class PlatformGameMiniGameModeStageRepository extends Repository<Platform
     idMode: number,
     idStage: number
   ): SelectQueryBuilder<PlatformGameMiniGameModeStage> {
-    return this._createQueryBuilderRelations(
-      idPlatform,
-      idGame,
-      idMiniGame,
-      idMode
-    ).andWhere('pgmms.idStage = :idStage', { idStage });
+    return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode).andWhere(
+      'pgmms.idStage = :idStage',
+      { idStage }
+    );
   }
 
   async findIdByPlatformGameMiniGameModeStage(

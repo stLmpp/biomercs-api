@@ -2,12 +2,7 @@ import { Column, CreateDateColumn, DeepPartial, PrimaryGeneratedColumn, UpdateDa
 import { ApiHideProperty, ApiProperty } from '@nestjs/swagger';
 import { Property } from '../../mapper/property.decorator';
 
-export abstract class BaseEntity {
-  @Property()
-  @ApiProperty()
-  @PrimaryGeneratedColumn()
-  id!: number;
-
+export abstract class BaseEntityNoId {
   @Property()
   @ApiHideProperty()
   @CreateDateColumn()
@@ -32,4 +27,11 @@ export abstract class BaseEntity {
     Object.assign(this, dto);
     return this;
   }
+}
+
+export abstract class BaseEntity extends BaseEntityNoId {
+  @Property()
+  @ApiProperty()
+  @PrimaryGeneratedColumn()
+  id!: number;
 }

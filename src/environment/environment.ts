@@ -3,6 +3,7 @@ import { version } from '../../package.json';
 import { isArray } from 'st-utils';
 import { KeyValue } from '../shared/inteface/key-value.interface';
 import { genSalt } from 'bcryptjs';
+import { resolve } from 'path';
 
 function tryGetEnvVar(property: string): any {
   try {
@@ -22,12 +23,7 @@ function getEnvVar(propertyOrProperties: string | string[]): any {
   }
 }
 
-export type Configs =
-  | 'FILE_IMAGE_EXTENSIONS_ALLOWED'
-  | 'USE_HANDLE_ERROR'
-  | 'USE_ROLE'
-  | 'USE_AUTH'
-  | 'FILE_UPLOAD_PATH';
+export type Configs = 'USE_HANDLE_ERROR' | 'USE_ROLE' | 'USE_AUTH' | 'WEBSOCKET_PATH' | 'WEBSOCKET_TRANSPORTS';
 
 class Env {
   private _salt?: string;
@@ -52,31 +48,43 @@ class Env {
   }
 
   get host(): string {
-    return getEnvVar('HOST');
+    return this.get('HOST');
   }
 
   get port(): number {
-    return getEnvVar('PORT');
+    return this.get('PORT');
   }
 
   get apiUrl(): string {
-    return `http://${this.host}:${this.port}/api`;
+    // TODO change to https when production
+    let url = `http://${this.host}`;
+    const port = this.port;
+    if (!this.production && port) {
+      url += `:${this.port}`;
+    }
+    return url + '/api';
   }
 
   get hostFrontEnd(): string {
-    return getEnvVar('FRONT_END_HOST');
+    return this.get('FRONT_END_HOST');
   }
 
-  get portFrontEnd(): number {
-    return getEnvVar('FRONT_END_PORT');
+  get portFrontEnd(): number | undefined {
+    return this.get('FRONT_END_PORT');
   }
 
   get frontEndUrl(): string {
-    return `http://${this.hostFrontEnd}:${this.portFrontEnd}`;
+    // TODO change to https when production
+    let url = `http://${this.hostFrontEnd}`;
+    const frontEndPort = this.portFrontEnd;
+    if (!this.production && frontEndPort) {
+      url += `:${frontEndPort}`;
+    }
+    return url;
   }
 
   get production(): boolean {
-    return getEnvVar('NODE_ENV') === 'production';
+    return this.get('NODE_ENV') === 'production';
   }
 
   get defaultPaginationSize(): number {
@@ -93,6 +101,23 @@ class Env {
 
   get steamKey(): string {
     return this.get('STEAM_API_KEY');
+  }
+
+  get entitiesPaths(): string[] {
+    const path = this.production ? 'src' : 'dist';
+    return [resolve(process.cwd() + `/${path}/**/*.entity.js`)];
+  }
+
+  get websocketPath(): string {
+    return this.config('WEBSOCKET_PATH');
+  }
+
+  get websocketTransports(): string[] {
+    return this.config('WEBSOCKET_TRANSPORTS');
+  }
+
+  get mail(): string {
+    return this.get('MAIL_ADDRESS');
   }
 
   static create(): Env {

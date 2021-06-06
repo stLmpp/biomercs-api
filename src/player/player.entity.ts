@@ -50,4 +50,8 @@ export class Player extends BaseEntity implements PlayerInterface {
   @ManyToOne(() => Region)
   @JoinColumn()
   region!: Region;
+
+  @Property()
+  @Column({ nullable: true })
+  lastUpdatedPersonaNameDate?: Date;
 }

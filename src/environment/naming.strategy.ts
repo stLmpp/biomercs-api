@@ -3,11 +3,11 @@ import { RandomGenerator } from 'typeorm/util/RandomGenerator';
 import camelcase from 'camelcase';
 
 export class NamingStategy extends DefaultNamingStrategy {
-  joinColumnName(relationName: string, referencedColumnName: string): string {
+  override joinColumnName(relationName: string, referencedColumnName: string): string {
     return super.joinColumnName(referencedColumnName, relationName);
   }
 
-  foreignKeyName(tableOrName: Table | string, columnNames: string[], referencedTablePath: string): string {
+  override foreignKeyName(tableOrName: Table | string, columnNames: string[], referencedTablePath: string): string {
     const clonedColumnNames = [...columnNames].sort();
     const tableName = tableOrName instanceof Table ? tableOrName.name : tableOrName;
     const replacedTableName = tableName.replace('.', '_');
@@ -16,20 +16,20 @@ export class NamingStategy extends DefaultNamingStrategy {
     return 'FK_' + RandomGenerator.sha1(key).substr(0, 27);
   }
 
-  tableName(targetName: string, userSpecifiedName: string | undefined): string {
+  override tableName(targetName: string, userSpecifiedName: string | undefined): string {
     targetName = targetName.replace(/Entity$/, '');
     return super.tableName(targetName, userSpecifiedName);
   }
 
-  joinTableName(firstTableName: string, secondTableName: string): string {
+  override joinTableName(firstTableName: string, secondTableName: string): string {
     return `${firstTableName}_${secondTableName}`;
   }
 
-  joinTableColumnName(tableName: string, propertyName: string): string {
+  override joinTableColumnName(tableName: string, propertyName: string): string {
     return camelcase(`${propertyName}_${tableName}`);
   }
 
-  joinTableInverseColumnName(tableName: string, propertyName: string): string {
+  override joinTableInverseColumnName(tableName: string, propertyName: string): string {
     return camelcase(`${propertyName}_${tableName}`);
   }
 }
