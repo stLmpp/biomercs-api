@@ -1,8 +1,9 @@
-import { Controller, Put } from '@nestjs/common';
+import { Controller, Get, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { MailService } from './mail.service';
+import { MailStatusQueueViewModel } from './mail.view-model';
 
 @ApiAuth()
 @ApiTags('Mail')
@@ -11,8 +12,14 @@ export class MailController {
   constructor(private mailService: MailService) {}
 
   @ApiAdmin()
+  @Get('status-queue')
+  statusQueue(): MailStatusQueueViewModel {
+    return this.mailService.statusQueue();
+  }
+
+  @ApiAdmin()
   @Put('restart-queue')
-  async restartMailQueue(): Promise<void> {
-    await this.mailService.restartMailQueue();
+  async restartQueue(): Promise<MailStatusQueueViewModel> {
+    return await this.mailService.restartQueue();
   }
 }

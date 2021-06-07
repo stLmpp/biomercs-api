@@ -9,6 +9,7 @@ import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { MailQueue } from './mail-queue.entity';
 import { MailPriorityEnum } from './mail-priority.enum';
 import { MailSendDto } from './mail.dto';
+import { MailStatusQueueViewModel } from './mail.view-model';
 
 @Injectable()
 export class MailService {
@@ -51,7 +52,7 @@ export class MailService {
         filter(mailQueues => !!mailQueues.length),
         switchMap(mailQueues => this._sendMails(mailQueues)),
         catchError(err => {
-          if (this._retryAttempts <= 3) {
+          if (this._retryAttempts <= environment.mailQueueMaxRetries) {
             this._retryAttempts++;
             this._init();
           } else {
@@ -67,9 +68,21 @@ export class MailService {
     }
   }
 
-  async restartMailQueue(): Promise<void> {
+  async restartQueue(): Promise<MailStatusQueueViewModel> {
     this._retryAttempts = 0;
     await this._init();
+    return this.statusQueue();
+  }
+
+  statusQueue(): MailStatusQueueViewModel {
+    const maxRetries = environment.mailQueueMaxRetries;
+    const queueWorking = this._retryAttempts <= maxRetries;
+    return {
+      maxRetries,
+      retryAttempts: this._retryAttempts,
+      status: this._retryAttempts < maxRetries ? 'Working' : 'Stopped',
+      queueWorking,
+    };
   }
 
   async sendMailInfo(
