@@ -106,7 +106,7 @@ export class AuthController {
   ): Promise<void> {
     const steamProfile = await this.steamService.authenticate(req, returnUrl);
     await this.authService.authSteam(steamProfile.steamid, uuid);
-    res.send(`Logged succesfully! You can close this window, if it's not closed automatically`);
+    res.send(`Logged successfully! You can close this window, if it's not closed automatically`);
   }
 
   @RateLimit({

@@ -140,14 +140,16 @@ export class SteamService {
 
   async openIdUrl(urlOrUser?: string | User | Player): Promise<string> {
     let url = '/steam/auth';
+    const query = new URLSearchParams({ 'ngsw-bypass': '' });
     if (urlOrUser) {
       if (isString(urlOrUser)) {
         url = urlOrUser;
       } else {
         const idType = urlOrUser instanceof User ? 'idUser' : 'idPlayer';
-        url = `${url}?${idType}=${urlOrUser.id}`;
+        query.append(idType, urlOrUser.id + '');
       }
     }
+    url += '?' + query.toString();
     const relyingParty = this.getRelyingParty(url);
     return new Promise((resolve, reject) => {
       relyingParty.authenticate(environment.steamOpenIDUrl, false, (error, authUrl) => {
