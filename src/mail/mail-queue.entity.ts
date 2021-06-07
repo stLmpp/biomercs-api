@@ -15,13 +15,13 @@ export class MailQueue extends BaseEntity {
   @Column()
   from!: string;
 
-  @Column({ type: 'array' })
+  @Column({ array: true, type: 'character varying' })
   to!: string[];
 
-  @Column({ type: 'array', nullable: true })
+  @Column({ array: true, type: 'character varying', nullable: true })
   cc?: string[];
 
-  @Column({ type: 'array', nullable: true })
+  @Column({ array: true, type: 'character varying', nullable: true })
   bcc?: string[];
 
   @Column({ nullable: true })

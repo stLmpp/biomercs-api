@@ -130,6 +130,10 @@ class Env {
     return +this.config('MAIL_AUDIT_TIME');
   }
 
+  get mailOwner(): string {
+    return this.get('MAIL_ADDRESS_OWNER');
+  }
+
   static create(): Env {
     return new Env();
   }
