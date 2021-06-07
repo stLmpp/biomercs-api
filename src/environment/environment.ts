@@ -23,7 +23,13 @@ function getEnvVar(propertyOrProperties: string | string[]): any {
   }
 }
 
-export type Configs = 'USE_HANDLE_ERROR' | 'USE_ROLE' | 'USE_AUTH' | 'WEBSOCKET_PATH' | 'WEBSOCKET_TRANSPORTS';
+export type Configs =
+  | 'USE_HANDLE_ERROR'
+  | 'USE_ROLE'
+  | 'USE_AUTH'
+  | 'WEBSOCKET_PATH'
+  | 'WEBSOCKET_TRANSPORTS'
+  | 'MAIL_AUDIT_TIME';
 
 class Env {
   private _salt?: string;
@@ -118,6 +124,10 @@ class Env {
 
   get mail(): string {
     return this.get('MAIL_ADDRESS');
+  }
+
+  get mailAuditTime(): number {
+    return +this.config('MAIL_AUDIT_TIME');
   }
 
   static create(): Env {

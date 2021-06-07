@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ISendMailOptions, MailerService } from '@nestjs-modules/mailer';
+import { MailerService } from '@nestjs-modules/mailer';
 import { MailInfoTemplate } from './mail-info.interface';
 import { environment } from '../environment/environment';
 import { MailQueueRepository } from './mail-queue.repository';
@@ -31,7 +31,7 @@ export class MailService {
   private async _init(): Promise<void> {
     this._mailQueue$
       .pipe(
-        auditTime(900000), // TODO environment variable?
+        auditTime(environment.mailAuditTime),
         switchMap(() => this.mailQueueRepository.find()),
         filter(mailQueues => !!mailQueues.length)
       )
@@ -68,7 +68,7 @@ export class MailService {
         await this.mailQueueRepository.save(
           new MailQueue().normalizeDto({
             ...options,
-            template: 'info',
+            template: './info.hbs',
             from: environment.get('MAIL'),
             context: {
               title: mailInfoTemplate.title,
@@ -81,20 +81,5 @@ export class MailService {
         this._mailQueue$.next();
       }
     }
-  }
-
-  async sendMailInfo2(options: ISendMailOptions, mailInfoTemplate: MailInfoTemplate): Promise<void> {
-    options = { ...options };
-    options.from ??= environment.mail;
-    await this.mailerService.sendMail({
-      ...options,
-      template: './info.hbs',
-      context: {
-        title: mailInfoTemplate.title,
-        version: environment.appVersion,
-        year: new Date().getFullYear(),
-        info: mailInfoTemplate.info,
-      },
-    });
   }
 }
