@@ -24,7 +24,6 @@ import { random } from '../util/util';
 import { UserViewModel } from '../user/user.view-model';
 import { MapperService } from '../mapper/mapper.service';
 import { MailService } from '../mail/mail.service';
-import { MailPriorityEnum } from '../mail/mail-priority.enum';
 
 @Injectable()
 export class AuthService {
@@ -50,9 +49,13 @@ export class AuthService {
       },
       {
         title: 'Confirmation code',
-        info: [{ title: 'Code', value: authConfirmation.code }],
-      },
-      MailPriorityEnum.now
+        info: [
+          {
+            title: 'Code',
+            value: authConfirmation.code,
+          },
+        ],
+      }
     );
   }
 
