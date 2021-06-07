@@ -11,6 +11,11 @@ import {
 
 type MapProperty<T, K extends keyof T = keyof T> = ((entity: T) => any) | K;
 type MapTransformer<T, ToType = any> = (entity: T) => ToType;
+type MapTransformerMultiple<T, ToType = any> = (entity: T) => ToType[];
+interface MapPropertiesMultiple<To, From> {
+  keys: (keyof To)[];
+  from: MapTransformerMultiple<From>;
+}
 
 export class MapProfile<From, To> {
   constructor(private from: Type<From>, private to: Type<To>, private mapperService: MapperService) {
@@ -38,18 +43,41 @@ export class MapProfile<From, To> {
   }
 
   private readonly _toPropertiesObj: Record<keyof To, keyof To>;
-  private readonly _propertiesMap = new Map<keyof From, MapTransformer<From>>();
+  private readonly _propertiesMap = new Map<any, MapTransformer<From>>();
+  private readonly _propertiesMultiple: MapPropertiesMultiple<To, From>[] = [];
 
   private _mapOne(value: From): To {
     const object: Record<any, any> = {};
+    for (const { keys, from } of this._propertiesMultiple) {
+      const values = from(value);
+      for (let i = 0, len = keys.length; i < len; i++) {
+        object[keys[i]] = values[i];
+      }
+    }
     for (const [key, transform] of this._propertiesMap) {
       object[key] = transform(value);
     }
     return plainToClass(this.to, object);
   }
 
-  for(to: MapProperty<To>, from: MapTransformer<From> | keyof From): this {
-    const keyTo = isFunction(to) ? (to(this._toPropertiesObj as any) as any) : to;
+  private _forMultiple(toKeys: MapProperty<To>[], from: MapTransformerMultiple<From>): this {
+    this._propertiesMultiple.push({
+      keys: toKeys.map(to => (isFunction(to) ? to(this._toPropertiesObj as any) : to)),
+      from,
+    });
+    return this;
+  }
+
+  for(to: MapProperty<To>[], from: MapTransformerMultiple<From>): this;
+  for(to: MapProperty<To>, from: MapTransformer<From> | keyof From): this;
+  for(
+    to: MapProperty<To> | MapProperty<To>[],
+    from: MapTransformer<From> | keyof From | MapTransformerMultiple<From>
+  ): this {
+    if (isArray(to)) {
+      return this._forMultiple(to, from as MapTransformerMultiple<From>);
+    }
+    const keyTo = isFunction(to) ? to(this._toPropertiesObj as any) : to;
     const fromTransformer = isFunction(from) ? from : (entity: From) => entity[from];
     this._propertiesMap.set(keyTo, fromTransformer);
     return this;

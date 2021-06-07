@@ -16,7 +16,6 @@ export class ScorePlayerViewModel {
   @Property() bulletKills!: number;
   @Property() description?: string;
   @Property() evidence!: string;
-  @Property() characterWorldRecordEndDate!: Date | null;
 }
 
 export class ScoreViewModel {
@@ -50,6 +49,4 @@ export class ScoreViewModel {
   @Property() isWorldRecord!: boolean;
   @Property() isCharacterWorldRecord!: boolean;
   @Property() isCombinationWorldRecord!: boolean;
-  @Property() worldRecordEndDate!: Date | null;
-  @Property() combinationWorldRecordEndDate!: Date | null;
 }
