@@ -7,6 +7,5 @@
   "HEADER_RECAPTCHA_TOKEN": "Biomercs-reCAPTCHA-Token",
   "STEAM_OPENID_URL": "https://steamcommunity.com/openid",
   "CONFIG_WEBSOCKET_PATH": "/api/socket",
-  "CONFIG_WEBSOCKET_TRANSPORTS": ["websocket", "polling"],
-  "CONFIG_MAIL_AUDIT_TIME": 5000
+  "CONFIG_WEBSOCKET_TRANSPORTS": ["websocket", "polling"]
 }
