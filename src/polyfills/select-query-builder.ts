@@ -13,35 +13,35 @@ declare module 'typeorm/query-builder/SelectQueryBuilder' {
   }
 }
 
-SelectQueryBuilder.prototype.andExists = function (subQuery) {
+SelectQueryBuilder.prototype.andExists = function (subQuery: (arg0: SelectQueryBuilder<any>) => any) {
   return this.andWhere(sbq => {
     const sb = subQuery(sbq.subQuery().select('1'));
     return `EXISTS ${sb.getQuery()}`;
   });
 };
 
-SelectQueryBuilder.prototype.orExists = function (subQuery) {
+SelectQueryBuilder.prototype.orExists = function (subQuery: (arg0: SelectQueryBuilder<any>) => any) {
   return this.orWhere(sbq => {
     const sb = subQuery(sbq.subQuery().select('1'));
     return `EXISTS ${sb.getQuery()}`;
   });
 };
 
-SelectQueryBuilder.prototype.andNotExists = function (subQuery) {
+SelectQueryBuilder.prototype.andNotExists = function (subQuery: (arg0: SelectQueryBuilder<any>) => any) {
   return this.andWhere(sbq => {
     const sb = subQuery(sbq.subQuery().select('1'));
     return `NOT EXISTS ${sb.getQuery()}`;
   });
 };
 
-SelectQueryBuilder.prototype.orNotExists = function (subQuery) {
+SelectQueryBuilder.prototype.orNotExists = function (subQuery: (arg0: SelectQueryBuilder<any>) => any) {
   return this.orWhere(sbq => {
     const sb = subQuery(sbq.subQuery().select('1'));
     return `NOT EXISTS ${sb.getQuery()}`;
   });
 };
 
-SelectQueryBuilder.prototype.fillAndWhere = function (alias, dto) {
+SelectQueryBuilder.prototype.fillAndWhere = function (alias: any, dto: { [s: string]: unknown } | ArrayLike<unknown>) {
   for (const [key, item] of Object.entries(dto)) {
     const isMultiple = key.startsWith('ids');
     let newKey = key;
@@ -59,7 +59,7 @@ SelectQueryBuilder.prototype.fillAndWhere = function (alias, dto) {
   return this;
 };
 
-SelectQueryBuilder.prototype.paginateRaw = async function (page, limit) {
+SelectQueryBuilder.prototype.paginateRaw = async function (page: number, limit: number) {
   const [query, parameters] = this.clone().getQueryAndParameters();
   const offset = (page - 1) * limit;
   const [total, items] = await Promise.all([
@@ -78,6 +78,6 @@ SelectQueryBuilder.prototype.paginateRaw = async function (page, limit) {
   };
 };
 
-SelectQueryBuilder.prototype.paginate = async function (page, limit, route) {
+SelectQueryBuilder.prototype.paginate = async function (page: any, limit: any, route: any) {
   return paginate(this, { page, limit, route });
 };

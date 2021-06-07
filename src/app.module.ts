@@ -2,16 +2,16 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DB_TYPEORM_CONFIG } from './environment/db.config';
+import { DB_TYPEORM_CONFIG } from './environment/database';
 import { CoreModule } from './core/core.module';
 import { ValidationModule } from './validation/validation.module';
 import { HandleErrorFilter } from './environment/handle-error.filter';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { environment } from './environment/environment';
-import { join } from 'path';
+import { resolve } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { PlayerModule } from './player/player.module';
 import { SteamModule } from './steam/steam.module';
@@ -26,6 +26,10 @@ import { PlatformModule } from './platform/platform.module';
 import { ScoreModule } from './score/score.module';
 import { MapperModule } from './mapper/mapper.module';
 import { UrlMetadataModule } from './url-metadata/url-metadata.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { ContactModule } from './contact/contact.module';
+import { RateLimiterInterceptor, RateLimiterModule } from 'nestjs-rate-limiter';
+import { RuleModule } from './rule/rule.module';
 
 @Module({
   imports: [
@@ -34,24 +38,24 @@ import { UrlMetadataModule } from './url-metadata/url-metadata.module';
       transport: {
         service: environment.get('MAIL_SERVICE'),
         auth: {
-          user: environment.get('MAIL_ADDRESS'),
+          user: environment.mail,
           pass: environment.get('MAIL_PASSWORD'),
         },
       },
       defaults: {
-        from: `"Biomercs" <${environment.get('MAIL_ADDRRESS')}>`,
+        from: `"Biomercs" <${environment.mail}>`,
       },
       template: {
-        dir: join(__dirname, '..', '..', 'mail', 'templates'),
+        dir: resolve(process.cwd() + '/mail/templates/'),
         adapter: new HandlebarsAdapter(),
         options: {
           strict: true,
         },
       },
     }),
-    // ServeStaticModule.forRoot({
-    //   rootPath: join(__dirname, '..', '..', '..', 'biomercs-v2', 'dist', 'biomercs-v2'),
-    // }),
+    ServeStaticModule.forRoot({
+      rootPath: resolve(process.cwd() + '/frontend'),
+    }),
     CoreModule,
     ValidationModule,
     UserModule,
@@ -68,15 +72,16 @@ import { UrlMetadataModule } from './url-metadata/url-metadata.module';
     ScoreModule,
     MapperModule,
     UrlMetadataModule,
+    ContactModule,
+    RateLimiterModule.register({ points: 10 }),
+    RuleModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    {
-      provide: APP_FILTER,
-      useClass: HandleErrorFilter,
-    },
+    { provide: APP_FILTER, useClass: HandleErrorFilter },
     AuthSubscriber,
+    { provide: APP_INTERCEPTOR, useClass: RateLimiterInterceptor },
   ],
 })
 export class AppModule {}

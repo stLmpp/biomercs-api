@@ -10,6 +10,7 @@ import { SteamProfile } from './steam-profile.entity';
 import { SteamProfileViewModel, SteamProfileWithPlayerViewModel } from './steam-profile.view-model';
 import { ScoreModule } from '../score/score.module';
 import { RegionModule } from '../region/region.module';
+import { SteamGateway } from './steam.gateway';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { RegionModule } from '../region/region.module';
     RegionModule,
   ],
   controllers: [SteamController],
-  providers: [SteamService],
+  providers: [SteamService, SteamGateway],
   exports: [SteamService],
 })
 export class SteamModule {

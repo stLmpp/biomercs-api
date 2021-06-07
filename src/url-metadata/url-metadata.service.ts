@@ -9,7 +9,7 @@ export class UrlMetadataService {
   async getMetadata(url: string): Promise<UrlMetadataViewModel> {
     url = normalizeUrl(url);
     try {
-      const rawMetadata = await urlMetadata(url, { fromEmail: environment.get('MAIL') });
+      const rawMetadata = await urlMetadata(url, { fromEmail: environment.mail });
       return new UrlMetadataViewModel({
         url: rawMetadata.url ?? rawMetadata['og:url'],
         description: rawMetadata.description ?? rawMetadata['og:description'],

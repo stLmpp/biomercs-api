@@ -11,7 +11,7 @@ export class CharacterCostume extends BaseEntity {
   idCharacter!: number;
 
   @Property(() => Character)
-  @ManyToOne(() => Character)
+  @ManyToOne(() => Character, character => character.characterCostumes)
   @JoinColumn()
   character!: Character;
 

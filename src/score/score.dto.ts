@@ -1,19 +1,10 @@
-import {
-  IsArray,
-  IsDefined,
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MaxLength,
-  ValidateNested,
-} from 'class-validator';
+import { IsArray, IsDefined, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 import { IsNumber } from '../validation/is-number';
 import { ScorePlayerAddDto, ScorePlayerUpdateDto } from './score-player/score-player.dto';
 import { Type } from 'class-transformer';
-import { ScoreStatusEnum } from './score-status.enum';
 import { IsArrayNumberQuery } from '../validation/is-array-number';
 import { IsBoolean } from '../validation/is-boolean';
+import { ScoreStatusEnum } from './score-status/score-status.enum';
 
 export class ScoreAddDto {
   @IsNumber()
@@ -93,8 +84,8 @@ export class ScoreSearchDto {
   limit!: number;
 
   @IsOptional()
-  @IsEnum(ScoreStatusEnum)
-  status?: ScoreStatusEnum;
+  @IsNumber()
+  idScoreStatus?: ScoreStatusEnum;
 
   @IsOptional()
   @IsBoolean()

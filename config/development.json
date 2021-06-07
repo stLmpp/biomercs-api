@@ -1,9 +1,5 @@
 {
-  "DB_HOST": "localhost",
-  "DB_PORT": 5432,
-  "DB_USERNAME": "root",
-  "DB_DATABASE": "biomercs2",
-  "DB_SYNCHRONIZE": true,
+  "DB_SYNCHRONIZE": false,
   "PORT": 3000,
   "HOST": "localhost",
   "CONFIG_USE_HANDLE_ERROR": true,

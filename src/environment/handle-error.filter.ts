@@ -16,7 +16,7 @@ import { Type } from '../util/type';
 
 @Catch()
 export class HandleErrorFilter extends BaseExceptionFilter {
-  catch(exception: any, host: ArgumentsHost): void {
+  override catch(exception: any, host: ArgumentsHost): void {
     if (!environment.config('USE_HANDLE_ERROR')) {
       super.catch(exception, host);
       return;
@@ -62,6 +62,9 @@ export class HandleErrorFilter extends BaseExceptionFilter {
     let exception: Type<HttpException>;
     switch (sqlError.code) {
       // TODO implement more errors
+      case PostgresError.NO_DATA_FOUND:
+        exception = NotFoundException;
+        break;
       case PostgresError.SYNTAX_ERROR:
         exception = InternalServerErrorException;
         break;

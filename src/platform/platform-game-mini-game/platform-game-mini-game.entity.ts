@@ -1,8 +1,9 @@
-import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, Unique } from 'typeorm';
 import { BaseEntity } from '../../shared/super/base-entity';
 import { Platform } from '../platform.entity';
 import { GameMiniGame } from '../../game/game-mini-game/game-mini-game.entity';
 import { Property } from '../../mapper/property.decorator';
+import { PlatformGameMiniGameMode } from '../platform-game-mini-game-mode/platform-game-mini-game-mode.entity';
 
 @Unique(['idPlatform', 'idGameMiniGame'])
 @Entity()
@@ -12,7 +13,7 @@ export class PlatformGameMiniGame extends BaseEntity {
   idPlatform!: number;
 
   @Property(() => Platform)
-  @ManyToOne(() => Platform)
+  @ManyToOne(() => Platform, platform => platform.platformGameMiniGames)
   @JoinColumn()
   platform!: Platform;
 
@@ -21,7 +22,11 @@ export class PlatformGameMiniGame extends BaseEntity {
   idGameMiniGame!: number;
 
   @Property(() => GameMiniGame)
-  @ManyToOne(() => GameMiniGame)
+  @ManyToOne(() => GameMiniGame, gameMiniGame => gameMiniGame.platformGameMiniGames)
   @JoinColumn()
   gameMiniGame!: GameMiniGame;
+
+  @Property(() => PlatformGameMiniGameMode)
+  @OneToMany(() => PlatformGameMiniGameMode, platformGameMiniGameMode => platformGameMiniGameMode.platformGameMiniGame)
+  platformGameMiniGameModes!: PlatformGameMiniGameMode[];
 }

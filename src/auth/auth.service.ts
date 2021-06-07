@@ -179,7 +179,7 @@ export class AuthService {
     const steamProfile = await this.steamService.createWithPlayer(steamid);
     const password = '' + random(100_000_000_000, 999_999_999_999);
     const user = await this._registerUser({ email, username: steamProfile.personaname, password });
-    await this.playerService.update(steamProfile.player.id, { idUser: user.id });
+    await this.playerService.updateIdUser(steamProfile.player.id, user.id);
     return { email: user.email, message: 'User created! Please confirm your e-mail', idUser: user.id };
   }
 

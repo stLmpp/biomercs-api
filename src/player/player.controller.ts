@@ -1,12 +1,12 @@
-import { Body, Controller, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { PlayerService } from './player.service';
 import { Params } from '../shared/type/params';
 import { PlayerAddDto, PlayerUpdateDto } from './player.dto';
 import { AuthUser } from '../auth/auth-user.decorator';
 import { User } from '../user/user.entity';
-import { PlayerViewModel, PlayerWithRegionViewModel } from './player.view-model';
+import { PlayerViewModel, PlayerWithRegionSteamProfileViewModel } from './player.view-model';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ApiPagination } from '../shared/decorator/api-pagination';
@@ -65,7 +65,7 @@ export class PlayerController {
   }
 
   @Get(`:${Params.idPlayer}`)
-  async findById(@Param(Params.idPlayer) idPlayer: number): Promise<PlayerWithRegionViewModel> {
+  async findById(@Param(Params.idPlayer) idPlayer: number): Promise<PlayerWithRegionSteamProfileViewModel> {
     return this.playerService.findByIdMapped(idPlayer);
   }
 
@@ -73,7 +73,26 @@ export class PlayerController {
   async update(
     @Param(Params.idPlayer) idPlayer: number,
     @Body() dto: PlayerUpdateDto
-  ): Promise<PlayerWithRegionViewModel> {
+  ): Promise<PlayerWithRegionSteamProfileViewModel> {
     return this.playerService.update(idPlayer, dto);
+  }
+
+  @ApiBody({
+    required: true,
+    schema: { type: 'object', properties: { personaName: { type: 'string' } } },
+  })
+  @ApiResponse({ status: 200, type: 'string', description: 'Returns the updated lastUpdatedPersonaNameDate' })
+  @Put(`:${Params.idPlayer}/personaName`)
+  async updatePersonaName(
+    @Param(Params.idPlayer) idPlayer: number,
+    @Body(Params.personaName) personaName: string
+  ): Promise<string> {
+    if (!personaName) {
+      throw new BadRequestException('personaName is required');
+    }
+    if (personaName.length < 3) {
+      throw new BadRequestException('personaName must have at least 3 characters');
+    }
+    return this.playerService.updatePersonaName(idPlayer, personaName);
   }
 }

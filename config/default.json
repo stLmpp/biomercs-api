@@ -5,5 +5,7 @@
   "CONFIG_USE_HANDLE_ERROR": true,
   "DEFAULT_PAGINATION_SIZE": 15,
   "HEADER_RECAPTCHA_TOKEN": "Biomercs-reCAPTCHA-Token",
-  "STEAM_OPENID_URL": "https://steamcommunity.com/openid"
+  "STEAM_OPENID_URL": "https://steamcommunity.com/openid",
+  "CONFIG_WEBSOCKET_PATH": "/api/socket",
+  "CONFIG_WEBSOCKET_TRANSPORTS": ["websocket", "polling"]
 }

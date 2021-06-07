@@ -5,17 +5,7 @@ import { ILike } from 'typeorm';
 
 @Injectable()
 export class RegionService {
-  constructor(private regionRepository: RegionRepository) {
-    this._setDefaultRegions().then();
-  }
-
-  private async _setDefaultRegions(): Promise<void> {
-    const exists = await this.regionRepository.exists();
-    if (!exists) {
-      const regionsJson = await import('./regions.json');
-      await this.regionRepository.save(regionsJson);
-    }
-  }
+  constructor(private regionRepository: RegionRepository) {}
 
   async findAll(): Promise<Region[]> {
     return this.regionRepository.find();

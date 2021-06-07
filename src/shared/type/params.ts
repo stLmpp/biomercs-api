@@ -10,6 +10,7 @@ export enum Params {
   idStage = 'idStage',
   idScore = 'idScore',
   idScoreApprovalMotive = 'idScoreApprovalMotive',
+  idScoreStatus = 'idScoreStatus',
   idSteamProfile = 'idSteamProfile',
   idUser = 'idUser',
   idPlatforms = 'idPlatforms',
@@ -17,6 +18,7 @@ export enum Params {
   idMiniGames = 'idMiniGames',
   idModes = 'idModes',
   idStages = 'idStages',
+  idRule = 'idRule',
   idCharacterCostumes = 'idCharacterCostumes',
 
   // OTHERS

@@ -50,6 +50,10 @@ export class UserUpdateDto {
   @IsOptional()
   @IsNumber()
   idCurrentAuthConfirmation?: number | null;
+
+  @IsOptional()
+  @IsString()
+  dateFormat?: string;
 }
 
 export class UserGetDto {

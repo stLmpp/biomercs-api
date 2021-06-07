@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsOptional, IsString } from 'class-validator';
 import { IsNumber } from '../validation/is-number';
 
 export class PlayerAddDto {
@@ -32,16 +32,6 @@ export class PlayerAddDto {
 }
 
 export class PlayerUpdateDto {
-  @IsString()
-  @IsOptional()
-  @IsNotEmpty()
-  @MinLength(3)
-  personaName?: string;
-
-  @IsNumber()
-  @IsOptional()
-  idUser?: number;
-
   @IsNumber()
   @IsOptional()
   idSteamProfile?: number;

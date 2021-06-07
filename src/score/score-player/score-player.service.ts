@@ -21,22 +21,18 @@ export class ScorePlayerService {
   ): Promise<ScorePlayer[]> {
     const scorePlayersDto = await Promise.all(
       dto.map(async ({ idCharacterCostume, ...scorePlayer }) => {
-        const idPlatformGameMiniGameModeCharacterCostume = await this.platformGameMiniGameModeCharacterCostumeService.findIdByPlaformGameMiniGameModeCharacterCostume(
-          idPlatform,
-          idGame,
-          idMiniGame,
-          idMode,
-          idCharacterCostume
-        );
+        const idPlatformGameMiniGameModeCharacterCostume =
+          await this.platformGameMiniGameModeCharacterCostumeService.findIdByPlaformGameMiniGameModeCharacterCostume(
+            idPlatform,
+            idGame,
+            idMiniGame,
+            idMode,
+            idCharacterCostume
+          );
         return new ScorePlayer().extendDto({ ...scorePlayer, idScore, idPlatformGameMiniGameModeCharacterCostume });
       })
     );
     return this.scorePlayerRepository.save(scorePlayersDto);
-  }
-
-  // TODO REMOVE
-  async addManyRandom(scorePlayers: ScorePlayer[]): Promise<ScorePlayer[]> {
-    return this.scorePlayerRepository.save(scorePlayers);
   }
 
   async findCountByIdScoreWithtoutCreator(idScore: number): Promise<number> {

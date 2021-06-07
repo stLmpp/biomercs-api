@@ -10,6 +10,7 @@ export class MiniGameRepository extends Repository<MiniGame> {
       .innerJoin('gm.platformGameMiniGames', 'gmg')
       .andWhere('gmg.idPlatform = :idPlatform', { idPlatform })
       .andWhere('gm.idGame = :idGame', { idGame })
+      .orderBy('m.id')
       .getMany();
   }
 
@@ -19,6 +20,7 @@ export class MiniGameRepository extends Repository<MiniGame> {
       .innerJoin('gm.platformGameMiniGames', 'gmg')
       .andWhere('gmg.idPlatform in (:...idPlatforms)', { idPlatforms })
       .andWhere('gm.idGame in (:...idGames)', { idGames })
+      .orderBy('m.id')
       .getMany();
   }
 }

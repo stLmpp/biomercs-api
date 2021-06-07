@@ -12,7 +12,7 @@ export class PlatformService {
   }
 
   async findAll(): Promise<Platform[]> {
-    return this.platformRepository.find();
+    return this.platformRepository.find({ order: { id: 'ASC' } });
   }
 
   async add(dto: PlatformAddDto): Promise<Platform> {
