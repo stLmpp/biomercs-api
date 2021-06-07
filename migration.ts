@@ -70,10 +70,10 @@ async function generateMigration(): Promise<void> {
   const dbOptions = JSON.stringify({
     ...DB_TYPEORM_CONFIG,
     synchronize: false,
-    namingStrategy: 'new NamingStategy()',
-  }).replace(`"new NamingStategy()"`, 'new NamingStategy()');
+    namingStrategy: 'new NamingStrategy()',
+  }).replace(`"new NamingStrategy()"`, 'new NamingStrategy()');
 
-  let file = `const { NamingStategy } = require('./dist/src/environment/naming.strategy');\n\nmodule.exports = ${dbOptions};`;
+  let file = `const { NamingStrategy } = require('./dist/src/environment/naming.strategy');\n\nmodule.exports = ${dbOptions};`;
 
   const prettierrc = await resolvePrettierrc();
   file = prettierFormat(file, prettierrc);

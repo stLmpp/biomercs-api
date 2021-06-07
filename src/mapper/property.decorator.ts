@@ -29,7 +29,7 @@ function setPropertyMetadata(target: any, propertyKey: string | symbol, metadata
   Reflect.defineMetadata(PROPERTY_METADATA_KEY, [...storedMetadata, metadata], target);
 }
 
-export function compiltePropertyMetadata(): void {
+export function compilePropertyMetadata(): void {
   for (const target of targets) {
     const metadata: PropertyMetadata[] = Reflect.getMetadata(PROPERTY_METADATA_KEY, target) ?? [];
     Reflect.defineMetadata(
@@ -50,9 +50,9 @@ export function getPropertiesMetadata<T>(target: Type<T>): PropertyMetadata<T>[]
   const propertiesParent: PropertyMetadata<T>[] = Reflect.getMetadata(PROPERTY_METADATA_KEY, parentConstructor) ?? [];
   const propertiesPrototype: PropertyMetadata<T>[] = Reflect.getMetadata(PROPERTY_METADATA_KEY, prototype) ?? [];
   const propertiesGrouped = groupBy([...properties, ...propertiesParent, ...propertiesPrototype], 'propertyKey', 'map');
-  const metadatas: PropertyMetadata[] = [];
+  const metadataList: PropertyMetadata[] = [];
   for (const [propertyKey, metadata] of propertiesGrouped) {
-    metadatas.push(
+    metadataList.push(
       metadata.reduce(
         (acc, item) => ({
           ...acc,
@@ -64,6 +64,6 @@ export function getPropertiesMetadata<T>(target: Type<T>): PropertyMetadata<T>[]
       )
     );
   }
-  propertiesMetadataCache.set(target, metadatas);
-  return metadatas;
+  propertiesMetadataCache.set(target, metadataList);
+  return metadataList;
 }

@@ -22,7 +22,7 @@ export class ScorePlayerService {
     const scorePlayersDto = await Promise.all(
       dto.map(async ({ idCharacterCostume, ...scorePlayer }) => {
         const idPlatformGameMiniGameModeCharacterCostume =
-          await this.platformGameMiniGameModeCharacterCostumeService.findIdByPlaformGameMiniGameModeCharacterCostume(
+          await this.platformGameMiniGameModeCharacterCostumeService.findIdByPlatformGameMiniGameModeCharacterCostume(
             idPlatform,
             idGame,
             idMiniGame,
@@ -35,8 +35,8 @@ export class ScorePlayerService {
     return this.scorePlayerRepository.save(scorePlayersDto);
   }
 
-  async findCountByIdScoreWithtoutCreator(idScore: number): Promise<number> {
-    return this.scorePlayerRepository.findCountByIdScoreWithtoutCreator(idScore);
+  async findCountByIdScoreWithoutCreator(idScore: number): Promise<number> {
+    return this.scorePlayerRepository.findCountByIdScoreWithoutCreator(idScore);
   }
 
   async updateMany(dto: ScorePlayerUpdateDto[]): Promise<void> {

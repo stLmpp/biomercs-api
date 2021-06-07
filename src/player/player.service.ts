@@ -144,7 +144,7 @@ export class PlayerService {
   async updatePersonaName(idPlayer: number, personaName: string): Promise<string> {
     const player = await this.playerRepository.findOneOrFail(idPlayer);
     if (player.personaName === personaName) {
-      throw new BadRequestException('New personaName is the same as the old personaname');
+      throw new BadRequestException('New personaName is the same as the old personaName');
     }
     if (await this.personaNameExists(personaName)) {
       throw new BadRequestException('PersonaName already taken');

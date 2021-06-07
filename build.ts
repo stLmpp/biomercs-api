@@ -81,7 +81,7 @@ async function addEngineToPackageJson(): Promise<void> {
   const packageJson = require('./package.json');
   packageJson.engines = { node: '14.16.1' };
   await writeFile(resolve(process.cwd() + '/dist/package.json'), JSON.stringify(packageJson));
-  spinner.stopAndPersist({ symbol: '✔', text: 'Editted package.json' });
+  spinner.stopAndPersist({ symbol: '✔', text: 'Edited package.json' });
 }
 
 async function installDependencies(): Promise<void> {

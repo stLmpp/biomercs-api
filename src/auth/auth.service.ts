@@ -90,7 +90,7 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
     if (user.idCurrentAuthConfirmation) {
-      await this.authConfirmationService.invalideCode(user.idCurrentAuthConfirmation);
+      await this.authConfirmationService.invalidateCode(user.idCurrentAuthConfirmation);
     }
     await this._sendConfirmationCodeEmail(user);
   }

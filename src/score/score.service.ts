@@ -214,7 +214,7 @@ export class ScoreService {
     const idPlayer = await this.playerService.findIdByIdUser(user.id);
     await this.scoreApprovalService.addPlayer({ ...dto, idPlayer, action, actionDate: new Date(), idScore });
     const [countPlayers, countApprovals] = await Promise.all([
-      this.scorePlayerService.findCountByIdScoreWithtoutCreator(idScore),
+      this.scorePlayerService.findCountByIdScoreWithoutCreator(idScore),
       this.scoreApprovalService.findCountByIdScoreWithoutCreator(idScore),
     ]);
     if (countPlayers === countApprovals || action === ScoreApprovalActionEnum.Reject) {

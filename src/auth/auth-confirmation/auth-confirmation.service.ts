@@ -23,7 +23,7 @@ export class AuthConfirmationService {
     return this.authConfirmationRepository.save(new AuthConfirmation().extendDto(dto));
   }
 
-  async invalideCode(idAuthConfirmation: number): Promise<void> {
+  async invalidateCode(idAuthConfirmation: number): Promise<void> {
     await this.authConfirmationRepository.update(idAuthConfirmation, { expirationDate: addHours(new Date(), -1) });
   }
 

@@ -17,7 +17,7 @@ export class PlatformGameMiniGameModeStageService {
     idMode: number,
     idStage: number
   ): Promise<PlatformGameMiniGameModeStage> {
-    const idPlatformGameMiniGameMode = await this.platformGameMiniGameModeService.findIdByPlaformGameMiniGameMode(
+    const idPlatformGameMiniGameMode = await this.platformGameMiniGameModeService.findIdByPlatformGameMiniGameMode(
       idPlatform,
       idGame,
       idMiniGame,

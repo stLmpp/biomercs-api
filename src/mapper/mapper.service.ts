@@ -3,7 +3,7 @@ import { Type } from '../util/type';
 import { isArray, isFunction } from 'st-utils';
 import { plainToClass } from 'class-transformer';
 import {
-  compiltePropertyMetadata,
+  compilePropertyMetadata,
   getPropertiesMetadata,
   PropertyMetadata,
   toPropertiesObject,
@@ -97,7 +97,7 @@ export class MapProfile<From, To> {
 @Injectable()
 export class MapperService {
   constructor() {
-    compiltePropertyMetadata();
+    compilePropertyMetadata();
   }
 
   private _profiles = new Map<Type, Map<Type, MapProfile<any, any>>>();

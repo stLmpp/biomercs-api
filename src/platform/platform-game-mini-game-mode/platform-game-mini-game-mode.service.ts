@@ -27,7 +27,7 @@ export class PlatformGameMiniGameModeService {
   }
 
   async unlink(idPlatform: number, idGame: number, idMiniGame: number, idMode: number): Promise<void> {
-    const idPlatformGameMiniGameMode = await this.findIdByPlaformGameMiniGameMode(
+    const idPlatformGameMiniGameMode = await this.findIdByPlatformGameMiniGameMode(
       idPlatform,
       idGame,
       idMiniGame,
@@ -36,7 +36,7 @@ export class PlatformGameMiniGameModeService {
     await this.platformGameMiniGameModeRepository.delete(idPlatformGameMiniGameMode);
   }
 
-  async findIdByPlaformGameMiniGameMode(
+  async findIdByPlatformGameMiniGameMode(
     idPlatform: number,
     idGame: number,
     idMiniGame: number,
