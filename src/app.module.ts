@@ -30,7 +30,6 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { ContactModule } from './contact/contact.module';
 import { RateLimiterInterceptor, RateLimiterModule } from 'nestjs-rate-limiter';
 import { RuleModule } from './rule/rule.module';
-import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -76,7 +75,6 @@ import { MailModule } from './mail/mail.module';
     ContactModule,
     RateLimiterModule.register({ points: 10 }),
     RuleModule,
-    MailModule,
   ],
   controllers: [AppController],
   providers: [
