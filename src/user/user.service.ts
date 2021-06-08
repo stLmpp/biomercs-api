@@ -6,6 +6,7 @@ import { AuthCredentialsDto } from '../auth/auth.dto';
 import { FindConditions } from 'typeorm';
 import { UserViewModel } from './user.view-model';
 import { MapperService } from '../mapper/mapper.service';
+import { isAfter, subDays } from 'date-fns';
 
 @Injectable()
 export class UserService {
@@ -108,6 +109,10 @@ export class UserService {
   }
 
   async unbanUser(idUser: number): Promise<void> {
+    const user = await this.userRepository.findOneOrFail(idUser);
+    if (user.bannedDate && isAfter(user.bannedDate, subDays(new Date(), 7))) {
+      throw new BadRequestException(`User has been banned recently, can't be unbanned now`);
+    }
     await this.userRepository.update(idUser, { bannedDate: null });
   }
 }
