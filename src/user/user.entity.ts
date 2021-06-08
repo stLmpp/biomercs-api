@@ -65,6 +65,10 @@ export class User extends BaseEntity implements UserInterface {
   bannedDate?: Date | null;
 
   @Property()
+  @Column({ default: false })
+  owner!: boolean;
+
+  @Property()
   token?: string;
 
   async validatePassword(password: string): Promise<boolean> {

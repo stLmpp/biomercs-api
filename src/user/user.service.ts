@@ -3,10 +3,11 @@ import { UserRepository } from './user.repository';
 import { UserAddDto, UserGetDto, UserUpdateDto } from './user.dto';
 import { User } from './user.entity';
 import { AuthCredentialsDto } from '../auth/auth.dto';
-import { FindConditions } from 'typeorm';
+import { FindConditions, ILike } from 'typeorm';
 import { UserViewModel } from './user.view-model';
 import { MapperService } from '../mapper/mapper.service';
 import { isAfter, subDays } from 'date-fns';
+import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class UserService {
@@ -114,5 +115,21 @@ export class UserService {
       throw new BadRequestException(`User has been banned recently, can't be unbanned now`);
     }
     await this.userRepository.update(idUser, { bannedDate: null });
+  }
+
+  async findByUsernameOrEmail(
+    usernameOrEmail: string,
+    page: number,
+    limit: number
+  ): Promise<Pagination<UserViewModel>> {
+    usernameOrEmail = `%${usernameOrEmail}%`;
+    const { items, meta } = await this.userRepository.paginate(
+      { page, limit },
+      { where: [{ username: ILike(usernameOrEmail) }, { email: ILike(usernameOrEmail) }] }
+    );
+    return {
+      meta,
+      items: this.mapperService.map(User, UserViewModel, items),
+    };
   }
 }
