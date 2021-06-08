@@ -36,10 +36,10 @@ export class UserController {
   @ApiPagination(UserViewModel)
   @Get('search')
   async search(
-    @Query(Params.usernameOrEmail) usernameOrEmail: string,
+    @Query(Params.term) term: string,
     @Query(Params.page) page: number,
     @Query(Params.limit) limit: number
   ): Promise<Pagination<UserViewModel>> {
-    return this.userService.findByUsernameOrEmail(usernameOrEmail, page, limit);
+    return this.userService.findByUsernameOrEmail(term, page, limit);
   }
 }
