@@ -102,4 +102,12 @@ export class UserService {
   async findByAuthCode(code: number): Promise<User | undefined> {
     return this.userRepository.findByAuthCode(code);
   }
+
+  async banUser(idUser: number): Promise<void> {
+    await this.userRepository.update(idUser, { bannedDate: new Date() });
+  }
+
+  async unbanUser(idUser: number): Promise<void> {
+    await this.userRepository.update(idUser, { bannedDate: null });
+  }
 }

@@ -119,6 +119,10 @@ export class PlayerService {
     return this.playerRepository.findOneOrFail({ select: ['id'], where: { idUser } }).then(player => player.id);
   }
 
+  async findByIdsWithUser(idPlayers: number[]): Promise<Player[]> {
+    return this.playerRepository.findByIds(idPlayers, { relations: ['user'] });
+  }
+
   async findBySearch(
     personaName: string,
     idUser: number,
