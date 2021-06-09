@@ -13,22 +13,22 @@ import { RuleUpsertRemoveInvalidPipe } from './rule-upsert-remove-invalid.pipe';
 export class RuleController {
   constructor(private ruleService: RuleService) {}
 
-  @ApiAuth()
   @ApiAdmin()
+  @ApiAuth()
   @Post()
   async add(@Body() dto: RuleAddDto): Promise<RuleViewModel> {
     return this.ruleService.add(dto);
   }
 
-  @ApiAuth()
   @ApiAdmin()
+  @ApiAuth()
   @Patch(`:${Params.idRule}`)
   async update(@Param(Params.idRule) idRule: string, @Body() dto: RuleUpdateDto): Promise<RuleViewModel> {
     return this.ruleService.update(idRule, dto);
   }
 
-  @ApiAuth()
   @ApiAdmin()
+  @ApiAuth()
   @ApiBody({ isArray: true, type: RuleUpsertDto, required: true, description: 'Make sure to send all fields' })
   @Post('upsert')
   async upsert(@Body(RuleUpsertRemoveInvalidPipe) dtos: RuleUpsertDto[]): Promise<RuleViewModel[]> {
