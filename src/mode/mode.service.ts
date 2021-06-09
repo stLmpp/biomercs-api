@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ModeRepository } from './mode.repository';
 import { Mode } from './mode.entity';
 import { ModeAddDto, ModePlatformsGamesMiniGamesDto, ModeUpdateDto } from './mode.dto';
+import { ScoreStatusEnum } from '../score/score-status/score-status.enum';
 
 @Injectable()
 export class ModeService {
@@ -30,5 +31,21 @@ export class ModeService {
 
   async findByIdPlatformGameMiniGameModeStage(idPlatformGameMiniGameModeStage: number): Promise<Mode | undefined> {
     return this.modeRepository.findByIdPlatformGameMiniGameModeStage(idPlatformGameMiniGameModeStage);
+  }
+
+  async findApprovalByIdPlatformGameMiniGame(
+    idScoreStatus: ScoreStatusEnum,
+    idPlatform: number,
+    idGame: number,
+    idMiniGame: number,
+    idPlayer?: number
+  ): Promise<Mode[]> {
+    return this.modeRepository.findApprovalByIdPlatformGameMiniGame(
+      idScoreStatus,
+      idPlatform,
+      idGame,
+      idMiniGame,
+      idPlayer
+    );
   }
 }
