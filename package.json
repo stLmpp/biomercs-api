@@ -21,10 +21,11 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "generate-migration": "typeorm migration:generate",
-    "create-migration": "ts-node migration.ts",
+    "create-migration": "ts-node scripts/create-migration.ts",
     "run-migration": "typeorm migration:run",
-    "build-prod": "ts-node build.ts",
-    "create-env": "ts-node env.ts"
+    "build-prod": "ts-node scripts/build-prod.ts",
+    "create-env": "ts-node scripts/create-env.ts",
+    "create-orm-config": "ts-node scripts/create-ormconfig.ts"
   },
   "dependencies": {
     "@nestjs-modules/mailer": "~1.6.0",
