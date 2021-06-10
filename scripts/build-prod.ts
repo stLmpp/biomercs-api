@@ -1,27 +1,14 @@
 import { resolve } from 'path';
-import * as ora from 'ora';
-import { spawn, SpawnOptions } from 'child_process';
 import { copy, rm, writeFile } from 'fs-extra';
 import * as AdmZip from 'adm-zip';
-import { environment } from './src/environment/environment';
-import { coerceArray } from 'st-utils';
-import * as yargs from 'yargs';
+import { environment } from '../src/environment/environment';
+import { asyncSpawn, getArg, getSpinner } from './util';
+import { PackageJson } from 'type-fest';
 
-const spinner = ora({ spinner: 'dots' });
+const spinner = getSpinner();
 
 const pathFrontEnd = resolve(process.cwd() + '/../biomercs-ng');
 const pathBackEndDist = resolve(process.cwd() + '/dist');
-
-const rawArgs = yargs.parse(process.argv.slice(2));
-
-function getArg<T>(argNames: string | string[]): T | undefined {
-  for (const argName of coerceArray(argNames)) {
-    if (argName in rawArgs) {
-      return (rawArgs as any)[argName] as T;
-    }
-  }
-  return undefined;
-}
 
 const args = {
   skipZip: getArg<boolean>(['skip-zip', 'sz']),
@@ -29,22 +16,6 @@ const args = {
   skipInstall: getArg<boolean>(['skip-install', 'si']),
   dev: getArg<boolean>(['dev', 'd']),
 };
-
-async function asyncSpawn(command: string, options?: SpawnOptions): Promise<void> {
-  const newOptions = { ...options, shell: true };
-  return new Promise((resolvep, reject) => {
-    try {
-      const spawnCmd = spawn(command, newOptions);
-      spawnCmd.stdout?.on('data', data => console.log(`\n${data}`));
-      spawnCmd.stderr?.on('data', data => console.error(`\n${data}`));
-      spawnCmd.on('close', () => {
-        resolvep();
-      });
-    } catch (err) {
-      reject(err);
-    }
-  });
-}
 
 async function buildFrontEnd(): Promise<void> {
   spinner.start('Building front-end...');
@@ -78,10 +49,10 @@ async function copyConfigToDist(): Promise<void> {
 
 async function addEngineToPackageJson(): Promise<void> {
   spinner.start('Editing package.json');
-  const packageJson = require('./package.json');
+  const packageJson: PackageJson = await import('../package.json');
   packageJson.engines = { node: '14.16.1' };
   await writeFile(resolve(process.cwd() + '/dist/package.json'), JSON.stringify(packageJson));
-  spinner.stopAndPersist({ symbol: '✔', text: 'Editted package.json' });
+  spinner.stopAndPersist({ symbol: '✔', text: 'Edited package.json' });
 }
 
 async function installDependencies(): Promise<void> {

@@ -8,6 +8,10 @@ import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { GameMiniGame } from './game-mini-game/game-mini-game.entity';
 import { GameMiniGameService } from './game-mini-game/game-mini-game.service';
+import { AuthUser } from '../auth/auth-user.decorator';
+import { AuthPlayerPipe } from '../auth/auth-player.decorator';
+import { Player } from '../player/player.entity';
+import { ScoreStatusEnum } from '../score/score-status/score-status.enum';
 
 @ApiAuth()
 @ApiTags('Game')
@@ -53,6 +57,20 @@ export class GameController {
   @Get(`platform/:${Params.idPlatform}`)
   async findByIdPlatform(@Param(Params.idPlatform) idPlatform: number): Promise<Game[]> {
     return this.gameService.findByIdPlatform(idPlatform);
+  }
+
+  @ApiAdmin()
+  @Get(`approval/admin/platform/:${Params.idPlatform}`)
+  async findApprovalAdminByIdPlatform(@Param(Params.idPlatform) idPlatform: number): Promise<Game[]> {
+    return this.gameService.findApprovalByIdPlatform(ScoreStatusEnum.AwaitingApprovalAdmin, idPlatform);
+  }
+
+  @Get(`approval/player/platform/:${Params.idPlatform}`)
+  async findApprovalUserByIdPlatform(
+    @Param(Params.idPlatform) idPlatform: number,
+    @AuthUser(AuthPlayerPipe) player: Player
+  ): Promise<Game[]> {
+    return this.gameService.findApprovalByIdPlatform(ScoreStatusEnum.AwaitingApprovalPlayer, idPlatform, player.id);
   }
 
   @Get(`:${Params.idGame}`)

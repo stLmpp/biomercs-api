@@ -3,8 +3,6 @@ import { Score } from './score.entity';
 import { PaginationMeta } from '../shared/view-model/pagination.view-model';
 import { ScoreApprovalParams } from './score.params';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { ScoreApproval } from './score-approval/score-approval.entity';
-import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.enum';
 import { OrderByDirection } from 'st-utils';
 import { ScorePlayer } from './score-player/score-player.entity';
 import { ScoreSearchDto } from './score.dto';
@@ -189,12 +187,6 @@ export class ScoreRepository extends Repository<Score> {
   }: ScoreApprovalParams): Promise<Pagination<Score>> {
     return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode, idStage)
       .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.AwaitingApprovalAdmin })
-      .andNotExists(sb =>
-        sb
-          .from(ScoreApproval, 'sa')
-          .andWhere('sa.idScore = score.id')
-          .andWhere('sa.action != :action', { action: ScoreApprovalActionEnum.Approve })
-      )
       .orderBy(this._resolveOrderByApproval(orderBy), orderByDirection.toUpperCase() as Uppercase<OrderByDirection>)
       .paginate(page, limit);
   }
@@ -211,13 +203,6 @@ export class ScoreRepository extends Repository<Score> {
           .from(ScorePlayer, 'sp1')
           .andWhere('sp1.idScore = score.id')
           .andWhere('sp1.idPlayer = :idPlayer', { idPlayer })
-      )
-      .andNotExists(sb =>
-        sb
-          .from(ScoreApproval, 'sa')
-          .andWhere('sa.idScore = score.id')
-          .andWhere('sa.actionByPlayer = :actionByPlayer', { actionByPlayer: idPlayer })
-          .andWhere('sa.action != :action', { action: ScoreApprovalActionEnum.Approve })
       )
       .orderBy(this._resolveOrderByApproval(orderBy), orderByDirection.toUpperCase() as Uppercase<OrderByDirection>)
       .paginate(page, limit);
@@ -374,25 +359,12 @@ export class ScoreRepository extends Repository<Score> {
           .andWhere('sp1.idScore = score.id')
           .andWhere('sp1.idPlayer = :idPlayer', { idPlayer })
       )
-      .andNotExists(sb =>
-        sb
-          .from(ScoreApproval, 'sa')
-          .andWhere('sa.idScore = score.id')
-          .andWhere('sa.actionByPlayer = :actionByPlayer', { actionByPlayer: idPlayer })
-          .andWhere('sa.action != :action', { action: ScoreApprovalActionEnum.Approve })
-      )
       .getCount();
   }
 
   async findApprovalAdminCount(): Promise<number> {
     return this._createQueryBuilderRelations()
       .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.AwaitingApprovalAdmin })
-      .andNotExists(sb =>
-        sb
-          .from(ScoreApproval, 'sa')
-          .andWhere('sa.idScore = score.id')
-          .andWhere('sa.action != :action', { action: ScoreApprovalActionEnum.Approve })
-      )
       .getCount();
   }
 

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { GameRepository } from './game.repository';
 import { Game } from './game.entity';
 import { GameAddDto, GamePlatformsDto, GameUpdateDto } from './game.dto';
+import { ScoreStatusEnum } from '../score/score-status/score-status.enum';
 
 @Injectable()
 export class GameService {
@@ -26,5 +27,13 @@ export class GameService {
 
   async findByIdPlatforms(dto: GamePlatformsDto): Promise<Game[]> {
     return this.gameRepository.findByIdPlatforms(dto);
+  }
+
+  async findApprovalByIdPlatform(
+    idScoreStatus: ScoreStatusEnum,
+    idPlatform: number,
+    idPlayer?: number
+  ): Promise<Game[]> {
+    return this.gameRepository.findApprovalByIdPlatform(idScoreStatus, idPlatform, idPlayer);
   }
 }

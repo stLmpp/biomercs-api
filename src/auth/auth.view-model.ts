@@ -7,6 +7,9 @@ export class AuthRegisterViewModel {
 export enum AuthSteamLoginSocketErrorType {
   userNotFound,
   userNotConfirmed,
+  userLocked,
+  userBanned,
+  unknown,
 }
 
 export class AuthSteamLoginSocketViewModel {

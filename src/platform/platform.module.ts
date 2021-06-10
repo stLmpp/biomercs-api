@@ -7,6 +7,7 @@ import { PlatformGameMiniGameModule } from './platform-game-mini-game/platform-g
 import { PlatformGameMiniGameModeModule } from './platform-game-mini-game-mode/platform-game-mini-game-mode.module';
 import { PlatformGameMiniGameModeStageModule } from './platform-game-mini-game-mode-stage/platform-game-mini-game-mode-stage.module';
 import { PlatformGameMiniGameModeCharacterCostumeModule } from './platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.module';
+import { PlayerModule } from '../player/player.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { PlatformGameMiniGameModeCharacterCostumeModule } from './platform-game-
     PlatformGameMiniGameModeModule,
     PlatformGameMiniGameModeStageModule,
     PlatformGameMiniGameModeCharacterCostumeModule,
+    PlayerModule,
   ],
   providers: [PlatformService],
   controllers: [PlatformController],

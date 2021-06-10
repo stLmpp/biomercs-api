@@ -6,6 +6,10 @@ import { MiniGameAddDto, MiniGamePlatformsGamesDto, MiniGameUpdateDto } from './
 import { Params } from '../shared/type/params';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ApiAuth } from '../auth/api-auth.decorator';
+import { ScoreStatusEnum } from '../score/score-status/score-status.enum';
+import { AuthUser } from '../auth/auth-user.decorator';
+import { AuthPlayerPipe } from '../auth/auth-player.decorator';
+import { Player } from '../player/player.entity';
 
 @ApiAuth()
 @ApiTags('Mini game')
@@ -36,6 +40,29 @@ export class MiniGameController {
   @Get(`platforms/games`)
   async findByIdPlatformsGames(@Query() dto: MiniGamePlatformsGamesDto): Promise<MiniGame[]> {
     return this.miniGameService.findByIdPlatformsGames(dto);
+  }
+
+  @ApiAdmin()
+  @Get(`approval/admin/platform/:${Params.idPlatform}/game/:${Params.idGame}`)
+  async findApprovalAdminByIdPlatformGame(
+    @Param(Params.idPlatform) idPlatform: number,
+    @Param(Params.idGame) idGame: number
+  ): Promise<MiniGame[]> {
+    return this.miniGameService.findApprovalByIdPlatformGame(ScoreStatusEnum.AwaitingApprovalAdmin, idPlatform, idGame);
+  }
+
+  @Get(`approval/player/platform/:${Params.idPlatform}/game/:${Params.idGame}`)
+  async findApprovalUserByIdPlatformGame(
+    @Param(Params.idPlatform) idPlatform: number,
+    @Param(Params.idGame) idGame: number,
+    @AuthUser(AuthPlayerPipe) player: Player
+  ): Promise<MiniGame[]> {
+    return this.miniGameService.findApprovalByIdPlatformGame(
+      ScoreStatusEnum.AwaitingApprovalPlayer,
+      idPlatform,
+      idGame,
+      player.id
+    );
   }
 
   @Get(`:${Params.idMiniGame}`)

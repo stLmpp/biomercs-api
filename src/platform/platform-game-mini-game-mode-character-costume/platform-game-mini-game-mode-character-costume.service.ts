@@ -17,7 +17,7 @@ export class PlatformGameMiniGameModeCharacterCostumeService {
     idMode: number,
     idCharacterCostume: number
   ): Promise<PlatformGameMiniGameModeCharacterCostume> {
-    const idPlatformGameMiniGameMode = await this.platformGameMiniGameModeService.findIdByPlaformGameMiniGameMode(
+    const idPlatformGameMiniGameMode = await this.platformGameMiniGameModeService.findIdByPlatformGameMiniGameMode(
       idPlatform,
       idGame,
       idMiniGame,
@@ -35,7 +35,7 @@ export class PlatformGameMiniGameModeCharacterCostumeService {
     idMode: number,
     idCharacterCostume: number
   ): Promise<void> {
-    const idPlatformGameMiniGameModeCharacterCostume = await this.findIdByPlaformGameMiniGameModeCharacterCostume(
+    const idPlatformGameMiniGameModeCharacterCostume = await this.findIdByPlatformGameMiniGameModeCharacterCostume(
       idPlatform,
       idGame,
       idMiniGame,
@@ -45,7 +45,7 @@ export class PlatformGameMiniGameModeCharacterCostumeService {
     await this.platformGameMiniGameModeCharacterCostumeRepository.delete(idPlatformGameMiniGameModeCharacterCostume);
   }
 
-  async findIdByPlaformGameMiniGameModeCharacterCostume(
+  async findIdByPlatformGameMiniGameModeCharacterCostume(
     idPlatform: number,
     idGame: number,
     idMiniGame: number,

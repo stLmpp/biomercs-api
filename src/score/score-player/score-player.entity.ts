@@ -41,7 +41,7 @@ export class ScorePlayer extends BaseEntity {
 
   @Property()
   @Column({ nullable: true })
-  bulletKills!: number;
+  bulletKills?: number;
 
   @Property()
   @Column({ nullable: true, length: 1000 })

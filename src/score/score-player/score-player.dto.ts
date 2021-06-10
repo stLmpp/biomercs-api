@@ -18,10 +18,10 @@ export class ScorePlayerAddDto {
   @IsBoolean()
   host?: boolean;
 
-  @IsDefined()
+  @IsOptional()
   @IsNumber()
   @Min(0)
-  bulletKills!: number;
+  bulletKills?: number;
 
   @IsOptional()
   @IsString()

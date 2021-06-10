@@ -14,6 +14,10 @@ import { PlatformGameMiniGameModeStageService } from './platform-game-mini-game-
 import { PlatformGameMiniGameModeCharacterCostumeService } from './platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.service';
 import { PlatformGameMiniGameModeCharacterCostume } from './platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.entity';
 import { PlatformGameMiniGameModeStage } from './platform-game-mini-game-mode-stage/platform-game-mini-game-mode-stage.entity';
+import { ScoreStatusEnum } from '../score/score-status/score-status.enum';
+import { AuthUser } from '../auth/auth-user.decorator';
+import { AuthPlayerPipe } from '../auth/auth-player.decorator';
+import { Player } from '../player/player.entity';
 
 @ApiAuth()
 @ApiTags('Platform')
@@ -152,6 +156,17 @@ export class PlatformController {
   @Get()
   async findAll(): Promise<Platform[]> {
     return this.platformService.findAll();
+  }
+
+  @ApiAdmin()
+  @Get('approval/admin')
+  async findApprovalAdmin(): Promise<Platform[]> {
+    return this.platformService.findApproval(ScoreStatusEnum.AwaitingApprovalAdmin);
+  }
+
+  @Get('approval/player')
+  async findApprovalUser(@AuthUser(AuthPlayerPipe) player: Player): Promise<Platform[]> {
+    return this.platformService.findApproval(ScoreStatusEnum.AwaitingApprovalPlayer, player.id);
   }
 
   @Get(`:${Params.idPlatform}`)

@@ -177,7 +177,6 @@ export class ScoreModule {
                   )
               );
               scorePlayer.isCharacterWorldRecord = !!characterWorldRecord;
-              scorePlayer.characterWorldRecordEndDate = characterWorldRecord?.endDate ?? null;
               return scorePlayer;
             })
         )
@@ -187,13 +186,6 @@ export class ScoreModule {
             (from.scoreWorldRecords ?? []).some(
               scoreWorldRecord => scoreWorldRecord.type === ScoreWorldRecordTypeEnum.WorldRecord
             )
-        )
-        .for(
-          dest => dest.worldRecordEndDate,
-          from =>
-            (from.scoreWorldRecords ?? []).find(
-              scoreWorldRecord => scoreWorldRecord.type === ScoreWorldRecordTypeEnum.WorldRecord
-            )?.endDate ?? null
         )
         .for(
           dest => dest.isCharacterWorldRecord,
@@ -208,13 +200,6 @@ export class ScoreModule {
             (from.scoreWorldRecords ?? []).some(
               scoreWorldRecord => scoreWorldRecord.type === ScoreWorldRecordTypeEnum.CombinationWorldRecord
             )
-        )
-        .for(
-          dest => dest.combinationWorldRecordEndDate,
-          from =>
-            (from.scoreWorldRecords ?? []).find(
-              scoreWorldRecord => scoreWorldRecord.type === ScoreWorldRecordTypeEnum.CombinationWorldRecord
-            )?.endDate ?? null
         )
         .for(
           dest => dest.idScoreStatus,

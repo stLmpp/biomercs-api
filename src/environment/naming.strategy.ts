@@ -2,7 +2,7 @@ import { DefaultNamingStrategy, Table } from 'typeorm';
 import { RandomGenerator } from 'typeorm/util/RandomGenerator';
 import camelcase from 'camelcase';
 
-export class NamingStategy extends DefaultNamingStrategy {
+export class NamingStrategy extends DefaultNamingStrategy {
   override joinColumnName(relationName: string, referencedColumnName: string): string {
     return super.joinColumnName(referencedColumnName, relationName);
   }

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  ForbiddenException,
   Injectable,
   NotFoundException,
   PreconditionFailedException,
@@ -24,6 +25,7 @@ import { random } from '../util/util';
 import { UserViewModel } from '../user/user.view-model';
 import { MapperService } from '../mapper/mapper.service';
 import { MailService } from '../mail/mail.service';
+import { MailPriorityEnum } from '../mail/mail-priority.enum';
 
 @Injectable()
 export class AuthService {
@@ -38,6 +40,8 @@ export class AuthService {
     private mailService: MailService
   ) {}
 
+  private _mapUserLoginAttempts = new Map<number, number | null>();
+
   private async _sendConfirmationCodeEmail(user: User): Promise<void> {
     const { email, id } = user;
     const authConfirmation = await this.authConfirmationService.generateConfirmationCode(user);
@@ -49,13 +53,9 @@ export class AuthService {
       },
       {
         title: 'Confirmation code',
-        info: [
-          {
-            title: 'Code',
-            value: authConfirmation.code,
-          },
-        ],
-      }
+        info: [{ title: 'Code', value: authConfirmation.code }],
+      },
+      MailPriorityEnum.now
     );
   }
 
@@ -93,7 +93,7 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
     if (user.idCurrentAuthConfirmation) {
-      await this.authConfirmationService.invalideCode(user.idCurrentAuthConfirmation);
+      await this.authConfirmationService.invalidateCode(user.idCurrentAuthConfirmation);
     }
     await this._sendConfirmationCodeEmail(user);
   }
@@ -126,8 +126,7 @@ export class AuthService {
     await this.authConfirmationService.confirmCode(user.idCurrentAuthConfirmation, dto.confirmationCode);
     const { salt } = await this.userService.getPasswordAndSalt(user.id);
     const newPasswordHash = await hash(dto.password, salt);
-    user = await this.userService.updatePassword(user.id, newPasswordHash);
-    await this.userService.update(user.id, { idCurrentAuthConfirmation: null });
+    user = await this.userService.updatePasswordAndRemoveLocks(user.id, newPasswordHash);
     return this.login({ username: user.username, password: dto.password, rememberMe: true });
   }
 
@@ -135,6 +134,15 @@ export class AuthService {
   async sendForgotPasswordConfirmationCode(email: string): Promise<void> {
     const user = await this.userService.getByEmailOrUsername(undefined, email);
     if (user) {
+      if (user.bannedDate) {
+        throw new ForbiddenException('This account is locked');
+      }
+      if (user.idCurrentAuthConfirmation) {
+        await Promise.all([
+          await this.authConfirmationService.invalidateCode(user.idCurrentAuthConfirmation),
+          await this.userService.update(user.id, { idCurrentAuthConfirmation: null }),
+        ]);
+      }
       await this._sendConfirmationCodeEmail(user);
     }
   }
@@ -149,6 +157,25 @@ export class AuthService {
         error: 'This steam has no user linked to it',
         steamid,
         errorType: AuthSteamLoginSocketErrorType.userNotFound,
+      });
+      return;
+    }
+    if (!user.canLogin()) {
+      let error = `This user can't login`;
+      let errorType = AuthSteamLoginSocketErrorType.unknown;
+      if (user.bannedDate) {
+        errorType = AuthSteamLoginSocketErrorType.userBanned;
+      }
+      if (user.lockedDate) {
+        error = `This account is locked`;
+        errorType = AuthSteamLoginSocketErrorType.userLocked;
+      }
+      this.authGateway.sendTokenSteam({
+        uuid,
+        token: await hash(steamid, await environment.envSalt()),
+        error,
+        steamid,
+        errorType,
       });
       return;
     }
@@ -169,6 +196,7 @@ export class AuthService {
     user.lastOnline = new Date();
     user.rememberMe = true;
     await this.userService.update(user.id, { lastOnline: user.lastOnline, rememberMe: user.rememberMe });
+    this._mapUserLoginAttempts.set(user.id, null);
     this.authGateway.sendTokenSteam({ uuid, token: user.token });
   }
 
@@ -191,7 +219,21 @@ export class AuthService {
    * Also there's no need for this method to be transactional, since there's only one update that matters
    */
   async login(dto: AuthCredentialsDto): Promise<UserViewModel> {
-    const user = await this.userService.validateUserToLogin(dto);
+    const [user, error] = await this.userService.validateUserToLogin(dto);
+    if (!user) {
+      throw error;
+    }
+    if (error) {
+      if (error instanceof UnauthorizedException) {
+        const attempts = this._mapUserLoginAttempts.get(user.id) ?? 1;
+        if (attempts >= 3) {
+          await this.userService.lockUser(user.id);
+        } else {
+          this._mapUserLoginAttempts.set(user.id, attempts + 1);
+        }
+      }
+      throw error;
+    }
     const hasConfirmationPending = user.idCurrentAuthConfirmation;
     if (hasConfirmationPending) {
       await this.resendConfirmationCode(user);
@@ -201,6 +243,7 @@ export class AuthService {
     user.rememberMe = dto.rememberMe ?? false;
     await this.userService.update(user.id, { lastOnline: user.lastOnline, rememberMe: user.rememberMe });
     user.token = await this.getToken(user);
+    this._mapUserLoginAttempts.set(user.id, null);
     return this.mapperService.map(User, UserViewModel, user);
   }
 

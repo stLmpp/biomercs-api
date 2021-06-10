@@ -147,8 +147,19 @@ export class ScoreService {
         idMode,
         idStage
       );
-    const idScoreStatus =
-      mode.playerQuantity > 1 ? ScoreStatusEnum.AwaitingApprovalPlayer : ScoreStatusEnum.AwaitingApprovalAdmin;
+    let idScoreStatus = ScoreStatusEnum.AwaitingApprovalAdmin;
+    if (mode.playerQuantity > 1) {
+      const idOtherPlayers = scorePlayers
+        .filter(scorePlayer => scorePlayer.idPlayer !== createdByIdPlayer)
+        .map(scorePlayer => scorePlayer.idPlayer);
+      const otherPlayers = await this.playerService.findByIdsWithUser(idOtherPlayers);
+      const isAllOtherPlayersBanned = otherPlayers.every(player => player.user?.bannedDate);
+      // If all partners are banned, then, the approval will go directly to the admin
+      if (!isAllOtherPlayersBanned) {
+        idScoreStatus = ScoreStatusEnum.AwaitingApprovalPlayer;
+      }
+    }
+
     const score = await this.scoreRepository.save(
       new Score().extendDto({ ...dto, idPlatformGameMiniGameModeStage, idScoreStatus, createdByIdPlayer })
     );
@@ -214,10 +225,11 @@ export class ScoreService {
     const idPlayer = await this.playerService.findIdByIdUser(user.id);
     await this.scoreApprovalService.addPlayer({ ...dto, idPlayer, action, actionDate: new Date(), idScore });
     const [countPlayers, countApprovals] = await Promise.all([
-      this.scorePlayerService.findCountByIdScoreWithtoutCreator(idScore),
+      this.scorePlayerService.findCountByIdScoreWithoutCreator(idScore),
       this.scoreApprovalService.findCountByIdScoreWithoutCreator(idScore),
     ]);
-    if (countPlayers === countApprovals || action === ScoreApprovalActionEnum.Reject) {
+    // Needs to be >=, because a player might be banned during the approval
+    if (countApprovals >= countPlayers || action === ScoreApprovalActionEnum.Reject) {
       await this.scoreRepository.update(idScore, {
         idScoreStatus:
           action === ScoreApprovalActionEnum.Approve

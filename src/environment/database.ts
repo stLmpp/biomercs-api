@@ -1,4 +1,4 @@
-import { NamingStategy } from './naming.strategy';
+import { NamingStrategy } from './naming.strategy';
 import { environment } from './environment';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { resolve } from 'path';
@@ -13,7 +13,7 @@ export const DB_TYPEORM_CONFIG: TypeOrmModuleOptions = {
   type: 'postgres',
   entities: [...environment.entitiesPaths],
   logging: !environment.production ? 'all' : false,
-  namingStrategy: new NamingStategy(),
+  namingStrategy: new NamingStrategy(),
   dropSchema: false,
   migrations: [resolve(process.cwd() + '/migration/*.js')],
   cli: { migrationsDir: 'migration' },

@@ -4,6 +4,7 @@ import { Stage } from './stage.entity';
 import { StageAddDto, StagePlatformsGamesMiniGamesModesDto, StageUpdateDto } from './stage.dto';
 import { StageViewModel } from './stage.view-model';
 import { MapperService } from '../mapper/mapper.service';
+import { ScoreStatusEnum } from '../score/score-status/score-status.enum';
 
 @Injectable()
 export class StageService {
@@ -38,5 +39,23 @@ export class StageService {
   async findByIdPlatformsGamesMiniGamesModes(dto: StagePlatformsGamesMiniGamesModesDto): Promise<StageViewModel[]> {
     const stages = await this.stageRepository.findByIdPlatformsGamesMiniGamesModes(dto);
     return this.mapperService.map(Stage, StageViewModel, stages);
+  }
+
+  async findApprovalByIdPlatformGameMiniGameMode(
+    idScoreStatus: ScoreStatusEnum,
+    idPlatform: number,
+    idGame: number,
+    idMiniGame: number,
+    idMode: number,
+    idPlayer?: number
+  ): Promise<Stage[]> {
+    return this.stageRepository.findApprovalByIdPlatformGameMiniGameMode(
+      idScoreStatus,
+      idPlatform,
+      idGame,
+      idMiniGame,
+      idMode,
+      idPlayer
+    );
   }
 }

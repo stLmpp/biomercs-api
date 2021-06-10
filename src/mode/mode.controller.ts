@@ -6,6 +6,10 @@ import { ModeAddDto, ModePlatformsGamesMiniGamesDto, ModeUpdateDto } from './mod
 import { Params } from '../shared/type/params';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ApiAuth } from '../auth/api-auth.decorator';
+import { ScoreStatusEnum } from '../score/score-status/score-status.enum';
+import { AuthUser } from '../auth/auth-user.decorator';
+import { AuthPlayerPipe } from '../auth/auth-player.decorator';
+import { Player } from '../player/player.entity';
 
 @ApiAuth()
 @ApiTags('Mode')
@@ -32,6 +36,37 @@ export class ModeController {
     @Param(Params.idMiniGame) idMiniGame: number
   ): Promise<Mode[]> {
     return this.modeService.findByIdPlatformGameMiniGame(idPlatform, idGame, idMiniGame);
+  }
+
+  @ApiAdmin()
+  @Get(`approval/admin/platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}`)
+  async findApprovalAdminByIdPlatformGameMiniGame(
+    @Param(Params.idPlatform) idPlatform: number,
+    @Param(Params.idGame) idGame: number,
+    @Param(Params.idMiniGame) idMiniGame: number
+  ): Promise<Mode[]> {
+    return this.modeService.findApprovalByIdPlatformGameMiniGame(
+      ScoreStatusEnum.AwaitingApprovalAdmin,
+      idPlatform,
+      idGame,
+      idMiniGame
+    );
+  }
+
+  @Get(`approval/player/platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}`)
+  async findApprovalPlayerByIdPlatformGameMiniGame(
+    @Param(Params.idPlatform) idPlatform: number,
+    @Param(Params.idGame) idGame: number,
+    @Param(Params.idMiniGame) idMiniGame: number,
+    @AuthUser(AuthPlayerPipe) player: Player
+  ): Promise<Mode[]> {
+    return this.modeService.findApprovalByIdPlatformGameMiniGame(
+      ScoreStatusEnum.AwaitingApprovalPlayer,
+      idPlatform,
+      idGame,
+      idMiniGame,
+      player.id
+    );
   }
 
   @Get(`platforms/games/mini-games`)
