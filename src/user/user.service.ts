@@ -1,4 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  HttpException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { UserRepository } from './user.repository';
 import { UserAddDto, UserGetDto, UserUpdateDto } from './user.dto';
 import { User } from './user.entity';
@@ -37,12 +44,12 @@ export class UserService {
     return this.mapperService.map(User, UserViewModel, new User().extendDto({ ...user, ...dto }));
   }
 
-  async updatePassword(idUser: number, password: string): Promise<User> {
-    const user = await this.userRepository.findOne(idUser);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    await this.userRepository.update(idUser, { password });
+  async updatePasswordAndRemoveLocks(idUser: number, password: string): Promise<User> {
+    const user = await this.userRepository.findOneOrFail(idUser);
+    await this.userRepository.update(idUser, { password, idCurrentAuthConfirmation: null, lockedDate: null });
+    user.password = password;
+    user.idCurrentAuthConfirmation = null;
+    user.lockedDate = null;
     return user;
   }
 
@@ -72,21 +79,27 @@ export class UserService {
     return this.userRepository.exists(where);
   }
 
-  async validateUserToLogin(dto: AuthCredentialsDto): Promise<User> {
+  async validateUserToLogin(dto: AuthCredentialsDto): Promise<[User | undefined, HttpException | null]> {
     const user = await this.userRepository.findOne({
       where: [{ username: dto.username }, { email: dto.username }],
     });
-    if (!user) {
-      throw new UnauthorizedException('User or password invalid');
+    if (!user || !user.canLogin()) {
+      if (user?.bannedDate) {
+        return [user, new ForbiddenException(`Account is locked.`)];
+      }
+      if (user?.lockedDate) {
+        return [user, new ForbiddenException(`Account is locked. Reset your password to unlock it.`)];
+      }
+      return [user, new UnauthorizedException('User or password invalid')];
     }
     const { salt, password } = await this.getPasswordAndSalt(user.id);
     user.salt = salt;
     user.password = password;
     const isPasswordValid = await user.validatePassword(dto.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('User or password invalid');
+      return [user, new UnauthorizedException('User or password invalid')];
     }
-    return user;
+    return [user, null];
   }
 
   async getPasswordAndSalt(idUser: number): Promise<Pick<User, 'password' | 'salt'>> {
@@ -131,5 +144,9 @@ export class UserService {
       meta,
       items: this.mapperService.map(User, UserViewModel, items),
     };
+  }
+
+  async lockUser(idUser: number): Promise<void> {
+    await this.userRepository.update(idUser, { lockedDate: new Date() });
   }
 }
