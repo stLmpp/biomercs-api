@@ -3,6 +3,7 @@ import { ScorePlayer } from './score-player.entity';
 import { ScorePlayerAddDto, ScorePlayerUpdateDto } from './score-player.dto';
 import { ScorePlayerRepository } from './score-player.repository';
 import { PlatformGameMiniGameModeCharacterCostumeService } from '../../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.service';
+import normalizeUrl from 'normalize-url';
 
 @Injectable()
 export class ScorePlayerService {
@@ -29,7 +30,13 @@ export class ScorePlayerService {
             idMode,
             idCharacterCostume
           );
-        return new ScorePlayer().extendDto({ ...scorePlayer, idScore, idPlatformGameMiniGameModeCharacterCostume });
+        const evidence = normalizeUrl(scorePlayer.evidence);
+        return new ScorePlayer().extendDto({
+          ...scorePlayer,
+          idScore,
+          idPlatformGameMiniGameModeCharacterCostume,
+          evidence,
+        });
       })
     );
     return this.scorePlayerRepository.save(scorePlayersDto);
@@ -39,8 +46,15 @@ export class ScorePlayerService {
     return this.scorePlayerRepository.findCountByIdScoreWithoutCreator(idScore);
   }
 
-  async updateMany(dto: ScorePlayerUpdateDto[]): Promise<void> {
-    await this.scorePlayerRepository.save(dto);
+  async updateMany(dtos: ScorePlayerUpdateDto[]): Promise<void> {
+    await this.scorePlayerRepository.save(
+      dtos.map(dto => {
+        if (dto.evidence) {
+          dto.evidence = normalizeUrl(dto.evidence);
+        }
+        return dto;
+      })
+    );
   }
 
   async transferScores(oldIdPlayer: number, newIdPlayer: number): Promise<void> {
