@@ -1,4 +1,4 @@
-import { IsBoolean, IsDefined, IsNotEmpty, IsOptional, IsString, IsUrl, Min } from 'class-validator';
+import { IsBoolean, IsDefined, IsNotEmpty, IsOptional, IsString, Min } from 'class-validator';
 import { IsNumber } from '../../validation/is-number';
 
 export class ScorePlayerAddDto {
@@ -31,7 +31,6 @@ export class ScorePlayerAddDto {
   @IsDefined()
   @IsString()
   @IsNotEmpty()
-  @IsUrl()
   evidence!: string;
 }
 
@@ -55,7 +54,6 @@ export class ScorePlayerUpdateDto {
 
   @IsOptional()
   @IsString()
-  @IsUrl()
   @IsNotEmpty()
   evidence?: string;
 }
