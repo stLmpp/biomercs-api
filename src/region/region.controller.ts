@@ -2,7 +2,7 @@ import { Controller, Get } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { RegionService } from './region.service';
-import { Region } from './region.entity';
+import { RegionViewModel } from './region.view-model';
 
 @ApiAuth()
 @ApiTags('Region')
@@ -11,7 +11,7 @@ export class RegionController {
   constructor(private regionService: RegionService) {}
 
   @Get()
-  async findAll(): Promise<Region[]> {
+  async findAll(): Promise<RegionViewModel[]> {
     return this.regionService.findAll();
   }
 }

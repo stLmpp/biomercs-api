@@ -1,7 +1,7 @@
 import { PlayerInterface } from './player.interface';
-import { Region } from '../region/region.entity';
 import { Property } from '../mapper/property.decorator';
 import { SteamProfileViewModel } from '../steam/steam-profile.view-model';
+import { RegionViewModel } from '../region/region.view-model';
 
 export class PlayerViewModel implements PlayerInterface {
   @Property() id!: number;
@@ -16,6 +16,6 @@ export class PlayerViewModel implements PlayerInterface {
 }
 
 export class PlayerWithRegionSteamProfileViewModel extends PlayerViewModel {
-  @Property(() => Region) region!: Region;
+  @Property(() => RegionViewModel) region!: RegionViewModel;
   @Property(() => SteamProfileViewModel) steamProfile!: SteamProfileViewModel;
 }

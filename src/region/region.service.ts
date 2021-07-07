@@ -2,13 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { RegionRepository } from './region.repository';
 import { Region } from './region.entity';
 import { ILike } from 'typeorm';
+import { RegionViewModel } from './region.view-model';
+import { MapperService } from '../mapper/mapper.service';
 
 @Injectable()
 export class RegionService {
-  constructor(private regionRepository: RegionRepository) {}
+  constructor(private regionRepository: RegionRepository, private mapperService: MapperService) {}
 
-  async findAll(): Promise<Region[]> {
-    return this.regionRepository.find();
+  async findAll(): Promise<RegionViewModel[]> {
+    const regions = await this.regionRepository.find();
+    return this.mapperService.map(Region, RegionViewModel, regions);
   }
 
   async findDefaultIdRegion(): Promise<number> {
