@@ -3,7 +3,7 @@ import { ScorePlayer } from './score-player.entity';
 import { ScorePlayerAddDto, ScorePlayerUpdateDto } from './score-player.dto';
 import { ScorePlayerRepository } from './score-player.repository';
 import { PlatformGameMiniGameModeCharacterCostumeService } from '../../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.service';
-import normalizeUrl from 'normalize-url';
+import * as normalizeUrl from 'normalize-url';
 
 @Injectable()
 export class ScorePlayerService {

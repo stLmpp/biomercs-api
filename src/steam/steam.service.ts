@@ -1,6 +1,6 @@
-import { BadRequestException, forwardRef, HttpService, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { SteamProfile } from './steam-profile.entity';
-import { map } from 'rxjs/operators';
+import { lastValueFrom, map } from 'rxjs';
 import { Request } from 'express';
 import { SteamProfileRepository } from './steam-profile.repository';
 import { User } from '../user/user.entity';
@@ -17,7 +17,7 @@ import { ScoreService } from '../score/score.service';
 import { RegionService } from '../region/region.service';
 import { PlayerAddDto } from '../player/player.dto';
 import { SteamGateway } from './steam.gateway';
-import { lastValueFrom } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
 
 @Injectable()
 export class SteamService {

@@ -1,4 +1,4 @@
-import { forwardRef, HttpModule, Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { SteamController } from './steam.controller';
 import { SteamService } from './steam.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -11,6 +11,7 @@ import { SteamProfileViewModel, SteamProfileWithPlayerViewModel } from './steam-
 import { ScoreModule } from '../score/score.module';
 import { RegionModule } from '../region/region.module';
 import { SteamGateway } from './steam.gateway';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
