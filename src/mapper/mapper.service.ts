@@ -34,12 +34,12 @@ export class MapProfile<From, To> {
       [] as [PropertyMetadata, PropertyMetadata][]
     );
     for (const [fromMetadata, toMetadata] of intersection) {
-      let callback: MapTransformer<From> = entity => entity[fromMetadata.propertyKey];
-      if (this.mapperService.has(fromMetadata.type, toMetadata.type)) {
-        callback = entity =>
-          this.mapperService.map(fromMetadata.type, toMetadata.type, entity[fromMetadata.propertyKey]);
-      }
-      this._propertiesMap.set(fromMetadata.propertyKey, callback);
+      this._propertiesMap.set(fromMetadata.propertyKey, entity => {
+        if (this.mapperService.has(fromMetadata.type, toMetadata.type)) {
+          return this.mapperService.map(fromMetadata.type, toMetadata.type, entity[fromMetadata.propertyKey]);
+        }
+        return entity[fromMetadata.propertyKey];
+      });
     }
   }
 
