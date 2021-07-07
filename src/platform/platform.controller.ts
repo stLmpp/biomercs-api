@@ -1,7 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PlatformService } from './platform.service';
-import { Platform } from './platform.entity';
 import { PlatformAddDto, PlatformUpdateDto } from './platform.dto';
 import { Params } from '../shared/type/params';
 import { ApiAdmin } from '../auth/api-admin.decorator';
@@ -18,6 +17,7 @@ import { ScoreStatusEnum } from '../score/score-status/score-status.enum';
 import { AuthUser } from '../auth/auth-user.decorator';
 import { AuthPlayerPipe } from '../auth/auth-player.decorator';
 import { Player } from '../player/player.entity';
+import { PlatformViewModel } from './platform.view-model';
 
 @ApiAuth()
 @ApiTags('Platform')
@@ -33,13 +33,16 @@ export class PlatformController {
 
   @ApiAdmin()
   @Post()
-  async add(@Body() dto: PlatformAddDto): Promise<Platform> {
+  async add(@Body() dto: PlatformAddDto): Promise<PlatformViewModel> {
     return this.platformService.add(dto);
   }
 
   @ApiAdmin()
   @Patch(`:${Params.idPlatform}`)
-  async update(@Param(Params.idPlatform) idPlatform: number, @Body() dto: PlatformUpdateDto): Promise<Platform> {
+  async update(
+    @Param(Params.idPlatform) idPlatform: number,
+    @Body() dto: PlatformUpdateDto
+  ): Promise<PlatformViewModel> {
     return this.platformService.update(idPlatform, dto);
   }
 
@@ -154,23 +157,23 @@ export class PlatformController {
   }
 
   @Get()
-  async findAll(): Promise<Platform[]> {
+  async findAll(): Promise<PlatformViewModel[]> {
     return this.platformService.findAll();
   }
 
   @ApiAdmin()
   @Get('approval/admin')
-  async findApprovalAdmin(): Promise<Platform[]> {
+  async findApprovalAdmin(): Promise<PlatformViewModel[]> {
     return this.platformService.findApproval(ScoreStatusEnum.AwaitingApprovalAdmin);
   }
 
   @Get('approval/player')
-  async findApprovalUser(@AuthUser(AuthPlayerPipe) player: Player): Promise<Platform[]> {
+  async findApprovalUser(@AuthUser(AuthPlayerPipe) player: Player): Promise<PlatformViewModel[]> {
     return this.platformService.findApproval(ScoreStatusEnum.AwaitingApprovalPlayer, player.id);
   }
 
   @Get(`:${Params.idPlatform}`)
-  async findById(@Param(Params.idPlatform) idPlatform: number): Promise<Platform> {
+  async findById(@Param(Params.idPlatform) idPlatform: number): Promise<PlatformViewModel> {
     return this.platformService.findById(idPlatform);
   }
 }

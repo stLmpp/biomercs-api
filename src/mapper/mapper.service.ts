@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Type } from '../util/type';
 import { isArray, isFunction } from 'st-utils';
 import { plainToClass } from 'class-transformer';
@@ -8,6 +8,7 @@ import {
   PropertyMetadata,
   toPropertiesObject,
 } from './property.decorator';
+import { MapProfileNotFoundError } from './map-profile-not-found-error';
 
 type MapProperty<T, K extends keyof T = keyof T> = ((entity: T) => any) | K;
 type MapTransformer<T, ToType = any> = (entity: T) => ToType;
@@ -85,6 +86,7 @@ export class MapProfile<From, To> {
 
   map(value: From): To;
   map(value: From[]): To[];
+  map(value: From | From[]): To | To[];
   map(value: From | From[]): To | To[] {
     if (isArray(value)) {
       return value.map(val => this._mapOne(val));
@@ -111,6 +113,14 @@ export class MapperService {
     return mapProfiles;
   }
 
+  private _getProfileOrFail<From, To>(from: Type<From>, to: Type<To>): MapProfile<From, To> {
+    const mapProfile = this._profiles.get(from)?.get(to);
+    if (!mapProfile) {
+      throw new MapProfileNotFoundError(from, to);
+    }
+    return mapProfile;
+  }
+
   create<From, To>(from: Type<From>, to: Type<To>): MapProfile<From, To> {
     const mapProfile = new MapProfile<From, To>(from, to, this);
     this._getOrCreateProfiles<From, To>(from).set(to, mapProfile);
@@ -120,11 +130,14 @@ export class MapperService {
   map<From, To>(from: Type<From>, to: Type<To>, value: From): To;
   map<From, To>(from: Type<From>, to: Type<To>, value: From[]): To[];
   map<From, To>(from: Type<From>, to: Type<To>, value: From | From[]): To | To[] {
-    const mapProfile = this._profiles.get(from)?.get(to);
-    if (!mapProfile) {
-      throw new InternalServerErrorException(); // TODO BETTER ERROR? MAYBE
-    }
-    return mapProfile.map(value);
+    return this._getProfileOrFail(from, to).map(value);
+  }
+
+  mapFactory<From, To>(from: Type<From>, to: Type<To>): (value: From) => To;
+  mapFactory<From, To>(from: Type<From>, to: Type<To>): (value: From[]) => To[];
+  mapFactory<From, To>(from: Type<From>, to: Type<To>): (value: From | From[]) => To | To[] {
+    const mapProfile = this._getProfileOrFail(from, to);
+    return value => mapProfile.map(value);
   }
 
   has<From, To>(from: Type<From>, to: Type<To>): boolean {
