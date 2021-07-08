@@ -12,23 +12,30 @@ import { AuthPlayerPipe } from '../auth/auth-player.decorator';
 import { Player } from '../player/player.entity';
 import { ScoreStatusEnum } from '../score/score-status/score-status.enum';
 import { GameViewModel } from './game.view-model';
+import { InjectMapProfile } from '../mapper/inject-map-profile';
+import { Game } from './game.entity';
+import { MapProfile } from '../mapper/map-profile';
 
 @ApiAuth()
 @ApiTags('Game')
 @Controller('game')
 export class GameController {
-  constructor(private gameService: GameService, private gameMiniGameService: GameMiniGameService) {}
+  constructor(
+    private gameService: GameService,
+    private gameMiniGameService: GameMiniGameService,
+    @InjectMapProfile(Game, GameViewModel) private mapProfile: MapProfile<Game, GameViewModel>
+  ) {}
 
   @ApiAdmin()
   @Post()
   async add(@Body() dto: GameAddDto): Promise<GameViewModel> {
-    return this.gameService.add(dto);
+    return this.mapProfile.mapPromise(this.gameService.add(dto));
   }
 
   @ApiAdmin()
   @Patch(`:${Params.idGame}`)
   async update(@Param(Params.idGame) idGame: number, @Body() dto: GameUpdateDto): Promise<GameViewModel> {
-    return this.gameService.update(idGame, dto);
+    return this.mapProfile.mapPromise(this.gameService.update(idGame, dto));
   }
 
   @ApiAdmin()
@@ -51,18 +58,20 @@ export class GameController {
 
   @Get('platforms')
   async findByIdPlatforms(@Query() dto: GamePlatformsDto): Promise<GameViewModel[]> {
-    return this.gameService.findByIdPlatforms(dto);
+    return this.mapProfile.mapPromise(this.gameService.findByIdPlatforms(dto));
   }
 
   @Get(`platform/:${Params.idPlatform}`)
   async findByIdPlatform(@Param(Params.idPlatform) idPlatform: number): Promise<GameViewModel[]> {
-    return this.gameService.findByIdPlatform(idPlatform);
+    return this.mapProfile.mapPromise(this.gameService.findByIdPlatform(idPlatform));
   }
 
   @ApiAdmin()
   @Get(`approval/admin/platform/:${Params.idPlatform}`)
   async findApprovalAdminByIdPlatform(@Param(Params.idPlatform) idPlatform: number): Promise<GameViewModel[]> {
-    return this.gameService.findApprovalByIdPlatform(ScoreStatusEnum.AwaitingApprovalAdmin, idPlatform);
+    return this.mapProfile.mapPromise(
+      this.gameService.findApprovalByIdPlatform(ScoreStatusEnum.AwaitingApprovalAdmin, idPlatform)
+    );
   }
 
   @Get(`approval/player/platform/:${Params.idPlatform}`)
@@ -70,11 +79,13 @@ export class GameController {
     @Param(Params.idPlatform) idPlatform: number,
     @AuthUser(AuthPlayerPipe) player: Player
   ): Promise<GameViewModel[]> {
-    return this.gameService.findApprovalByIdPlatform(ScoreStatusEnum.AwaitingApprovalPlayer, idPlatform, player.id);
+    return this.mapProfile.mapPromise(
+      this.gameService.findApprovalByIdPlatform(ScoreStatusEnum.AwaitingApprovalPlayer, idPlatform, player.id)
+    );
   }
 
   @Get(`:${Params.idGame}`)
   async findById(@Param(Params.idGame) idGame: number): Promise<GameViewModel> {
-    return this.gameService.findById(idGame);
+    return this.mapProfile.mapPromise(this.gameService.findById(idGame));
   }
 }
