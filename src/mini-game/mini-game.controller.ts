@@ -10,17 +10,23 @@ import { AuthUser } from '../auth/auth-user.decorator';
 import { AuthPlayerPipe } from '../auth/auth-player.decorator';
 import { Player } from '../player/player.entity';
 import { MiniGameViewModel } from './mini-game.view-model';
+import { InjectMapProfile } from '../mapper/inject-map-profile';
+import { MiniGame } from './mini-game.entity';
+import { MapProfile } from '../mapper/map-profile';
 
 @ApiAuth()
 @ApiTags('Mini game')
 @Controller('mini-game')
 export class MiniGameController {
-  constructor(private miniGameService: MiniGameService) {}
+  constructor(
+    private miniGameService: MiniGameService,
+    @InjectMapProfile(MiniGame, MiniGameViewModel) private mapProfile: MapProfile<MiniGame, MiniGameViewModel>
+  ) {}
 
   @ApiAdmin()
   @Post()
   async add(@Body() dto: MiniGameAddDto): Promise<MiniGameViewModel> {
-    return this.miniGameService.add(dto);
+    return this.mapProfile.mapPromise(this.miniGameService.add(dto));
   }
 
   @ApiAdmin()
@@ -29,7 +35,7 @@ export class MiniGameController {
     @Param(Params.idMiniGame) idMiniGame: number,
     @Body() dto: MiniGameUpdateDto
   ): Promise<MiniGameViewModel> {
-    return this.miniGameService.update(idMiniGame, dto);
+    return this.mapProfile.mapPromise(this.miniGameService.update(idMiniGame, dto));
   }
 
   @Get(`platform/:${Params.idPlatform}/game/:${Params.idGame}`)
@@ -37,12 +43,12 @@ export class MiniGameController {
     @Param(Params.idPlatform) idPlatform: number,
     @Param(Params.idGame) idGame: number
   ): Promise<MiniGameViewModel[]> {
-    return this.miniGameService.findByIdPlatformGame(idPlatform, idGame);
+    return this.mapProfile.mapPromise(this.miniGameService.findByIdPlatformGame(idPlatform, idGame));
   }
 
   @Get(`platforms/games`)
   async findByIdPlatformsGames(@Query() dto: MiniGamePlatformsGamesDto): Promise<MiniGameViewModel[]> {
-    return this.miniGameService.findByIdPlatformsGames(dto);
+    return this.mapProfile.mapPromise(this.miniGameService.findByIdPlatformsGames(dto));
   }
 
   @ApiAdmin()
@@ -51,7 +57,9 @@ export class MiniGameController {
     @Param(Params.idPlatform) idPlatform: number,
     @Param(Params.idGame) idGame: number
   ): Promise<MiniGameViewModel[]> {
-    return this.miniGameService.findApprovalByIdPlatformGame(ScoreStatusEnum.AwaitingApprovalAdmin, idPlatform, idGame);
+    return this.mapProfile.mapPromise(
+      this.miniGameService.findApprovalByIdPlatformGame(ScoreStatusEnum.AwaitingApprovalAdmin, idPlatform, idGame)
+    );
   }
 
   @Get(`approval/player/platform/:${Params.idPlatform}/game/:${Params.idGame}`)
@@ -60,16 +68,18 @@ export class MiniGameController {
     @Param(Params.idGame) idGame: number,
     @AuthUser(AuthPlayerPipe) player: Player
   ): Promise<MiniGameViewModel[]> {
-    return this.miniGameService.findApprovalByIdPlatformGame(
-      ScoreStatusEnum.AwaitingApprovalPlayer,
-      idPlatform,
-      idGame,
-      player.id
+    return this.mapProfile.mapPromise(
+      this.miniGameService.findApprovalByIdPlatformGame(
+        ScoreStatusEnum.AwaitingApprovalPlayer,
+        idPlatform,
+        idGame,
+        player.id
+      )
     );
   }
 
   @Get(`:${Params.idMiniGame}`)
   async findById(@Param(Params.idMiniGame) idMiniGame: number): Promise<MiniGameViewModel> {
-    return this.miniGameService.findById(idMiniGame);
+    return this.mapProfile.mapPromise(this.miniGameService.findById(idMiniGame));
   }
 }
