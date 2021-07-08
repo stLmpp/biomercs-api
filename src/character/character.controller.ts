@@ -7,7 +7,7 @@ import { Params } from '../shared/type/params';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { InjectMapProfile } from '../mapper/inject-map-profile';
-import { CharacterViewModel } from './character.view-model';
+import { CharacterViewModel, CharacterViewModelWithCharacterCostumes } from './character.view-model';
 import { MapProfile } from '../mapper/map-profile';
 
 @ApiAuth()
@@ -16,7 +16,9 @@ import { MapProfile } from '../mapper/map-profile';
 export class CharacterController {
   constructor(
     private characterService: CharacterService,
-    @InjectMapProfile(Character, CharacterViewModel) private mapProfile: MapProfile<Character, CharacterViewModel>
+    @InjectMapProfile(Character, CharacterViewModel) private mapProfile: MapProfile<Character, CharacterViewModel>,
+    @InjectMapProfile(Character, CharacterViewModelWithCharacterCostumes)
+    private mapProfileWithCharacterCostumes: MapProfile<Character, CharacterViewModelWithCharacterCostumes>
   ) {}
 
   @ApiAdmin()
@@ -40,8 +42,8 @@ export class CharacterController {
     @Param(Params.idGame) idGame: number,
     @Param(Params.idMiniGame) idMiniGame: number,
     @Param(Params.idMode) idMode: number
-  ): Promise<CharacterViewModel[]> {
-    return this.mapProfile.mapPromise(
+  ): Promise<CharacterViewModelWithCharacterCostumes[]> {
+    return this.mapProfileWithCharacterCostumes.mapPromise(
       this.characterService.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode)
     );
   }
@@ -49,8 +51,10 @@ export class CharacterController {
   @Get(`platforms/games/mini-games/modes`)
   async findByIdPlatformsGamesMiniGamesModes(
     @Query() dto: CharacterPlatformsGamesMiniGamesModesDto
-  ): Promise<CharacterViewModel[]> {
-    return this.mapProfile.mapPromise(this.characterService.findByIdPlatformsGamesMiniGamesModes(dto));
+  ): Promise<CharacterViewModelWithCharacterCostumes[]> {
+    return this.mapProfileWithCharacterCostumes.mapPromise(
+      this.characterService.findByIdPlatformsGamesMiniGamesModes(dto)
+    );
   }
 
   @Get(`:${Params.idCharacter}`)

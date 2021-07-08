@@ -34,7 +34,7 @@ import { MapProfile } from './map-profile';
 import { CharacterCostume } from '../character/character-costume/character-costume.entity';
 import { CharacterCostumeViewModel } from '../character/character-costume/character-costume.view-model';
 import { Character } from '../character/character.entity';
-import { CharacterViewModel } from '../character/character.view-model';
+import { CharacterViewModel, CharacterViewModelWithCharacterCostumes } from '../character/character.view-model';
 
 const mapProfiles = [
   mapperService.create(Game, GameViewModel),
@@ -51,6 +51,7 @@ const mapProfiles = [
   mapperService.create(User, UserViewModel),
   mapperService.create(CharacterCostume, CharacterCostumeViewModel),
   mapperService.create(Character, CharacterViewModel),
+  mapperService.create(Character, CharacterViewModelWithCharacterCostumes),
   mapperService.create(ScoreChangeRequest, ScoreChangeRequestViewModel).for(
     dest => dest.idScoreChangeRequest,
     from => from.id
