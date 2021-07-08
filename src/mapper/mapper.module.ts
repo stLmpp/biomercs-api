@@ -1,8 +1,15 @@
 import { Module } from '@nestjs/common';
-import { MapperService } from './mapper.service';
+import { mapperService, MapperService } from './mapper.service';
+import { mapProfileProviders, mapProfileTokens } from './map-profiles';
 
 @Module({
-  providers: [MapperService],
-  exports: [MapperService],
+  providers: [
+    {
+      provide: MapperService,
+      useValue: mapperService,
+    },
+    ...mapProfileProviders,
+  ],
+  exports: [MapperService, ...mapProfileTokens],
 })
 export class MapperModule {}

@@ -5,9 +5,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SteamProfileRepository } from './steam-profile.repository';
 import { PlayerModule } from '../player/player.module';
 import { MapperModule } from '../mapper/mapper.module';
-import { MapperService } from '../mapper/mapper.service';
-import { SteamProfile } from './steam-profile.entity';
-import { SteamProfileViewModel, SteamProfileWithPlayerViewModel } from './steam-profile.view-model';
 import { ScoreModule } from '../score/score.module';
 import { RegionModule } from '../region/region.module';
 import { SteamGateway } from './steam.gateway';
@@ -26,9 +23,4 @@ import { HttpModule } from '@nestjs/axios';
   providers: [SteamService, SteamGateway],
   exports: [SteamService],
 })
-export class SteamModule {
-  constructor(private mapperService: MapperService) {
-    this.mapperService.create(SteamProfile, SteamProfileViewModel);
-    this.mapperService.create(SteamProfile, SteamProfileWithPlayerViewModel);
-  }
-}
+export class SteamModule {}

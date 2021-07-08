@@ -4,9 +4,6 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserRepository } from './user.repository';
 import { UserController } from './user.controller';
 import { MapperModule } from '../mapper/mapper.module';
-import { MapperService } from '../mapper/mapper.service';
-import { User } from './user.entity';
-import { UserViewModel } from './user.view-model';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserRepository]), MapperModule],
@@ -14,8 +11,4 @@ import { UserViewModel } from './user.view-model';
   exports: [UserService, TypeOrmModule],
   controllers: [UserController],
 })
-export class UserModule {
-  constructor(private mapperService: MapperService) {
-    this.mapperService.create(User, UserViewModel);
-  }
-}
+export class UserModule {}

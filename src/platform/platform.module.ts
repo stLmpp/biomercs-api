@@ -9,9 +9,6 @@ import { PlatformGameMiniGameModeStageModule } from './platform-game-mini-game-m
 import { PlatformGameMiniGameModeCharacterCostumeModule } from './platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.module';
 import { PlayerModule } from '../player/player.module';
 import { MapperModule } from '../mapper/mapper.module';
-import { MapperService } from '../mapper/mapper.service';
-import { Platform } from './platform.entity';
-import { PlatformViewModel } from './platform.view-model';
 
 @Module({
   imports: [
@@ -33,8 +30,4 @@ import { PlatformViewModel } from './platform.view-model';
     PlatformGameMiniGameModeCharacterCostumeModule,
   ],
 })
-export class PlatformModule {
-  constructor(private mapperService: MapperService) {
-    this.mapperService.create(Platform, PlatformViewModel);
-  }
-}
+export class PlatformModule {}

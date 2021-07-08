@@ -6,9 +6,6 @@ import { GameRepository } from './game.repository';
 import { GameMiniGameModule } from './game-mini-game/game-mini-game.module';
 import { PlayerModule } from '../player/player.module';
 import { MapperModule } from '../mapper/mapper.module';
-import { MapperService } from '../mapper/mapper.service';
-import { Game } from './game.entity';
-import { GameViewModel } from './game.view-model';
 
 @Module({
   imports: [TypeOrmModule.forFeature([GameRepository]), GameMiniGameModule, PlayerModule, MapperModule],
@@ -16,8 +13,4 @@ import { GameViewModel } from './game.view-model';
   controllers: [GameController],
   exports: [GameService, GameMiniGameModule],
 })
-export class GameModule {
-  constructor(private mapperService: MapperService) {
-    this.mapperService.create(Game, GameViewModel);
-  }
-}
+export class GameModule {}
