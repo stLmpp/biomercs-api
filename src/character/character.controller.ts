@@ -6,35 +6,32 @@ import { CharacterAddDto, CharacterPlatformsGamesMiniGamesModesDto, CharacterUpd
 import { Params } from '../shared/type/params';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ApiAuth } from '../auth/api-auth.decorator';
-import { CharacterCostume } from './character-costume/character-costume.entity';
-import { CharacterCostumeAddDto } from './character-costume/character-costume.dto';
-import { CharacterCostumeService } from './character-costume/character-costume.service';
+import { InjectMapProfile } from '../mapper/inject-map-profile';
+import { CharacterViewModel } from './character.view-model';
+import { MapProfile } from '../mapper/map-profile';
 
 @ApiAuth()
 @ApiTags('Character')
 @Controller('character')
 export class CharacterController {
-  constructor(private characterService: CharacterService, private characterCostumeService: CharacterCostumeService) {}
+  constructor(
+    private characterService: CharacterService,
+    @InjectMapProfile(Character, CharacterViewModel) private mapProfile: MapProfile<Character, CharacterViewModel>
+  ) {}
 
   @ApiAdmin()
   @Post()
-  async add(@Body() dto: CharacterAddDto): Promise<Character> {
-    return this.characterService.add(dto);
+  async add(@Body() dto: CharacterAddDto): Promise<CharacterViewModel> {
+    return this.mapProfile.mapPromise(this.characterService.add(dto));
   }
 
   @ApiAdmin()
   @Patch(`:${Params.idCharacter}`)
-  async update(@Param(Params.idCharacter) idCharacter: number, @Body() dto: CharacterUpdateDto): Promise<Character> {
-    return this.characterService.update(idCharacter, dto);
-  }
-
-  @ApiAdmin()
-  @Post(`:${Params.idCharacter}/costume`)
-  async addCostume(
+  async update(
     @Param(Params.idCharacter) idCharacter: number,
-    @Body() dto: CharacterCostumeAddDto
-  ): Promise<CharacterCostume> {
-    return this.characterCostumeService.add(idCharacter, dto);
+    @Body() dto: CharacterUpdateDto
+  ): Promise<CharacterViewModel> {
+    return this.mapProfile.mapPromise(this.characterService.update(idCharacter, dto));
   }
 
   @Get(`platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}/mode/:${Params.idMode}`)
@@ -43,19 +40,21 @@ export class CharacterController {
     @Param(Params.idGame) idGame: number,
     @Param(Params.idMiniGame) idMiniGame: number,
     @Param(Params.idMode) idMode: number
-  ): Promise<Character[]> {
-    return this.characterService.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode);
+  ): Promise<CharacterViewModel[]> {
+    return this.mapProfile.mapPromise(
+      this.characterService.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode)
+    );
   }
 
   @Get(`platforms/games/mini-games/modes`)
   async findByIdPlatformsGamesMiniGamesModes(
     @Query() dto: CharacterPlatformsGamesMiniGamesModesDto
-  ): Promise<Character[]> {
-    return this.characterService.findByIdPlatformsGamesMiniGamesModes(dto);
+  ): Promise<CharacterViewModel[]> {
+    return this.mapProfile.mapPromise(this.characterService.findByIdPlatformsGamesMiniGamesModes(dto));
   }
 
   @Get(`:${Params.idCharacter}`)
-  async findById(@Param(Params.idCharacter) idCharacter: number): Promise<Character> {
-    return this.characterService.findById(idCharacter);
+  async findById(@Param(Params.idCharacter) idCharacter: number): Promise<CharacterViewModel> {
+    return this.mapProfile.mapPromise(this.characterService.findById(idCharacter));
   }
 }

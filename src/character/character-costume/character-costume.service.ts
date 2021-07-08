@@ -7,8 +7,8 @@ import { CharacterCostume } from './character-costume.entity';
 export class CharacterCostumeService {
   constructor(private characterCostumeRepository: CharacterCostumeRepository) {}
 
-  async add(idCharacter: number, dto: CharacterCostumeAddDto): Promise<CharacterCostume> {
-    return this.characterCostumeRepository.save(new CharacterCostume().extendDto({ idCharacter, ...dto }));
+  async add(dto: CharacterCostumeAddDto): Promise<CharacterCostume> {
+    return this.characterCostumeRepository.save(new CharacterCostume().extendDto(dto));
   }
 
   async update(idCharacterCostume: number, dto: CharacterCostumeUpdateDto): Promise<CharacterCostume> {
