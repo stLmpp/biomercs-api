@@ -1,7 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { MiniGameService } from './mini-game.service';
-import { MiniGame } from './mini-game.entity';
 import { MiniGameAddDto, MiniGamePlatformsGamesDto, MiniGameUpdateDto } from './mini-game.dto';
 import { Params } from '../shared/type/params';
 import { ApiAdmin } from '../auth/api-admin.decorator';
@@ -10,6 +9,7 @@ import { ScoreStatusEnum } from '../score/score-status/score-status.enum';
 import { AuthUser } from '../auth/auth-user.decorator';
 import { AuthPlayerPipe } from '../auth/auth-player.decorator';
 import { Player } from '../player/player.entity';
+import { MiniGameViewModel } from './mini-game.view-model';
 
 @ApiAuth()
 @ApiTags('Mini game')
@@ -19,13 +19,16 @@ export class MiniGameController {
 
   @ApiAdmin()
   @Post()
-  async add(@Body() dto: MiniGameAddDto): Promise<MiniGame> {
+  async add(@Body() dto: MiniGameAddDto): Promise<MiniGameViewModel> {
     return this.miniGameService.add(dto);
   }
 
   @ApiAdmin()
   @Patch(`:${Params.idMiniGame}`)
-  async update(@Param(Params.idMiniGame) idMiniGame: number, @Body() dto: MiniGameUpdateDto): Promise<MiniGame> {
+  async update(
+    @Param(Params.idMiniGame) idMiniGame: number,
+    @Body() dto: MiniGameUpdateDto
+  ): Promise<MiniGameViewModel> {
     return this.miniGameService.update(idMiniGame, dto);
   }
 
@@ -33,12 +36,12 @@ export class MiniGameController {
   async findByIdPlatformGame(
     @Param(Params.idPlatform) idPlatform: number,
     @Param(Params.idGame) idGame: number
-  ): Promise<MiniGame[]> {
+  ): Promise<MiniGameViewModel[]> {
     return this.miniGameService.findByIdPlatformGame(idPlatform, idGame);
   }
 
   @Get(`platforms/games`)
-  async findByIdPlatformsGames(@Query() dto: MiniGamePlatformsGamesDto): Promise<MiniGame[]> {
+  async findByIdPlatformsGames(@Query() dto: MiniGamePlatformsGamesDto): Promise<MiniGameViewModel[]> {
     return this.miniGameService.findByIdPlatformsGames(dto);
   }
 
@@ -47,7 +50,7 @@ export class MiniGameController {
   async findApprovalAdminByIdPlatformGame(
     @Param(Params.idPlatform) idPlatform: number,
     @Param(Params.idGame) idGame: number
-  ): Promise<MiniGame[]> {
+  ): Promise<MiniGameViewModel[]> {
     return this.miniGameService.findApprovalByIdPlatformGame(ScoreStatusEnum.AwaitingApprovalAdmin, idPlatform, idGame);
   }
 
@@ -56,7 +59,7 @@ export class MiniGameController {
     @Param(Params.idPlatform) idPlatform: number,
     @Param(Params.idGame) idGame: number,
     @AuthUser(AuthPlayerPipe) player: Player
-  ): Promise<MiniGame[]> {
+  ): Promise<MiniGameViewModel[]> {
     return this.miniGameService.findApprovalByIdPlatformGame(
       ScoreStatusEnum.AwaitingApprovalPlayer,
       idPlatform,
@@ -66,7 +69,7 @@ export class MiniGameController {
   }
 
   @Get(`:${Params.idMiniGame}`)
-  async findById(@Param(Params.idMiniGame) idMiniGame: number): Promise<MiniGame> {
+  async findById(@Param(Params.idMiniGame) idMiniGame: number): Promise<MiniGameViewModel> {
     return this.miniGameService.findById(idMiniGame);
   }
 }
