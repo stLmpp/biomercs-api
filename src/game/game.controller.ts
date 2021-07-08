@@ -15,6 +15,7 @@ import { GameViewModel } from './game.view-model';
 import { InjectMapProfile } from '../mapper/inject-map-profile';
 import { Game } from './game.entity';
 import { MapProfile } from '../mapper/map-profile';
+import { GameMiniGameViewModel } from './game-mini-game/game-mini-game.view-model';
 
 @ApiAuth()
 @ApiTags('Game')
@@ -23,7 +24,9 @@ export class GameController {
   constructor(
     private gameService: GameService,
     private gameMiniGameService: GameMiniGameService,
-    @InjectMapProfile(Game, GameViewModel) private mapProfile: MapProfile<Game, GameViewModel>
+    @InjectMapProfile(Game, GameViewModel) private mapProfile: MapProfile<Game, GameViewModel>,
+    @InjectMapProfile(GameMiniGame, GameMiniGameViewModel)
+    private mapProfileGameMiniGame: MapProfile<GameMiniGame, GameMiniGameViewModel>
   ) {}
 
   @ApiAdmin()
@@ -43,8 +46,8 @@ export class GameController {
   async linkGameMiniGame(
     @Param(Params.idGame) idGame: number,
     @Param(Params.idMiniGame) idMiniGame: number
-  ): Promise<GameMiniGame> {
-    return this.gameMiniGameService.link(idGame, idMiniGame);
+  ): Promise<GameMiniGameViewModel> {
+    return this.mapProfileGameMiniGame.mapPromise(this.gameMiniGameService.link(idGame, idMiniGame));
   }
 
   @ApiAdmin()
