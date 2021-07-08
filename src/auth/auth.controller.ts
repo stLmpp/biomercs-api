@@ -25,6 +25,8 @@ import { Request, Response } from 'express';
 import { UserViewModel } from '../user/user.view-model';
 import { PlayerService } from '../player/player.service';
 import { RateLimit } from 'nestjs-rate-limiter';
+import { InjectMapProfile } from '../mapper/inject-map-profile';
+import { MapProfile } from '../mapper/map-profile';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -33,7 +35,8 @@ export class AuthController {
     private authService: AuthService,
     private userService: UserService,
     private steamService: SteamService,
-    private playerService: PlayerService
+    private playerService: PlayerService,
+    @InjectMapProfile(User, UserViewModel) private mapProfile: MapProfile<User, UserViewModel>
   ) {}
 
   @RateLimit({
@@ -50,7 +53,7 @@ export class AuthController {
   @ApiOkResponse()
   @Post('login')
   async login(@Body() dto: AuthCredentialsDto): Promise<UserViewModel> {
-    return this.authService.login(dto);
+    return this.mapProfile.mapPromise(this.authService.login(dto));
   }
 
   @ApiOkResponse()
@@ -65,7 +68,7 @@ export class AuthController {
       throw new NotFoundException('User not found');
     }
     newUser.token = await this.authService.getToken(user);
-    return newUser;
+    return this.mapProfile.map(newUser);
   }
 
   @Post(`user/:${Params.idUser}/resend-code`)
@@ -78,7 +81,7 @@ export class AuthController {
     @Param(Params.idUser) idUser: number,
     @Param(Params.confirmationCode) confirmationCode: number
   ): Promise<UserViewModel> {
-    return this.authService.confirmCode(idUser, confirmationCode);
+    return this.mapProfile.mapPromise(this.authService.confirmCode(idUser, confirmationCode));
   }
 
   @ApiQuery({ name: Params.email, required: false })
@@ -140,6 +143,6 @@ export class AuthController {
 
   @Post('forgot-password/change-password')
   async changeForgottenPassword(@Body() dto: AuthChangePasswordDto): Promise<UserViewModel> {
-    return this.authService.changeForgottenPassword(dto);
+    return this.mapProfile.mapPromise(this.authService.changeForgottenPassword(dto));
   }
 }

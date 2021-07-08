@@ -22,8 +22,6 @@ import { PlayerService } from '../player/player.service';
 import { AuthGateway } from './auth.gateway';
 import { SteamService } from '../steam/steam.service';
 import { random } from '../util/util';
-import { UserViewModel } from '../user/user.view-model';
-import { MapperService } from '../mapper/mapper.service';
 import { MailService } from '../mail/mail.service';
 import { MailPriorityEnum } from '../mail/mail-priority.enum';
 
@@ -36,7 +34,6 @@ export class AuthService {
     private playerService: PlayerService,
     private authGateway: AuthGateway,
     private steamService: SteamService,
-    private mapperService: MapperService,
     private mailService: MailService
   ) {}
 
@@ -99,7 +96,7 @@ export class AuthService {
   }
 
   @Transactional()
-  async confirmCode(idUser: number, code: number): Promise<UserViewModel> {
+  async confirmCode(idUser: number, code: number): Promise<User> {
     const user = await this.userService.getById(idUser);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -114,11 +111,11 @@ export class AuthService {
     user.token = await this.getToken(user);
     user.lastOnline = new Date();
     await this.userService.update(idUser, { lastOnline: user.lastOnline, idCurrentAuthConfirmation: null });
-    return this.mapperService.map(User, UserViewModel, user);
+    return user;
   }
 
   @Transactional()
-  async changeForgottenPassword(dto: AuthChangePasswordDto): Promise<UserViewModel> {
+  async changeForgottenPassword(dto: AuthChangePasswordDto): Promise<User> {
     let user = await this.userService.findByAuthCode(dto.confirmationCode);
     if (!user?.idCurrentAuthConfirmation) {
       throw new BadRequestException('Confirmation code does not exists');
@@ -218,7 +215,7 @@ export class AuthService {
    * @description Not transactional because the e-mail must be sent.
    * Also there's no need for this method to be transactional, since there's only one update that matters
    */
-  async login(dto: AuthCredentialsDto): Promise<UserViewModel> {
+  async login(dto: AuthCredentialsDto): Promise<User> {
     const [user, error] = await this.userService.validateUserToLogin(dto);
     if (!user) {
       throw error;
@@ -244,7 +241,7 @@ export class AuthService {
     await this.userService.update(user.id, { lastOnline: user.lastOnline, rememberMe: user.rememberMe });
     user.token = await this.getToken(user);
     this._mapUserLoginAttempts.set(user.id, null);
-    return this.mapperService.map(User, UserViewModel, user);
+    return user;
   }
 
   async getToken({ id, password, rememberMe }: User): Promise<string> {

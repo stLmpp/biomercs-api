@@ -11,14 +11,12 @@ import { UserAddDto, UserGetDto, UserUpdateDto } from './user.dto';
 import { User } from './user.entity';
 import { AuthCredentialsDto } from '../auth/auth.dto';
 import { FindConditions, ILike } from 'typeorm';
-import { UserViewModel } from './user.view-model';
-import { MapperService } from '../mapper/mapper.service';
 import { isAfter, subDays } from 'date-fns';
 import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class UserService {
-  constructor(private userRepository: UserRepository, private mapperService: MapperService) {}
+  constructor(private userRepository: UserRepository) {}
 
   private _getWhereEmailOrUsername(username?: string, email?: string): FindConditions<User>[] {
     const where: FindConditions<User>[] = [];
@@ -35,13 +33,13 @@ export class UserService {
     return this.userRepository.save(new User().extendDto(dto));
   }
 
-  async update(idUser: number, dto: UserUpdateDto): Promise<UserViewModel> {
+  async update(idUser: number, dto: UserUpdateDto): Promise<User> {
     const user = await this.userRepository.findOne(idUser);
     if (!user) {
       throw new NotFoundException('User not found');
     }
     await this.userRepository.update(idUser, dto);
-    return this.mapperService.map(User, UserViewModel, new User().extendDto({ ...user, ...dto }));
+    return new User().extendDto({ ...user, ...dto });
   }
 
   async updatePasswordAndRemoveLocks(idUser: number, password: string): Promise<User> {
@@ -130,20 +128,12 @@ export class UserService {
     await this.userRepository.update(idUser, { bannedDate: null });
   }
 
-  async findByUsernameOrEmail(
-    usernameOrEmail: string,
-    page: number,
-    limit: number
-  ): Promise<Pagination<UserViewModel>> {
+  async findByUsernameOrEmail(usernameOrEmail: string, page: number, limit: number): Promise<Pagination<User>> {
     usernameOrEmail = `%${usernameOrEmail}%`;
-    const { items, meta } = await this.userRepository.paginate(
+    return this.userRepository.paginate(
       { page, limit },
       { where: [{ username: ILike(usernameOrEmail) }, { email: ILike(usernameOrEmail) }] }
     );
-    return {
-      meta,
-      items: this.mapperService.map(User, UserViewModel, items),
-    };
   }
 
   async lockUser(idUser: number): Promise<void> {
