@@ -43,6 +43,8 @@ import { PlatformGameMiniGameMode } from '../platform/platform-game-mini-game-mo
 import { PlatformGameMiniGameModeViewModel } from '../platform/platform-game-mini-game-mode/platform-game-mini-game-mode.view-model';
 import { PlatformGameMiniGameModeCharacterCostume } from '../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.entity';
 import { PlatformGameMiniGameModeCharacterCostumeViewModel } from '../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.view-model';
+import { PlatformGameMiniGameModeStage } from '../platform/platform-game-mini-game-mode-stage/platform-game-mini-game-mode-stage.entity';
+import { PlatformGameMiniGameModeStageViewModel } from '../platform/platform-game-mini-game-mode-stage/platform-game-mini-game-mode-stage.view-model';
 
 const mapProfiles = [
   mapperService.create(Game, GameViewModel),
@@ -64,6 +66,7 @@ const mapProfiles = [
   mapperService.create(PlatformGameMiniGame, PlatformGameMiniGameViewModel),
   mapperService.create(PlatformGameMiniGameMode, PlatformGameMiniGameModeViewModel),
   mapperService.create(PlatformGameMiniGameModeCharacterCostume, PlatformGameMiniGameModeCharacterCostumeViewModel),
+  mapperService.create(PlatformGameMiniGameModeStage, PlatformGameMiniGameModeStageViewModel),
   mapperService.create(ScoreChangeRequest, ScoreChangeRequestViewModel).for(
     dest => dest.idScoreChangeRequest,
     from => from.id
