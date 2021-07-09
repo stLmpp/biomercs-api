@@ -23,6 +23,7 @@ import { Platform } from './platform.entity';
 import { MapProfile } from '../mapper/map-profile';
 import { PlatformGameMiniGameViewModel } from './platform-game-mini-game/platform-game-mini-game.view-model';
 import { PlatformGameMiniGameModeViewModel } from './platform-game-mini-game-mode/platform-game-mini-game-mode.view-model';
+import { PlatformGameMiniGameModeCharacterCostumeViewModel } from './platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.view-model';
 
 @ApiAuth()
 @ApiTags('Platform')
@@ -38,7 +39,12 @@ export class PlatformController {
     @InjectMapProfile(PlatformGameMiniGame, PlatformGameMiniGameViewModel)
     private mapProfilePlatformGameMiniGame: MapProfile<PlatformGameMiniGame, PlatformGameMiniGameViewModel>,
     @InjectMapProfile(PlatformGameMiniGameMode, PlatformGameMiniGameModeViewModel)
-    private mapProfilePlatformGameMiniGameMode: MapProfile<PlatformGameMiniGameMode, PlatformGameMiniGameModeViewModel>
+    private mapProfilePlatformGameMiniGameMode: MapProfile<PlatformGameMiniGameMode, PlatformGameMiniGameModeViewModel>,
+    @InjectMapProfile(PlatformGameMiniGameModeCharacterCostume, PlatformGameMiniGameModeCharacterCostumeViewModel)
+    private mapProfilePlatformGameMiniGameModeCharacterCostume: MapProfile<
+      PlatformGameMiniGameModeCharacterCostume,
+      PlatformGameMiniGameModeCharacterCostumeViewModel
+    >
   ) {}
 
   @ApiAdmin()
@@ -112,13 +118,15 @@ export class PlatformController {
     @Param(Params.idMiniGame) idMiniGame: number,
     @Param(Params.idMode) idMode: number,
     @Param(Params.idCharacterCostume) idCharacterCostume: number
-  ): Promise<PlatformGameMiniGameModeCharacterCostume> {
-    return this.platformGameMiniGameModeCharacterCostumeService.link(
-      idPlatform,
-      idGame,
-      idMiniGame,
-      idMode,
-      idCharacterCostume
+  ): Promise<PlatformGameMiniGameModeCharacterCostumeViewModel> {
+    return this.mapProfilePlatformGameMiniGameModeCharacterCostume.mapPromise(
+      this.platformGameMiniGameModeCharacterCostumeService.link(
+        idPlatform,
+        idGame,
+        idMiniGame,
+        idMode,
+        idCharacterCostume
+      )
     );
   }
 
