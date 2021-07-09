@@ -11,7 +11,6 @@ import { AuthUser } from '../auth/auth-user.decorator';
 import { AuthPlayerPipe } from '../auth/auth-player.decorator';
 import { Player } from '../player/player.entity';
 import { ModeViewModel } from './mode.view-model';
-import { MapperService } from '../mapper/mapper.service';
 import { MapProfile } from '../mapper/map-profile';
 import { InjectMapProfile } from '../mapper/inject-map-profile';
 
@@ -21,7 +20,6 @@ import { InjectMapProfile } from '../mapper/inject-map-profile';
 export class ModeController {
   constructor(
     private modeService: ModeService,
-    private mapperService: MapperService,
     @InjectMapProfile(Mode, ModeViewModel) private mapProfile: MapProfile<Mode, ModeViewModel>
   ) {}
 

@@ -5,8 +5,6 @@ import { PlayerAddDto, PlayerUpdateDto } from './player.dto';
 import { SteamService } from '../steam/steam.service';
 import { RegionService } from '../region/region.service';
 import { NotOrNull } from '../util/find-operator';
-import { PlayerViewModel, PlayerWithRegionSteamProfileViewModel } from './player.view-model';
-import { MapperService } from '../mapper/mapper.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { ILike } from 'typeorm';
 import { Pagination } from 'nestjs-typeorm-paginate';
@@ -17,8 +15,7 @@ export class PlayerService {
   constructor(
     private playerRepository: PlayerRepository,
     @Inject(forwardRef(() => SteamService)) private steamService: SteamService,
-    private regionService: RegionService,
-    private mapperService: MapperService
+    private regionService: RegionService
   ) {}
 
   @Transactional()
@@ -52,9 +49,8 @@ export class PlayerService {
     return this.playerRepository.findOne({ where: { idUser } });
   }
 
-  async findByIdUserOrThrow(idUser: number): Promise<PlayerViewModel> {
-    const player = await this.playerRepository.findOneOrFail({ where: { idUser } });
-    return this.mapperService.map(Player, PlayerViewModel, player);
+  async findByIdUserOrFail(idUser: number): Promise<Player> {
+    return this.playerRepository.findOneOrFail({ where: { idUser } });
   }
 
   async findByIdSteamProfile(idSteamProfile: number): Promise<Player | undefined> {
@@ -73,22 +69,13 @@ export class PlayerService {
     return this.playerRepository.findOneOrFail(idPlayer, { relations: ['user'] });
   }
 
-  async findByIdMapped(idPlayer: number): Promise<PlayerWithRegionSteamProfileViewModel> {
-    const player = await this.findById(idPlayer);
-    return this.mapperService.map(Player, PlayerWithRegionSteamProfileViewModel, player);
-  }
-
-  async update(idPlayer: number, dto: PlayerUpdateDto): Promise<PlayerWithRegionSteamProfileViewModel> {
+  async update(idPlayer: number, dto: PlayerUpdateDto): Promise<Player> {
     const player = await this.playerRepository.findOneOrFail(idPlayer);
     await this.playerRepository.update(idPlayer, dto);
     if (dto.idRegion && player.idRegion !== dto.idRegion) {
       player.region = await this.regionService.findById(dto.idRegion);
     }
-    return this.mapperService.map(
-      Player,
-      PlayerWithRegionSteamProfileViewModel,
-      new Player().extendDto({ ...player, ...dto })
-    );
+    return new Player().extendDto({ ...player, ...dto });
   }
 
   async updateIdUser(idPlayer: number, idUser: number): Promise<void> {
@@ -107,7 +94,7 @@ export class PlayerService {
     return this.steamService.openIdUrl(player);
   }
 
-  async unlinkSteamProfile(idPlayer: number): Promise<PlayerWithRegionSteamProfileViewModel> {
+  async unlinkSteamProfile(idPlayer: number): Promise<Player> {
     return this.update(idPlayer, { idSteamProfile: undefined });
   }
 
@@ -123,18 +110,11 @@ export class PlayerService {
     return this.playerRepository.findByIds(idPlayers, { relations: ['user'] });
   }
 
-  async findBySearch(
-    personaName: string,
-    idUser: number,
-    page: number,
-    limit: number
-  ): Promise<Pagination<PlayerViewModel>> {
-    const { items, meta } = await this.playerRepository.paginate(
+  async findBySearch(personaName: string, idUser: number, page: number, limit: number): Promise<Pagination<Player>> {
+    return this.playerRepository.paginate(
       { page, limit },
       { where: { personaName: ILike(`%${personaName}%`), idUser: NotOrNull(idUser) } }
     );
-    const players = this.mapperService.map(Player, PlayerViewModel, items);
-    return new Pagination(players, meta);
   }
 
   async personaNameExists(personaName: string): Promise<boolean> {

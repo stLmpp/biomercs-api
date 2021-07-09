@@ -10,17 +10,25 @@ import { PlayerViewModel, PlayerWithRegionSteamProfileViewModel } from './player
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ApiPagination } from '../shared/decorator/api-pagination';
+import { InjectMapProfile } from '../mapper/inject-map-profile';
+import { Player } from './player.entity';
+import { MapProfile } from '../mapper/map-profile';
 
 @ApiAuth()
 @ApiTags('Player')
 @Controller('player')
 export class PlayerController {
-  constructor(private playerService: PlayerService) {}
+  constructor(
+    private playerService: PlayerService,
+    @InjectMapProfile(Player, PlayerViewModel) private mapProfile: MapProfile<Player, PlayerViewModel>,
+    @InjectMapProfile(Player, PlayerWithRegionSteamProfileViewModel)
+    private mapProfileWithRegionSteamProfile: MapProfile<Player, PlayerWithRegionSteamProfileViewModel>
+  ) {}
 
   @ApiAdmin()
   @Post()
   async create(@Body() dto: PlayerAddDto): Promise<PlayerViewModel> {
-    return this.playerService.add({ ...dto, noUser: true });
+    return this.mapProfile.mapPromise(this.playerService.add({ ...dto, noUser: true }));
   }
 
   @Put(`:${Params.idPlayer}/link-steam`)
@@ -30,7 +38,7 @@ export class PlayerController {
 
   @Put(`:${Params.idPlayer}/unlink-steam`)
   async unlinkSteamProfile(@Param(Params.idPlayer) idPlayer: number): Promise<PlayerViewModel> {
-    return this.playerService.unlinkSteamProfile(idPlayer);
+    return this.mapProfile.mapPromise(this.playerService.unlinkSteamProfile(idPlayer));
   }
 
   @Get(`persona-name/:${Params.personaName}/id`)
@@ -45,7 +53,7 @@ export class PlayerController {
 
   @Get('auth')
   async findAuthPlayer(@AuthUser() user: User): Promise<PlayerViewModel> {
-    return this.playerService.findByIdUserOrThrow(user.id);
+    return this.mapProfile.mapPromise(this.playerService.findByIdUserOrFail(user.id));
   }
 
   @ApiPagination(PlayerViewModel)
@@ -56,7 +64,9 @@ export class PlayerController {
     @Query(Params.page) page: number,
     @Query(Params.limit) limit: number
   ): Promise<Pagination<PlayerViewModel>> {
-    return this.playerService.findBySearch(personaName, user.id, page, limit);
+    const { items, meta } = await this.playerService.findBySearch(personaName, user.id, page, limit);
+    const players = this.mapProfile.map(items);
+    return new Pagination(players, meta);
   }
 
   @Get('exists')
@@ -66,7 +76,7 @@ export class PlayerController {
 
   @Get(`:${Params.idPlayer}`)
   async findById(@Param(Params.idPlayer) idPlayer: number): Promise<PlayerWithRegionSteamProfileViewModel> {
-    return this.playerService.findByIdMapped(idPlayer);
+    return this.mapProfileWithRegionSteamProfile.mapPromise(this.playerService.findById(idPlayer));
   }
 
   @Patch(`:${Params.idPlayer}`)
@@ -74,7 +84,7 @@ export class PlayerController {
     @Param(Params.idPlayer) idPlayer: number,
     @Body() dto: PlayerUpdateDto
   ): Promise<PlayerWithRegionSteamProfileViewModel> {
-    return this.playerService.update(idPlayer, dto);
+    return this.mapProfileWithRegionSteamProfile.mapPromise(this.playerService.update(idPlayer, dto));
   }
 
   @ApiBody({
