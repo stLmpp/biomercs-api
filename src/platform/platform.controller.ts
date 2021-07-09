@@ -22,6 +22,7 @@ import { InjectMapProfile } from '../mapper/inject-map-profile';
 import { Platform } from './platform.entity';
 import { MapProfile } from '../mapper/map-profile';
 import { PlatformGameMiniGameViewModel } from './platform-game-mini-game/platform-game-mini-game.view-model';
+import { PlatformGameMiniGameModeViewModel } from './platform-game-mini-game-mode/platform-game-mini-game-mode.view-model';
 
 @ApiAuth()
 @ApiTags('Platform')
@@ -35,7 +36,9 @@ export class PlatformController {
     private platformGameMiniGameModeStageService: PlatformGameMiniGameModeStageService,
     @InjectMapProfile(Platform, PlatformViewModel) private mapProfile: MapProfile<Platform, PlatformViewModel>,
     @InjectMapProfile(PlatformGameMiniGame, PlatformGameMiniGameViewModel)
-    private mapProfilePlatformGameMiniGame: MapProfile<PlatformGameMiniGame, PlatformGameMiniGameViewModel>
+    private mapProfilePlatformGameMiniGame: MapProfile<PlatformGameMiniGame, PlatformGameMiniGameViewModel>,
+    @InjectMapProfile(PlatformGameMiniGameMode, PlatformGameMiniGameModeViewModel)
+    private mapProfilePlatformGameMiniGameMode: MapProfile<PlatformGameMiniGameMode, PlatformGameMiniGameModeViewModel>
   ) {}
 
   @ApiAdmin()
@@ -82,8 +85,10 @@ export class PlatformController {
     @Param(Params.idGame) idGame: number,
     @Param(Params.idMiniGame) idMiniGame: number,
     @Param(Params.idMode) idMode: number
-  ): Promise<PlatformGameMiniGameMode> {
-    return this.platformGameMiniGameModeService.link(idPlatform, idGame, idMiniGame, idMode);
+  ): Promise<PlatformGameMiniGameModeViewModel> {
+    return this.mapProfilePlatformGameMiniGameMode.mapPromise(
+      this.platformGameMiniGameModeService.link(idPlatform, idGame, idMiniGame, idMode)
+    );
   }
 
   @ApiAdmin()
