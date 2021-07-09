@@ -18,6 +18,9 @@ import { AuthUser } from '../auth/auth-user.decorator';
 import { AuthPlayerPipe } from '../auth/auth-player.decorator';
 import { Player } from '../player/player.entity';
 import { PlatformViewModel } from './platform.view-model';
+import { InjectMapProfile } from '../mapper/inject-map-profile';
+import { Platform } from './platform.entity';
+import { MapProfile } from '../mapper/map-profile';
 
 @ApiAuth()
 @ApiTags('Platform')
@@ -28,13 +31,14 @@ export class PlatformController {
     private platformGameMiniGameService: PlatformGameMiniGameService,
     private platformGameMiniGameModeService: PlatformGameMiniGameModeService,
     private platformGameMiniGameModeCharacterCostumeService: PlatformGameMiniGameModeCharacterCostumeService,
-    private platformGameMiniGameModeStageService: PlatformGameMiniGameModeStageService
+    private platformGameMiniGameModeStageService: PlatformGameMiniGameModeStageService,
+    @InjectMapProfile(Platform, PlatformViewModel) private mapProfile: MapProfile<Platform, PlatformViewModel>
   ) {}
 
   @ApiAdmin()
   @Post()
   async add(@Body() dto: PlatformAddDto): Promise<PlatformViewModel> {
-    return this.platformService.add(dto);
+    return this.mapProfile.mapPromise(this.platformService.add(dto));
   }
 
   @ApiAdmin()
@@ -43,7 +47,7 @@ export class PlatformController {
     @Param(Params.idPlatform) idPlatform: number,
     @Body() dto: PlatformUpdateDto
   ): Promise<PlatformViewModel> {
-    return this.platformService.update(idPlatform, dto);
+    return this.mapProfile.mapPromise(this.platformService.update(idPlatform, dto));
   }
 
   @ApiAdmin()
@@ -158,22 +162,24 @@ export class PlatformController {
 
   @Get()
   async findAll(): Promise<PlatformViewModel[]> {
-    return this.platformService.findAll();
+    return this.mapProfile.mapPromise(this.platformService.findAll());
   }
 
   @ApiAdmin()
   @Get('approval/admin')
   async findApprovalAdmin(): Promise<PlatformViewModel[]> {
-    return this.platformService.findApproval(ScoreStatusEnum.AwaitingApprovalAdmin);
+    return this.mapProfile.mapPromise(this.platformService.findApproval(ScoreStatusEnum.AwaitingApprovalAdmin));
   }
 
   @Get('approval/player')
   async findApprovalUser(@AuthUser(AuthPlayerPipe) player: Player): Promise<PlatformViewModel[]> {
-    return this.platformService.findApproval(ScoreStatusEnum.AwaitingApprovalPlayer, player.id);
+    return this.mapProfile.mapPromise(
+      this.platformService.findApproval(ScoreStatusEnum.AwaitingApprovalPlayer, player.id)
+    );
   }
 
   @Get(`:${Params.idPlatform}`)
   async findById(@Param(Params.idPlatform) idPlatform: number): Promise<PlatformViewModel> {
-    return this.platformService.findById(idPlatform);
+    return this.mapProfile.mapPromise(this.platformService.findById(idPlatform));
   }
 }
