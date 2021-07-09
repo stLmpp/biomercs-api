@@ -4,10 +4,11 @@ import { Platform } from '../platform.entity';
 import { GameMiniGame } from '../../game/game-mini-game/game-mini-game.entity';
 import { Property } from '../../mapper/property.decorator';
 import { PlatformGameMiniGameMode } from '../platform-game-mini-game-mode/platform-game-mini-game-mode.entity';
+import { PlatformGameMiniGameInterface } from './platform-game-mini-game.interface';
 
 @Unique(['idPlatform', 'idGameMiniGame'])
 @Entity()
-export class PlatformGameMiniGame extends BaseEntity {
+export class PlatformGameMiniGame extends BaseEntity implements PlatformGameMiniGameInterface {
   @Property()
   @Column()
   idPlatform!: number;

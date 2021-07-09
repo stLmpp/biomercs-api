@@ -37,6 +37,8 @@ import { Character } from '../character/character.entity';
 import { CharacterViewModel, CharacterViewModelWithCharacterCostumes } from '../character/character.view-model';
 import { GameMiniGame } from '../game/game-mini-game/game-mini-game.entity';
 import { GameMiniGameViewModel } from '../game/game-mini-game/game-mini-game.view-model';
+import { PlatformGameMiniGame } from '../platform/platform-game-mini-game/platform-game-mini-game.entity';
+import { PlatformGameMiniGameViewModel } from '../platform/platform-game-mini-game/platform-game-mini-game.view-model';
 
 const mapProfiles = [
   mapperService.create(Game, GameViewModel),
@@ -55,6 +57,7 @@ const mapProfiles = [
   mapperService.create(Character, CharacterViewModel),
   mapperService.create(Character, CharacterViewModelWithCharacterCostumes),
   mapperService.create(GameMiniGame, GameMiniGameViewModel),
+  mapperService.create(PlatformGameMiniGame, PlatformGameMiniGameViewModel),
   mapperService.create(ScoreChangeRequest, ScoreChangeRequestViewModel).for(
     dest => dest.idScoreChangeRequest,
     from => from.id
