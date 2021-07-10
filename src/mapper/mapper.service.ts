@@ -1,13 +1,8 @@
 import { Type } from '../util/type';
-import { compilePropertyMetadata } from './property.decorator';
 import { MapProfileNotFoundError } from './map-profile-not-found-error';
 import { MapProfile } from './map-profile';
 
 export class MapperService {
-  constructor() {
-    compilePropertyMetadata();
-  }
-
   private _profiles = new Map<Type, Map<Type, MapProfile<any, any>>>();
 
   private _getOrCreateProfiles<From, To>(from: Type<From>): Map<Type, MapProfile<From, To>> {

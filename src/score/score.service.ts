@@ -11,9 +11,9 @@ import { MapperService } from '../mapper/mapper.service';
 import { PlayerService } from '../player/player.service';
 import { PlatformGameMiniGameModeCharacterCostumeService } from '../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.service';
 import {
-  ScoreTableViewModel,
+  ScoreTable,
   ScoreTableWorldRecordViewModel,
-  ScoreTopTableViewModel,
+  ScoreTopTable,
   ScoreTopTableWorldRecordViewModel,
 } from './view-model/score-table.view-model';
 import { User } from '../user/user.entity';
@@ -29,7 +29,7 @@ import { arrayRemoveMutate, orderBy } from 'st-utils';
 import { addSeconds } from 'date-fns';
 import {
   ScoreChangeRequestsPaginationViewModel,
-  ScoreChangeRequestsViewModel,
+  ScoreWithScoreChangeRequestsViewModel,
 } from './view-model/score-change-request.view-model';
 import { ScoreChangeRequestService } from './score-change-request/score-change-request.service';
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
@@ -129,7 +129,7 @@ export class ScoreService {
   async add(
     { idPlatform, idGame, idMiniGame, idMode, idStage, scorePlayers, ...dto }: ScoreAddDto,
     user: User
-  ): Promise<ScoreViewModel> {
+  ): Promise<Score> {
     const [mode, createdByIdPlayer] = await Promise.all([
       this.modeService.findById(idMode),
       this.playerService.findIdByIdUser(user.id),
@@ -172,7 +172,7 @@ export class ScoreService {
     }
     await this.scorePlayerService.addMany(score.id, idPlatform, idGame, idMiniGame, idMode, scorePlayers);
     this.scoreGateway.updateCountApprovals();
-    return this.findByIdMapped(score.id);
+    return this.scoreRepository.findByIdWithAllRelations(score.id);
   }
 
   @Transactional()
@@ -283,35 +283,27 @@ export class ScoreService {
     idMode: number,
     page: number,
     limit: number
-  ): Promise<ScoreTopTableViewModel> {
+  ): Promise<ScoreTopTable> {
     const [platformGameMiniGameModeStages, [scoreMap, meta]] = await Promise.all([
       this.platformGameMiniGameModeStageService.findByPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode),
       this.scoreRepository.findLeaderboards(idPlatform, idGame, idMiniGame, idMode, page, limit),
     ]);
-
-    const scoreTableViewModel: ScoreTableViewModel[] = [];
+    const scoreTables: ScoreTable[] = [];
     let position = (page - 1) * limit + 1;
     for (const [idPlayer, scores] of scoreMap) {
       const player = scores
         .find(score => score)!
         .scorePlayers.find(scorePlayer => scorePlayer.idPlayer === idPlayer)!.player;
-      const scoreTable = new ScoreTableViewModel();
-      scoreTable.idPlayer = player.id;
-      scoreTable.personaName = player.personaName;
-      const scoresMapped = this.mapperService.map(Score, ScoreViewModel, scores);
+      const scoreTable = new ScoreTable();
+      scoreTable.player = player;
       scoreTable.scores = platformGameMiniGameModeStages.map(platformGameMiniGameModeStage =>
-        scoresMapped.find(score => score.idPlatformGameMiniGameModeStage === platformGameMiniGameModeStage.id)
+        scores.find(score => score.idPlatformGameMiniGameModeStage === platformGameMiniGameModeStage.id)
       );
       scoreTable.total = scoreTable.scores.reduce((acc, score) => acc + (score?.score ?? 0), 0);
       scoreTable.position = position++;
-      scoreTableViewModel.push(scoreTable);
+      scoreTables.push(scoreTable);
     }
-    const stages = this.mapperService.map(
-      Stage,
-      StageViewModel,
-      platformGameMiniGameModeStages.reduce((acc, item) => [...acc, item.stage], [] as Stage[])
-    );
-    return { scoreTables: scoreTableViewModel, stages, meta };
+    return new ScoreTopTable(platformGameMiniGameModeStages, scoreTables, meta);
   }
 
   async findWorldRecordsTable(
@@ -440,7 +432,7 @@ export class ScoreService {
     const { items, meta } = await this.scoreRepository.findScoresWithChangeRequests(idPlayer, page, limit);
     const viewModel = new ScoreChangeRequestsPaginationViewModel();
     viewModel.meta = meta;
-    viewModel.scores = this.mapperService.map(Score, ScoreChangeRequestsViewModel, items);
+    viewModel.scores = this.mapperService.map(Score, ScoreWithScoreChangeRequestsViewModel, items);
     return viewModel;
   }
 

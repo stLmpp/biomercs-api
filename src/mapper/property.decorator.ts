@@ -29,15 +29,11 @@ function setPropertyMetadata(target: any, propertyKey: string | symbol, metadata
   Reflect.defineMetadata(PROPERTY_METADATA_KEY, [...storedMetadata, metadata], target);
 }
 
-export function compilePropertyMetadata(): void {
-  for (const target of targets) {
-    const metadata: PropertyMetadata[] = Reflect.getMetadata(PROPERTY_METADATA_KEY, target) ?? [];
-    Reflect.defineMetadata(
-      PROPERTY_METADATA_KEY,
-      metadata.map(meta => ({ ...meta, type: meta.typeFn ? meta.typeFn() : meta.type })),
-      target
-    );
-  }
+function getPropertiesMetadataMapped(target: Type): PropertyMetadata[] {
+  return (Reflect.getMetadata(PROPERTY_METADATA_KEY, target) ?? []).map((meta: PropertyMetadata) => ({
+    ...meta,
+    type: meta.typeFn ? meta.typeFn() : meta.type,
+  }));
 }
 
 export function getPropertiesMetadata<T>(target: Type<T>): PropertyMetadata<T>[] {
@@ -46,9 +42,9 @@ export function getPropertiesMetadata<T>(target: Type<T>): PropertyMetadata<T>[]
   }
   const prototype = Object.getPrototypeOf(target);
   const parentConstructor = prototype.constructor;
-  const properties: PropertyMetadata<T>[] = Reflect.getMetadata(PROPERTY_METADATA_KEY, target) ?? [];
-  const propertiesParent: PropertyMetadata<T>[] = Reflect.getMetadata(PROPERTY_METADATA_KEY, parentConstructor) ?? [];
-  const propertiesPrototype: PropertyMetadata<T>[] = Reflect.getMetadata(PROPERTY_METADATA_KEY, prototype) ?? [];
+  const properties: PropertyMetadata<T>[] = getPropertiesMetadataMapped(target);
+  const propertiesParent: PropertyMetadata<T>[] = getPropertiesMetadataMapped(parentConstructor);
+  const propertiesPrototype: PropertyMetadata<T>[] = getPropertiesMetadataMapped(prototype);
   const propertiesGrouped = groupBy([...properties, ...propertiesParent, ...propertiesPrototype], 'propertyKey', 'map');
   const metadataList: PropertyMetadata[] = [];
   for (const [propertyKey, metadata] of propertiesGrouped) {

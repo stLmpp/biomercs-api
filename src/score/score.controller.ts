@@ -7,7 +7,11 @@ import { Params } from '../shared/type/params';
 import { ScoreViewModel } from './view-model/score.view-model';
 import { AuthUser } from '../auth/auth-user.decorator';
 import { User } from '../user/user.entity';
-import { ScoreTopTableViewModel, ScoreTopTableWorldRecordViewModel } from './view-model/score-table.view-model';
+import {
+  ScoreTopTable,
+  ScoreTopTableViewModel,
+  ScoreTopTableWorldRecordViewModel,
+} from './view-model/score-table.view-model';
 import { OptionalQueryPipe } from '../shared/pipe/optional-query.pipe';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ScoreApprovalViewModel } from './view-model/score-approval.view-model';
@@ -21,16 +25,27 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { ApiPagination } from '../shared/decorator/api-pagination';
 import { ScoreGroupedByStatusViewModel } from './view-model/score-grouped-by-status.view-model';
 import { ScoreStatusEnum } from './score-status/score-status.enum';
+import { InjectMapProfile } from '../mapper/inject-map-profile';
+import { Score } from './score.entity';
+import { MapProfile } from '../mapper/map-profile';
+import { ScoreChangeRequestViewModel } from './score-change-request/score-change-request.view-model';
 
 @ApiAuth()
 @ApiTags('Score')
 @Controller('score')
 export class ScoreController {
-  constructor(private scoreService: ScoreService) {}
+  constructor(
+    private scoreService: ScoreService,
+    @InjectMapProfile(Score, ScoreViewModel) private mapProfile: MapProfile<Score, ScoreViewModel>,
+    @InjectMapProfile(ScoreChangeRequest, ScoreChangeRequestViewModel)
+    private mapProfileScoreChangeRequest: MapProfile<ScoreChangeRequest, ScoreChangeRequestViewModel>,
+    @InjectMapProfile(ScoreTopTable, ScoreTopTableViewModel)
+    private mapProfileScoreTopTable: MapProfile<ScoreTopTable, ScoreTopTableViewModel>
+  ) {}
 
   @Post()
   async add(@Body() dto: ScoreAddDto, @AuthUser() user: User): Promise<ScoreViewModel> {
-    return this.scoreService.add(dto, user);
+    return this.mapProfile.mapPromise(this.scoreService.add(dto, user));
   }
 
   @ApiQuery({ name: Params.limit, required: false })
@@ -45,7 +60,9 @@ export class ScoreController {
     @Query(Params.page) page: number,
     @Query(Params.limit, OptionalQueryPipe) limit?: number
   ): Promise<ScoreTopTableViewModel> {
-    return this.scoreService.findLeaderboards(idPlatform, idGame, idMiniGame, idMode, page, limit ?? 10);
+    return this.mapProfileScoreTopTable.mapPromise(
+      this.scoreService.findLeaderboards(idPlatform, idGame, idMiniGame, idMode, page, limit ?? 10)
+    );
   }
 
   @Get(
@@ -215,8 +232,11 @@ export class ScoreController {
   @ApiAdmin()
   @ApiBody({ type: String, isArray: true })
   @Post(`:${Params.idScore}/request-changes`)
-  async requestChanges(@Param(Params.idScore) idScore: number, @Body() dtos: string[]): Promise<ScoreChangeRequest[]> {
-    return this.scoreService.requestChanges(idScore, dtos);
+  async requestChanges(
+    @Param(Params.idScore) idScore: number,
+    @Body() dtos: string[]
+  ): Promise<ScoreChangeRequestViewModel[]> {
+    return this.mapProfileScoreChangeRequest.mapPromise(this.scoreService.requestChanges(idScore, dtos));
   }
 
   @Patch(`:${Params.idScore}/fulfil-change-requests`)

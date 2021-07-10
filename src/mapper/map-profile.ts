@@ -1,7 +1,7 @@
 import { Type } from '../util/type';
 import { getPropertiesMetadata, PropertyMetadata, toPropertiesObject } from './property.decorator';
 import { plainToClass } from 'class-transformer';
-import { isArray, isFunction } from 'st-utils';
+import { isArray, isFunction, isNil } from 'st-utils';
 import { MapperService } from './mapper.service';
 
 type MapProperty<T, K extends keyof T = keyof T> = ((entity: T) => any) | K;
@@ -45,6 +45,9 @@ export class MapProfile<From, To> {
   readonly token = Symbol(`${this.from.name}_${this.to.name}`);
 
   private _mapOne(value: From): To {
+    if (isNil(value)) {
+      return value as any;
+    }
     const object: Record<any, any> = {};
     for (const { keys, from } of this._propertiesMultiple) {
       const values = from(value);

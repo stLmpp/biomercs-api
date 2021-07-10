@@ -14,10 +14,7 @@ import { RegionViewModel } from '../region/region.view-model';
 import { Rule } from '../rule/rule.entity';
 import { RuleViewModel } from '../rule/rule.view-model';
 import { ScoreChangeRequest } from '../score/score-change-request/score-change-request.entity';
-import {
-  ScoreChangeRequestsViewModel,
-  ScoreChangeRequestViewModel,
-} from '../score/view-model/score-change-request.view-model';
+import { ScoreWithScoreChangeRequestsViewModel } from '../score/view-model/score-change-request.view-model';
 import { ScorePlayer } from '../score/score-player/score-player.entity';
 import { ScorePlayerViewModel, ScoreViewModel } from '../score/view-model/score.view-model';
 import { Type } from '../util/type';
@@ -47,8 +44,15 @@ import { PlatformGameMiniGameModeStage } from '../platform/platform-game-mini-ga
 import { PlatformGameMiniGameModeStageViewModel } from '../platform/platform-game-mini-game-mode-stage/platform-game-mini-game-mode-stage.view-model';
 import { ScoreApprovalMotive } from '../score/score-approval-motive/score-approval-motive.entity';
 import { ScoreApprovalMotiveViewModel } from '../score/score-approval-motive/score-approval-motive.view-model';
+import { ScoreChangeRequestViewModel } from '../score/score-change-request/score-change-request.view-model';
+import {
+  ScoreTable,
+  ScoreTableViewModel,
+  ScoreTopTable,
+  ScoreTopTableViewModel,
+} from '../score/view-model/score-table.view-model';
 
-const mapProfiles = [
+const mapProfiles: MapProfile<any, any>[] = [
   mapperService.create(Game, GameViewModel),
   mapperService.create(MiniGame, MiniGameViewModel),
   mapperService.create(Platform, PlatformViewModel),
@@ -70,10 +74,7 @@ const mapProfiles = [
   mapperService.create(PlatformGameMiniGameModeCharacterCostume, PlatformGameMiniGameModeCharacterCostumeViewModel),
   mapperService.create(PlatformGameMiniGameModeStage, PlatformGameMiniGameModeStageViewModel),
   mapperService.create(ScoreApprovalMotive, ScoreApprovalMotiveViewModel),
-  mapperService.create(ScoreChangeRequest, ScoreChangeRequestViewModel).for(
-    dest => dest.idScoreChangeRequest,
-    from => from.id
-  ),
+  mapperService.create(ScoreChangeRequest, ScoreChangeRequestViewModel),
   mapperService
     .create(ScorePlayer, ScorePlayerViewModel)
     .for(
@@ -105,7 +106,22 @@ const mapProfiles = [
       from => from.id
     ),
   createScoreViewModeMap(ScoreViewModel),
-  createScoreViewModeMap(ScoreChangeRequestsViewModel),
+  createScoreViewModeMap(ScoreWithScoreChangeRequestsViewModel),
+  mapperService
+    .create(ScoreTable, ScoreTableViewModel)
+    .for(
+      dest => dest.idPlayer,
+      from => from.player.id
+    )
+    .for(
+      dest => dest.personaName,
+      from => from.player.personaName
+    ),
+  mapperService.create(ScoreTopTable, ScoreTopTableViewModel).for(
+    dest => dest.stages,
+    from =>
+      from.platformGameMiniGameModeStages.map(platformGameMiniGameModeStage => platformGameMiniGameModeStage.stage)
+  ),
 ];
 
 function createScoreViewModeMap<T extends ScoreViewModel>(type: Type<T>): MapProfile<Score, T> {
