@@ -51,6 +51,10 @@ import {
   ScoreTopTable,
   ScoreTopTableViewModel,
 } from '../score/view-model/score-table.view-model';
+import {
+  ScoreApprovalPagination,
+  ScoreApprovalPaginationViewModel,
+} from '../score/view-model/score-approval.view-model';
 
 const mapProfiles: MapProfile<any, any>[] = [
   mapperService.create(Game, GameViewModel),
@@ -100,10 +104,6 @@ const mapProfiles: MapProfile<any, any>[] = [
     .for(
       dest => dest.characterName,
       from => from.platformGameMiniGameModeCharacterCostume.characterCostume.character.name
-    )
-    .for(
-      dest => dest.idScorePlayer,
-      from => from.id
     ),
   createScoreViewModeMap(ScoreViewModel),
   createScoreViewModeMap(ScoreWithScoreChangeRequestsViewModel),
@@ -122,15 +122,12 @@ const mapProfiles: MapProfile<any, any>[] = [
     from =>
       from.platformGameMiniGameModeStages.map(platformGameMiniGameModeStage => platformGameMiniGameModeStage.stage)
   ),
+  mapperService.create(ScoreApprovalPagination, ScoreApprovalPaginationViewModel),
 ];
 
 function createScoreViewModeMap<T extends ScoreViewModel>(type: Type<T>): MapProfile<Score, T> {
   return mapperService
     .create(Score, type)
-    .for(
-      dest => dest.idScore,
-      from => from.id
-    )
     .for(
       dest => dest.idPlatformGameMiniGameMode,
       from => from.platformGameMiniGameModeStage.idPlatformGameMiniGameMode

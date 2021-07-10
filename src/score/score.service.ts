@@ -20,7 +20,7 @@ import { User } from '../user/user.entity';
 import { ScoreApprovalParams } from './score.params';
 import { ScorePlayerAddDto } from './score-player/score-player.dto';
 import { ScoreApprovalService } from './score-approval/score-approval.service';
-import { ScoreApprovalViewModel } from './view-model/score-approval.view-model';
+import { ScoreApprovalPagination } from './view-model/score-approval.view-model';
 import { ScoreApprovalAddDto } from './score-approval/score-approval.dto';
 import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.enum';
 import { Stage } from '../stage/stage.entity';
@@ -366,27 +366,21 @@ export class ScoreService {
     return scoreTopTableViewModel;
   }
 
-  async findApprovalListAdmin(params: ScoreApprovalParams): Promise<ScoreApprovalViewModel> {
+  async findApprovalListAdmin(params: ScoreApprovalParams): Promise<ScoreApprovalPagination> {
     if (!params.idPlatform || !params.page) {
       throw new BadRequestException('idPlatform and page are required');
     }
-    const { items, meta } = await this.scoreRepository.findApprovalListAdmin(params);
-    const scoreApprovalVW = new ScoreApprovalViewModel();
-    scoreApprovalVW.meta = meta;
-    scoreApprovalVW.scores = this.mapperService.map(Score, ScoreViewModel, items);
-    return scoreApprovalVW;
+    const pagination = await this.scoreRepository.findApprovalListAdmin(params);
+    return new ScoreApprovalPagination(pagination);
   }
 
-  async findApprovalListUser(user: User, params: ScoreApprovalParams): Promise<ScoreApprovalViewModel> {
+  async findApprovalListUser(user: User, params: ScoreApprovalParams): Promise<ScoreApprovalPagination> {
     if (!params.idPlatform || !params.page) {
       throw new BadRequestException('idPlatform and page are required');
     }
     const idPlayer = await this.playerService.findIdByIdUser(user.id);
-    const { items, meta } = await this.scoreRepository.findApprovalListUser(idPlayer, params);
-    const scoreApprovalVW = new ScoreApprovalViewModel();
-    scoreApprovalVW.meta = meta;
-    scoreApprovalVW.scores = this.mapperService.map(Score, ScoreViewModel, items);
-    return scoreApprovalVW;
+    const pagination = await this.scoreRepository.findApprovalListUser(idPlayer, params);
+    return new ScoreApprovalPagination(pagination);
   }
 
   async findTopScoreByIdPlatformGameMiniGameModeStage(

@@ -14,7 +14,7 @@ import {
 } from './view-model/score-table.view-model';
 import { OptionalQueryPipe } from '../shared/pipe/optional-query.pipe';
 import { ApiAdmin } from '../auth/api-admin.decorator';
-import { ScoreApprovalViewModel } from './view-model/score-approval.view-model';
+import { ScoreApprovalPagination, ScoreApprovalPaginationViewModel } from './view-model/score-approval.view-model';
 import { ScoreApprovalAddDto } from './score-approval/score-approval.dto';
 import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.enum';
 import { ApiOrderByAndDir } from '../shared/order-by/api-order-by';
@@ -40,7 +40,9 @@ export class ScoreController {
     @InjectMapProfile(ScoreChangeRequest, ScoreChangeRequestViewModel)
     private mapProfileScoreChangeRequest: MapProfile<ScoreChangeRequest, ScoreChangeRequestViewModel>,
     @InjectMapProfile(ScoreTopTable, ScoreTopTableViewModel)
-    private mapProfileScoreTopTable: MapProfile<ScoreTopTable, ScoreTopTableViewModel>
+    private mapProfileScoreTopTable: MapProfile<ScoreTopTable, ScoreTopTableViewModel>,
+    @InjectMapProfile(ScoreApprovalPagination, ScoreApprovalPaginationViewModel)
+    private mapProfileScoreApprovalPagination: MapProfile<ScoreApprovalPagination, ScoreApprovalPaginationViewModel>
   ) {}
 
   @Post()
@@ -96,18 +98,20 @@ export class ScoreController {
     @Query(Params.limit, OptionalQueryPipe) limit?: number,
     @Query(Params.orderBy, OptionalQueryPipe) orderBy?: string,
     @Query(Params.orderByDirection, OptionalQueryPipe) orderByDirection?: OrderByDirection
-  ): Promise<ScoreApprovalViewModel> {
-    return this.scoreService.findApprovalListAdmin({
-      idMiniGame,
-      idMode,
-      idPlatform,
-      limit: limit ?? 10,
-      page,
-      idGame,
-      orderBy: orderBy ?? 'creationDate',
-      orderByDirection: orderByDirection ?? 'desc',
-      idStage,
-    });
+  ): Promise<ScoreApprovalPaginationViewModel> {
+    return this.mapProfileScoreApprovalPagination.mapPromise(
+      this.scoreService.findApprovalListAdmin({
+        idMiniGame,
+        idMode,
+        idPlatform,
+        limit: limit ?? 10,
+        page,
+        idGame,
+        orderBy: orderBy ?? 'creationDate',
+        orderByDirection: orderByDirection ?? 'desc',
+        idStage,
+      })
+    );
   }
 
   @Get('approval/admin/count')
@@ -134,18 +138,20 @@ export class ScoreController {
     @Query(Params.limit, OptionalQueryPipe) limit?: number,
     @Query(Params.orderBy, OptionalQueryPipe) orderBy?: string,
     @Query(Params.orderByDirection, OptionalQueryPipe) orderByDirection?: OrderByDirection
-  ): Promise<ScoreApprovalViewModel> {
-    return this.scoreService.findApprovalListUser(user, {
-      idMiniGame,
-      idMode,
-      idPlatform,
-      limit: limit ?? 10,
-      page,
-      idGame,
-      orderBy: orderBy ?? 'creationDate',
-      orderByDirection: orderByDirection ?? 'desc',
-      idStage,
-    });
+  ): Promise<ScoreApprovalPaginationViewModel> {
+    return this.mapProfileScoreApprovalPagination.mapPromise(
+      this.scoreService.findApprovalListUser(user, {
+        idMiniGame,
+        idMode,
+        idPlatform,
+        limit: limit ?? 10,
+        page,
+        idGame,
+        orderBy: orderBy ?? 'creationDate',
+        orderByDirection: orderByDirection ?? 'desc',
+        idStage,
+      })
+    );
   }
 
   @Get('approval/player/count')
