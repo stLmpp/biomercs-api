@@ -2,28 +2,23 @@ import { Injectable } from '@nestjs/common';
 import { StageRepository } from './stage.repository';
 import { Stage } from './stage.entity';
 import { StageAddDto, StagePlatformsGamesMiniGamesModesDto, StageUpdateDto } from './stage.dto';
-import { StageViewModel } from './stage.view-model';
-import { MapperService } from '../mapper/mapper.service';
 import { ScoreStatusEnum } from '../score/score-status/score-status.enum';
 
 @Injectable()
 export class StageService {
-  constructor(private stageRepository: StageRepository, private mapperService: MapperService) {}
+  constructor(private stageRepository: StageRepository) {}
 
-  async findById(idStage: number): Promise<StageViewModel> {
-    const stage = await this.stageRepository.findOneOrFail(idStage);
-    return this.mapperService.map(Stage, StageViewModel, stage);
+  async findById(idStage: number): Promise<Stage> {
+    return this.stageRepository.findOneOrFail(idStage);
   }
 
-  async add(dto: StageAddDto): Promise<StageViewModel> {
-    const stage = await this.stageRepository.save(new Stage().extendDto(dto));
-    return this.mapperService.map(Stage, StageViewModel, stage);
+  async add(dto: StageAddDto): Promise<Stage> {
+    return this.stageRepository.save(new Stage().extendDto(dto));
   }
 
-  async update(idStage: number, dto: StageUpdateDto): Promise<StageViewModel> {
+  async update(idStage: number, dto: StageUpdateDto): Promise<Stage> {
     await this.stageRepository.update(idStage, dto);
-    const stage = await this.stageRepository.findOneOrFail(idStage);
-    return this.mapperService.map(Stage, StageViewModel, stage);
+    return this.stageRepository.findOneOrFail(idStage);
   }
 
   async findByIdPlatformGameMiniGameMode(
@@ -31,14 +26,12 @@ export class StageService {
     idGame: number,
     idMiniGame: number,
     idMode: number
-  ): Promise<StageViewModel[]> {
-    const stages = await this.stageRepository.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode);
-    return this.mapperService.map(Stage, StageViewModel, stages);
+  ): Promise<Stage[]> {
+    return this.stageRepository.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode);
   }
 
-  async findByIdPlatformsGamesMiniGamesModes(dto: StagePlatformsGamesMiniGamesModesDto): Promise<StageViewModel[]> {
-    const stages = await this.stageRepository.findByIdPlatformsGamesMiniGamesModes(dto);
-    return this.mapperService.map(Stage, StageViewModel, stages);
+  async findByIdPlatformsGamesMiniGamesModes(dto: StagePlatformsGamesMiniGamesModesDto): Promise<Stage[]> {
+    return this.stageRepository.findByIdPlatformsGamesMiniGamesModes(dto);
   }
 
   async findApprovalByIdPlatformGameMiniGameMode(
