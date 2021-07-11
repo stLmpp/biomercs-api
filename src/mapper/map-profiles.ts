@@ -61,6 +61,10 @@ import {
   ScoreTopTableWorldRecord,
   ScoreTopTableWorldRecordViewModel,
 } from '../score/view-model/score-table-world-record.view-model';
+import {
+  ScoresGroupedByStatusViewModel,
+  ScoresGroupedByStatus,
+} from '../score/view-model/score-grouped-by-status.view-model';
 
 const mapProfiles: MapProfile<any, any>[] = [
   mapperService.create(Game, GameViewModel),
@@ -131,6 +135,16 @@ const mapProfiles: MapProfile<any, any>[] = [
   mapperService.create(ScoreApprovalPagination, ScoreApprovalPaginationViewModel),
   mapperService.create(ScoreTableWorldRecord, ScoreTableWorldRecordViewModel),
   mapperService.create(ScoreTopTableWorldRecord, ScoreTopTableWorldRecordViewModel),
+  mapperService
+    .create(ScoresGroupedByStatus, ScoresGroupedByStatusViewModel)
+    .for(
+      dest => dest.description,
+      from => from.scoreStatus.description
+    )
+    .for(
+      dest => dest.idScoreStatus,
+      from => from.scoreStatus.id
+    ),
 ];
 
 function createScoreViewModeMap<T extends ScoreViewModel>(type: Type<T>): MapProfile<Score, T> {

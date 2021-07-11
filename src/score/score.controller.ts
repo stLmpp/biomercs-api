@@ -19,7 +19,7 @@ import { ScoreChangeRequestsPaginationViewModel } from './view-model/score-chang
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ApiPagination } from '../shared/decorator/api-pagination';
-import { ScoreGroupedByStatusViewModel } from './view-model/score-grouped-by-status.view-model';
+import { ScoresGroupedByStatus, ScoresGroupedByStatusViewModel } from './view-model/score-grouped-by-status.view-model';
 import { ScoreStatusEnum } from './score-status/score-status.enum';
 import { InjectMapProfile } from '../mapper/inject-map-profile';
 import { Score } from './score.entity';
@@ -29,6 +29,8 @@ import {
   ScoreTopTableWorldRecord,
   ScoreTopTableWorldRecordViewModel,
 } from './view-model/score-table-world-record.view-model';
+import { AuthPlayerPipe } from '../auth/auth-player.decorator';
+import { Player } from '../player/player.entity';
 
 @ApiAuth()
 @ApiTags('Score')
@@ -44,7 +46,9 @@ export class ScoreController {
     @InjectMapProfile(ScoreApprovalPagination, ScoreApprovalPaginationViewModel)
     private mapProfileScoreApprovalPagination: MapProfile<ScoreApprovalPagination, ScoreApprovalPaginationViewModel>,
     @InjectMapProfile(ScoreTopTableWorldRecord, ScoreTopTableWorldRecordViewModel)
-    private mapProfileScoreTopTableWorldRecord: MapProfile<ScoreTopTableWorldRecord, ScoreTopTableWorldRecordViewModel>
+    private mapProfileScoreTopTableWorldRecord: MapProfile<ScoreTopTableWorldRecord, ScoreTopTableWorldRecordViewModel>,
+    @InjectMapProfile(ScoresGroupedByStatus, ScoresGroupedByStatusViewModel)
+    private mapProfileScoresGroupedByStatus: MapProfile<ScoresGroupedByStatus, ScoresGroupedByStatusViewModel>
   ) {}
 
   @Post()
@@ -180,8 +184,12 @@ export class ScoreController {
   }
 
   @Get('player/rejected-and-pending')
-  async findRejectedAndPendingScoresByIdUser(@AuthUser() user: User): Promise<ScoreGroupedByStatusViewModel[]> {
-    return this.scoreService.findRejectedAndPendingScoresByIdUser(user.id);
+  async findRejectedAndPendingScoresByIdPlayer(
+    @AuthUser(AuthPlayerPipe) player: Player
+  ): Promise<ScoresGroupedByStatusViewModel[]> {
+    return this.mapProfileScoresGroupedByStatus.mapPromise(
+      this.scoreService.findRejectedAndPendingScoresByIdPlayer(player.id)
+    );
   }
 
   @ApiQuery({ name: Params.worldRecord, required: false })

@@ -31,7 +31,7 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { ScoreGateway } from './score.gateway';
 import { MailService } from '../mail/mail.service';
 import { MailInfo } from '../mail/mail-info.interface';
-import { ScoreGroupedByStatusViewModel } from './view-model/score-grouped-by-status.view-model';
+import { ScoresGroupedByStatus } from './view-model/score-grouped-by-status.view-model';
 import { ScoreStatusEnum } from './score-status/score-status.enum';
 import { ScoreStatusService } from './score-status/score-status.service';
 import { ScoreTableWorldRecord, ScoreTopTableWorldRecord } from './view-model/score-table-world-record.view-model';
@@ -458,25 +458,20 @@ export class ScoreService {
     return { ...pagination, items: this.mapperService.map(Score, ScoreViewModel, pagination.items) };
   }
 
-  async findRejectedAndPendingScoresByIdUser(idUser: number): Promise<ScoreGroupedByStatusViewModel[]> {
-    const idPlayer = await this.playerService.findIdByIdUser(idUser);
-    const scoresRaw = await this.scoreRepository.findRejectedAndPendingScoresByIdUser(idPlayer);
-    const scoreViewModels = this.mapperService.map(Score, ScoreViewModel, scoresRaw);
+  async findRejectedAndPendingScoresByIdPlayer(idPlayer: number): Promise<ScoresGroupedByStatus[]> {
+    const scores = await this.scoreRepository.findRejectedAndPendingScoresByIdUser(idPlayer);
     const allStatus = await this.scoreStatusService.findByIds([
       ScoreStatusEnum.AwaitingApprovalAdmin,
       ScoreStatusEnum.AwaitingApprovalPlayer,
       ScoreStatusEnum.RejectedByAdmin,
       ScoreStatusEnum.RejectedByPlayer,
     ]);
-    return allStatus.map(status => {
-      const scoreGroupedByStatusViewModel = new ScoreGroupedByStatusViewModel();
-      scoreGroupedByStatusViewModel.scores = arrayRemoveMutate(
-        scoreViewModels,
-        score => score.idScoreStatus === status.id
-      );
-      scoreGroupedByStatusViewModel.idScoreStatus = status.id;
-      scoreGroupedByStatusViewModel.description = status.description;
-      return scoreGroupedByStatusViewModel;
-    });
+    return allStatus.map(
+      status =>
+        new ScoresGroupedByStatus(
+          status,
+          arrayRemoveMutate(scores, score => score.idScoreStatus === status.id)
+        )
+    );
   }
 }
