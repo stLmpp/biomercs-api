@@ -8,11 +8,20 @@ import { ApiAdmin } from '../auth/api-admin.decorator';
 import { environment } from '../environment/environment';
 import { Params } from '../shared/type/params';
 import { SteamProfileViewModel, SteamProfileWithPlayerViewModel } from './steam-profile.view-model';
+import { InjectMapProfile } from '../mapper/inject-map-profile';
+import { SteamProfile } from './steam-profile.entity';
+import { MapProfile } from '../mapper/map-profile';
 
 @ApiTags('Steam')
 @Controller('steam')
 export class SteamController {
-  constructor(private steamService: SteamService) {}
+  constructor(
+    private steamService: SteamService,
+    @InjectMapProfile(SteamProfile, SteamProfileWithPlayerViewModel)
+    private mapProfileSteamProfileWithPlayer: MapProfile<SteamProfile, SteamProfileWithPlayerViewModel>,
+    @InjectMapProfile(SteamProfile, SteamProfileViewModel)
+    private mapProfile: MapProfile<SteamProfile, SteamProfileViewModel>
+  ) {}
 
   @Get('auth')
   @ApiQuery({ name: Params.idUser, required: false })
@@ -43,13 +52,13 @@ export class SteamController {
   @ApiAuth()
   @Put(`:${Params.idSteamProfile}/refresh`)
   async refresh(@Param(Params.idSteamProfile) idSteamProfile: number): Promise<SteamProfileViewModel> {
-    return this.steamService.updateSteamProfile(idSteamProfile);
+    return this.mapProfile.mapPromise(this.steamService.updateSteamProfile(idSteamProfile));
   }
 
   @ApiAdmin()
   @ApiAuth()
   @Post(`create/:${Params.steamid}`)
   async create(@Param(Params.steamid) steamid: string): Promise<SteamProfileWithPlayerViewModel> {
-    return this.steamService.createWithPlayer(steamid);
+    return this.mapProfileSteamProfileWithPlayer.mapPromise(this.steamService.createWithPlayer(steamid));
   }
 }

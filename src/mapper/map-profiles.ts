@@ -65,6 +65,7 @@ import {
   ScoresGroupedByStatusViewModel,
   ScoresGroupedByStatus,
 } from '../score/view-model/score-grouped-by-status.view-model';
+import { SteamPlayerLinkedSocket, SteamPlayerLinkedSocketViewModel } from '../steam/steam-player-linked.view-model';
 
 const mapProfiles: MapProfile<any, any>[] = [
   mapperService.create(Game, GameViewModel),
@@ -145,6 +146,7 @@ const mapProfiles: MapProfile<any, any>[] = [
       dest => dest.idScoreStatus,
       from => from.scoreStatus.id
     ),
+  mapperService.create(SteamPlayerLinkedSocket, SteamPlayerLinkedSocketViewModel),
 ];
 
 function createScoreViewModeMap<T extends ScoreViewModel>(type: Type<T>): MapProfile<Score, T> {
