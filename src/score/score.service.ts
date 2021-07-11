@@ -18,7 +18,6 @@ import { ScoreApprovalService } from './score-approval/score-approval.service';
 import { ScoreApprovalPagination } from './view-model/score-approval.view-model';
 import { ScoreApprovalAddDto } from './score-approval/score-approval.dto';
 import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.enum';
-import { Stage } from '../stage/stage.entity';
 import { ScoreWorldRecordService } from './score-world-record/score-world-record.service';
 import { arrayRemoveMutate, orderBy } from 'st-utils';
 import { addSeconds } from 'date-fns';
@@ -268,8 +267,8 @@ export class ScoreService {
     await this.scorePlayerService.transferScores(oldIdPlayer, newIdPlayer);
   }
 
-  async findByIdMapped(idScore: number): Promise<ScoreViewModel> {
-    return this.mapperService.map(Score, ScoreViewModel, await this.scoreRepository.findByIdWithAllRelations(idScore));
+  async findByIdWithAllRelations(idScore: number): Promise<Score> {
+    return this.scoreRepository.findByIdWithAllRelations(idScore);
   }
 
   async findLeaderboards(

@@ -259,6 +259,6 @@ export class ScoreController {
 
   @Get(`:${Params.idScore}`)
   async findByIdMapped(@Param(Params.idScore) idScore: number): Promise<ScoreViewModel> {
-    return this.scoreService.findByIdMapped(idScore);
+    return this.mapProfile.mapPromise(this.scoreService.findByIdWithAllRelations(idScore));
   }
 }
