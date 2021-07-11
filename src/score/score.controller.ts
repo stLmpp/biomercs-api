@@ -215,7 +215,8 @@ export class ScoreController {
   @ApiPagination(ScoreViewModel)
   @Get('search')
   async searchScores(@Query() dto: ScoreSearchDto, @AuthUser() user: User): Promise<Pagination<ScoreViewModel>> {
-    return this.scoreService.searchScores(dto, user.id);
+    const { items, meta, links } = await this.scoreService.searchScores(dto, user.id);
+    return new Pagination<ScoreViewModel>(this.mapProfile.map(items), meta, links);
   }
 
   @ApiAdmin()

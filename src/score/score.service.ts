@@ -6,8 +6,6 @@ import { PlatformGameMiniGameModeStageService } from '../platform/platform-game-
 import { ModeService } from '../mode/mode.service';
 import { ScorePlayerService } from './score-player/score-player.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
-import { ScoreViewModel } from './view-model/score.view-model';
-import { MapperService } from '../mapper/mapper.service';
 import { PlayerService } from '../player/player.service';
 import { PlatformGameMiniGameModeCharacterCostumeService } from '../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.service';
 import { ScoreTable, ScoreTopTable } from './view-model/score-table.view-model';
@@ -40,7 +38,6 @@ export class ScoreService {
     private platformGameMiniGameModeStageService: PlatformGameMiniGameModeStageService,
     private modeService: ModeService,
     private scorePlayerService: ScorePlayerService,
-    private mapperService: MapperService,
     @Inject(forwardRef(() => PlayerService)) private playerService: PlayerService,
     private platformGameMiniGameModeCharacterCostumeService: PlatformGameMiniGameModeCharacterCostumeService,
     private scoreApprovalService: ScoreApprovalService,
@@ -436,13 +433,12 @@ export class ScoreService {
     return this.scoreRepository.findScoresWithChangeRequestsCount(idPlayer);
   }
 
-  async searchScores(dto: ScoreSearchDto, idUser: number): Promise<Pagination<ScoreViewModel>> {
+  async searchScores(dto: ScoreSearchDto, idUser: number): Promise<Pagination<Score>> {
     let idPlayer: number | undefined;
     if (dto.onlyMyScores) {
       idPlayer = await this.playerService.findIdByIdUser(idUser);
     }
-    const pagination = await this.scoreRepository.searchScores(dto, idPlayer);
-    return { ...pagination, items: this.mapperService.map(Score, ScoreViewModel, pagination.items) };
+    return this.scoreRepository.searchScores(dto, idPlayer);
   }
 
   async findRejectedAndPendingScoresByIdPlayer(idPlayer: number): Promise<ScoresGroupedByStatus[]> {
