@@ -55,6 +55,12 @@ import {
   ScoreApprovalPagination,
   ScoreApprovalPaginationViewModel,
 } from '../score/view-model/score-approval.view-model';
+import {
+  ScoreTableWorldRecord,
+  ScoreTableWorldRecordViewModel,
+  ScoreTopTableWorldRecord,
+  ScoreTopTableWorldRecordViewModel,
+} from '../score/view-model/score-table-world-record.view-model';
 
 const mapProfiles: MapProfile<any, any>[] = [
   mapperService.create(Game, GameViewModel),
@@ -123,6 +129,8 @@ const mapProfiles: MapProfile<any, any>[] = [
       from.platformGameMiniGameModeStages.map(platformGameMiniGameModeStage => platformGameMiniGameModeStage.stage)
   ),
   mapperService.create(ScoreApprovalPagination, ScoreApprovalPaginationViewModel),
+  mapperService.create(ScoreTableWorldRecord, ScoreTableWorldRecordViewModel),
+  mapperService.create(ScoreTopTableWorldRecord, ScoreTopTableWorldRecordViewModel),
 ];
 
 function createScoreViewModeMap<T extends ScoreViewModel>(type: Type<T>): MapProfile<Score, T> {

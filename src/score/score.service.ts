@@ -10,12 +10,7 @@ import { ScoreViewModel } from './view-model/score.view-model';
 import { MapperService } from '../mapper/mapper.service';
 import { PlayerService } from '../player/player.service';
 import { PlatformGameMiniGameModeCharacterCostumeService } from '../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.service';
-import {
-  ScoreTable,
-  ScoreTableWorldRecordViewModel,
-  ScoreTopTable,
-  ScoreTopTableWorldRecordViewModel,
-} from './view-model/score-table.view-model';
+import { ScoreTable, ScoreTopTable } from './view-model/score-table.view-model';
 import { User } from '../user/user.entity';
 import { ScoreApprovalParams } from './score.params';
 import { ScorePlayerAddDto } from './score-player/score-player.dto';
@@ -34,13 +29,14 @@ import {
 import { ScoreChangeRequestService } from './score-change-request/score-change-request.service';
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { StageViewModel } from '../stage/stage.view-model';
 import { ScoreGateway } from './score.gateway';
 import { MailService } from '../mail/mail.service';
 import { MailInfo } from '../mail/mail-info.interface';
 import { ScoreGroupedByStatusViewModel } from './view-model/score-grouped-by-status.view-model';
 import { ScoreStatusEnum } from './score-status/score-status.enum';
 import { ScoreStatusService } from './score-status/score-status.service';
+import { ScoreTableWorldRecord, ScoreTopTableWorldRecord } from './view-model/score-table-world-record.view-model';
+import { ScoreWorldRecordTypeEnum } from './score-world-record/score-world-record-type.enum';
 
 @Injectable()
 export class ScoreService {
@@ -311,7 +307,7 @@ export class ScoreService {
     idGame: number,
     idMiniGame: number,
     idMode: number
-  ): Promise<ScoreTopTableWorldRecordViewModel> {
+  ): Promise<ScoreTopTableWorldRecord> {
     const [platformGameMiniGameModeStages, platformGameMiniGameModeCharacterCostumes, scores] = await Promise.all([
       this.platformGameMiniGameModeStageService.findByPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode),
       this.platformGameMiniGameModeCharacterCostumeService.findByPlatformGameMiniGameMode(
@@ -322,48 +318,58 @@ export class ScoreService {
       ),
       this.scoreRepository.findWorldRecordsTable(idPlatform, idGame, idMiniGame, idMode),
     ]);
-    const scoreViewModels = this.mapperService.map(Score, ScoreViewModel, scores);
-    const scoreTableViewModel: ScoreTableWorldRecordViewModel[] = [];
+    const scoreTableWorldRecords: ScoreTableWorldRecord[] = [];
     for (const platformGameMiniGameModeCharacterCostume of platformGameMiniGameModeCharacterCostumes) {
-      const scoreTable = new ScoreTableWorldRecordViewModel();
+      const scoresCharacter = scores.filter(
+        score =>
+          score.scorePlayers.some(
+            scorePlayer =>
+              scorePlayer.idPlatformGameMiniGameModeCharacterCostume === platformGameMiniGameModeCharacterCostume.id
+          ) &&
+          (score.scoreWorldRecords ?? []).some(
+            scoreWorldRecord =>
+              scoreWorldRecord.type === ScoreWorldRecordTypeEnum.CharacterWorldRecord &&
+              scoreWorldRecord.scoreWorldRecordCharacters.some(
+                scoreWorldRecordCharacter =>
+                  scoreWorldRecordCharacter.idPlatformGameMiniGameModeCharacterCostume ===
+                  platformGameMiniGameModeCharacterCostume.id
+              )
+          )
+      );
+      const scoreTable = new ScoreTableWorldRecord(
+        platformGameMiniGameModeStages.map(platformGameMiniGameModeStage =>
+          scoresCharacter.find(score => score.idPlatformGameMiniGameModeStage === platformGameMiniGameModeStage.id)
+        )
+      );
       scoreTable.idCharacter = platformGameMiniGameModeCharacterCostume.characterCostume.idCharacter;
       scoreTable.idCharacterCostume = platformGameMiniGameModeCharacterCostume.idCharacterCostume;
       scoreTable.characterName = platformGameMiniGameModeCharacterCostume.characterCostume.character.name;
       scoreTable.characterCostumeName = platformGameMiniGameModeCharacterCostume.characterCostume.name;
       scoreTable.characterCostumeShortName = platformGameMiniGameModeCharacterCostume.characterCostume.shortName;
-      const scoresWithCharacter = scoreViewModels.filter(score =>
-        score.scorePlayers.some(
-          scorePlayer =>
-            scorePlayer.idPlatformGameMiniGameModeCharacterCostume === platformGameMiniGameModeCharacterCostume.id &&
-            scorePlayer.isCharacterWorldRecord
-        )
-      );
-      scoreTable.scores = platformGameMiniGameModeStages.map(platformGameMiniGameModeStage =>
-        scoresWithCharacter.find(score => score.idPlatformGameMiniGameModeStage === platformGameMiniGameModeStage.id)
-      );
-      scoreTableViewModel.push(scoreTable);
+      scoreTableWorldRecords.push(scoreTable);
     }
     // WR
-    const scoreTableWorldRecord = new ScoreTableWorldRecordViewModel();
+    const scoreTableWorldRecord = new ScoreTableWorldRecord(
+      platformGameMiniGameModeStages.map(platformGameMiniGameModeStage =>
+        scores.find(
+          score =>
+            score.idPlatformGameMiniGameModeStage === platformGameMiniGameModeStage.id &&
+            score.scoreWorldRecords.some(
+              scoreWorldRecord => scoreWorldRecord.type === ScoreWorldRecordTypeEnum.WorldRecord
+            )
+        )
+      )
+    );
     scoreTableWorldRecord.idCharacter = -1;
     scoreTableWorldRecord.idCharacterCostume = -1;
     scoreTableWorldRecord.characterName = 'All';
     scoreTableWorldRecord.characterCostumeName = 'All';
     scoreTableWorldRecord.characterCostumeShortName = 'All';
-    scoreTableWorldRecord.scores = platformGameMiniGameModeStages.map(platformGameMiniGameModeStage =>
-      scoreViewModels.find(
-        score => score.idPlatformGameMiniGameModeStage === platformGameMiniGameModeStage.id && score.isWorldRecord
-      )
-    );
-    scoreTableViewModel.unshift(scoreTableWorldRecord);
-    const scoreTopTableViewModel = new ScoreTopTableWorldRecordViewModel();
-    scoreTopTableViewModel.scoreTables = scoreTableViewModel;
-    scoreTopTableViewModel.stages = this.mapperService.map(
-      Stage,
-      StageViewModel,
+    scoreTableWorldRecords.unshift(scoreTableWorldRecord);
+    return new ScoreTopTableWorldRecord(
+      scoreTableWorldRecords,
       platformGameMiniGameModeStages.map(platformGameMiniGameModeStage => platformGameMiniGameModeStage.stage)
     );
-    return scoreTopTableViewModel;
   }
 
   async findApprovalListAdmin(params: ScoreApprovalParams): Promise<ScoreApprovalPagination> {

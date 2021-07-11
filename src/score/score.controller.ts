@@ -7,11 +7,7 @@ import { Params } from '../shared/type/params';
 import { ScoreViewModel } from './view-model/score.view-model';
 import { AuthUser } from '../auth/auth-user.decorator';
 import { User } from '../user/user.entity';
-import {
-  ScoreTopTable,
-  ScoreTopTableViewModel,
-  ScoreTopTableWorldRecordViewModel,
-} from './view-model/score-table.view-model';
+import { ScoreTopTable, ScoreTopTableViewModel } from './view-model/score-table.view-model';
 import { OptionalQueryPipe } from '../shared/pipe/optional-query.pipe';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ScoreApprovalPagination, ScoreApprovalPaginationViewModel } from './view-model/score-approval.view-model';
@@ -29,6 +25,10 @@ import { InjectMapProfile } from '../mapper/inject-map-profile';
 import { Score } from './score.entity';
 import { MapProfile } from '../mapper/map-profile';
 import { ScoreChangeRequestViewModel } from './score-change-request/score-change-request.view-model';
+import {
+  ScoreTopTableWorldRecord,
+  ScoreTopTableWorldRecordViewModel,
+} from './view-model/score-table-world-record.view-model';
 
 @ApiAuth()
 @ApiTags('Score')
@@ -42,7 +42,9 @@ export class ScoreController {
     @InjectMapProfile(ScoreTopTable, ScoreTopTableViewModel)
     private mapProfileScoreTopTable: MapProfile<ScoreTopTable, ScoreTopTableViewModel>,
     @InjectMapProfile(ScoreApprovalPagination, ScoreApprovalPaginationViewModel)
-    private mapProfileScoreApprovalPagination: MapProfile<ScoreApprovalPagination, ScoreApprovalPaginationViewModel>
+    private mapProfileScoreApprovalPagination: MapProfile<ScoreApprovalPagination, ScoreApprovalPaginationViewModel>,
+    @InjectMapProfile(ScoreTopTableWorldRecord, ScoreTopTableWorldRecordViewModel)
+    private mapProfileScoreTopTableWorldRecord: MapProfile<ScoreTopTableWorldRecord, ScoreTopTableWorldRecordViewModel>
   ) {}
 
   @Post()
@@ -76,7 +78,9 @@ export class ScoreController {
     @Param(Params.idMiniGame) idMiniGame: number,
     @Param(Params.idMode) idMode: number
   ): Promise<ScoreTopTableWorldRecordViewModel> {
-    return this.scoreService.findWorldRecordsTable(idPlatform, idGame, idMiniGame, idMode);
+    return this.mapProfileScoreTopTableWorldRecord.mapPromise(
+      this.scoreService.findWorldRecordsTable(idPlatform, idGame, idMiniGame, idMode)
+    );
   }
 
   @ApiQuery({ name: Params.idPlatform, required: false })
