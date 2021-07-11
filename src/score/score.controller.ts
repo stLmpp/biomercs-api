@@ -100,7 +100,7 @@ export class ScoreController {
   @ApiQuery({ name: Params.idStage, required: false })
   @ApiOrderByAndDir()
   @ApiAdmin()
-  @Get(`approval/admin`)
+  @Get(`approval`)
   async findApprovalListAdmin(
     @Query(Params.idPlatform) idPlatform: number,
     @Query(Params.page) page: number,
@@ -127,49 +127,9 @@ export class ScoreController {
     );
   }
 
-  @Get('approval/admin/count')
+  @Get('approval/count')
   async findApprovalAdminCount(): Promise<number> {
     return this.scoreService.findApprovalAdminCount();
-  }
-
-  @ApiQuery({ name: Params.idPlatform, required: false })
-  @ApiQuery({ name: Params.idGame, required: false })
-  @ApiQuery({ name: Params.idMiniGame, required: false })
-  @ApiQuery({ name: Params.idMode, required: false })
-  @ApiQuery({ name: Params.limit, required: false })
-  @ApiQuery({ name: Params.idStage, required: false })
-  @ApiOrderByAndDir()
-  @Get(`approval/player`)
-  async findApprovalListPlayer(
-    @AuthUser() user: User,
-    @Query(Params.idPlatform) idPlatform: number,
-    @Query(Params.page) page: number,
-    @Query(Params.idGame, OptionalQueryPipe) idGame?: number,
-    @Query(Params.idMiniGame, OptionalQueryPipe) idMiniGame?: number,
-    @Query(Params.idMode, OptionalQueryPipe) idMode?: number,
-    @Query(Params.idStage, OptionalQueryPipe) idStage?: number,
-    @Query(Params.limit, OptionalQueryPipe) limit?: number,
-    @Query(Params.orderBy, OptionalQueryPipe) orderBy?: string,
-    @Query(Params.orderByDirection, OptionalQueryPipe) orderByDirection?: OrderByDirection
-  ): Promise<ScoreApprovalPaginationViewModel> {
-    return this.mapProfileScoreApprovalPagination.mapPromise(
-      this.scoreService.findApprovalListUser(user, {
-        idMiniGame,
-        idMode,
-        idPlatform,
-        limit: limit ?? 10,
-        page,
-        idGame,
-        orderBy: orderBy ?? 'creationDate',
-        orderByDirection: orderByDirection ?? 'desc',
-        idStage,
-      })
-    );
-  }
-
-  @Get('approval/player/count')
-  async findApprovalPlayerCount(@AuthUser() user: User): Promise<number> {
-    return this.scoreService.findApprovalPlayerCount(user);
   }
 
   @ApiQuery({ name: Params.limit, required: false })
@@ -220,7 +180,7 @@ export class ScoreController {
   }
 
   @ApiAdmin()
-  @Post(`:${Params.idScore}/approve/admin`)
+  @Post(`:${Params.idScore}/approve`)
   async approveAdmin(
     @Param(Params.idScore) idScore: number,
     @Body() dto: ScoreApprovalAddDto,
@@ -229,32 +189,14 @@ export class ScoreController {
     return this.scoreService.approvalAdmin(idScore, dto, user, ScoreApprovalActionEnum.Approve);
   }
 
-  @Post(`:${Params.idScore}/approve/player`)
-  async approvePlayer(
-    @Param(Params.idScore) idScore: number,
-    @Body() dto: ScoreApprovalAddDto,
-    @AuthUser() user: User
-  ): Promise<void> {
-    return this.scoreService.approvalPlayer(idScore, dto, user, ScoreApprovalActionEnum.Approve);
-  }
-
   @ApiAdmin()
-  @Post(`:${Params.idScore}/reject/admin`)
+  @Post(`:${Params.idScore}/reject`)
   async rejectAdmin(
     @Param(Params.idScore) idScore: number,
     @Body() dto: ScoreApprovalAddDto,
     @AuthUser() user: User
   ): Promise<void> {
     return this.scoreService.approvalAdmin(idScore, dto, user, ScoreApprovalActionEnum.Reject);
-  }
-
-  @Post(`:${Params.idScore}/reject/player`)
-  async rejectPlayer(
-    @Param(Params.idScore) idScore: number,
-    @Body() dto: ScoreApprovalAddDto,
-    @AuthUser() user: User
-  ): Promise<void> {
-    return this.scoreService.approvalPlayer(idScore, dto, user, ScoreApprovalActionEnum.Reject);
   }
 
   @ApiAdmin()

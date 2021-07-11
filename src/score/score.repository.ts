@@ -186,24 +186,7 @@ export class ScoreRepository extends Repository<Score> {
     idStage,
   }: ScoreApprovalParams): Promise<Pagination<Score>> {
     return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode, idStage)
-      .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.AwaitingApprovalAdmin })
-      .orderBy(this._resolveOrderByApproval(orderBy), orderByDirection.toUpperCase() as Uppercase<OrderByDirection>)
-      .paginate(page, limit);
-  }
-
-  async findApprovalListUser(
-    idPlayer: number,
-    { idMiniGame, idPlatform, idMode, idGame, limit, page, orderBy, orderByDirection, idStage }: ScoreApprovalParams
-  ): Promise<Pagination<Score>> {
-    return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode, idStage)
-      .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.AwaitingApprovalPlayer })
-      .andWhere('score.createdByIdPlayer != :createdByIdPlayer', { createdByIdPlayer: idPlayer })
-      .andExists(sb =>
-        sb
-          .from(ScorePlayer, 'sp1')
-          .andWhere('sp1.idScore = score.id')
-          .andWhere('sp1.idPlayer = :idPlayer', { idPlayer })
-      )
+      .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.AwaitingApproval })
       .orderBy(this._resolveOrderByApproval(orderBy), orderByDirection.toUpperCase() as Uppercase<OrderByDirection>)
       .paginate(page, limit);
   }
@@ -349,22 +332,9 @@ export class ScoreRepository extends Repository<Score> {
     return pagination;
   }
 
-  async findApprovalPlayerCount(idPlayer: number): Promise<number> {
-    return this._createQueryBuilderRelations()
-      .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.AwaitingApprovalPlayer })
-      .andWhere('score.createdByIdPlayer != :createdByIdPlayer', { createdByIdPlayer: idPlayer })
-      .andExists(sb =>
-        sb
-          .from(ScorePlayer, 'sp1')
-          .andWhere('sp1.idScore = score.id')
-          .andWhere('sp1.idPlayer = :idPlayer', { idPlayer })
-      )
-      .getCount();
-  }
-
   async findApprovalAdminCount(): Promise<number> {
     return this._createQueryBuilderRelations()
-      .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.AwaitingApprovalAdmin })
+      .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.AwaitingApproval })
       .getCount();
   }
 
@@ -465,15 +435,10 @@ export class ScoreRepository extends Repository<Score> {
     return scores;
   }
 
-  async findRejectedAndPendingScoresByIdUser(idPlayer: number): Promise<Score[]> {
+  async findRejectedAndPendingScoresByIdPlayer(idPlayer: number): Promise<Score[]> {
     return this._includeScoreWorldRecord('score', this._createQueryBuilderRelations())
       .andWhere('score.idScoreStatus in (:...idScoreStatus)', {
-        idScoreStatus: [
-          ScoreStatusEnum.AwaitingApprovalAdmin,
-          ScoreStatusEnum.AwaitingApprovalPlayer,
-          ScoreStatusEnum.RejectedByAdmin,
-          ScoreStatusEnum.RejectedByPlayer,
-        ],
+        idScoreStatus: [ScoreStatusEnum.AwaitingApproval, ScoreStatusEnum.Rejected],
       })
       .andWhere('score.createdByIdPlayer = :idPlayer', { idPlayer })
       .getMany();

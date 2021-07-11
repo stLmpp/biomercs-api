@@ -6,9 +6,6 @@ import { Params } from '../shared/type/params';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { ScoreStatusEnum } from '../score/score-status/score-status.enum';
-import { AuthUser } from '../auth/auth-user.decorator';
-import { AuthPlayerPipe } from '../auth/auth-player.decorator';
-import { Player } from '../player/player.entity';
 import { MiniGameViewModel } from './mini-game.view-model';
 import { InjectMapProfile } from '../mapper/inject-map-profile';
 import { MiniGame } from './mini-game.entity';
@@ -52,29 +49,13 @@ export class MiniGameController {
   }
 
   @ApiAdmin()
-  @Get(`approval/admin/platform/:${Params.idPlatform}/game/:${Params.idGame}`)
+  @Get(`approval/platform/:${Params.idPlatform}/game/:${Params.idGame}`)
   async findApprovalAdminByIdPlatformGame(
     @Param(Params.idPlatform) idPlatform: number,
     @Param(Params.idGame) idGame: number
   ): Promise<MiniGameViewModel[]> {
     return this.mapProfile.mapPromise(
-      this.miniGameService.findApprovalByIdPlatformGame(ScoreStatusEnum.AwaitingApprovalAdmin, idPlatform, idGame)
-    );
-  }
-
-  @Get(`approval/player/platform/:${Params.idPlatform}/game/:${Params.idGame}`)
-  async findApprovalUserByIdPlatformGame(
-    @Param(Params.idPlatform) idPlatform: number,
-    @Param(Params.idGame) idGame: number,
-    @AuthUser(AuthPlayerPipe) player: Player
-  ): Promise<MiniGameViewModel[]> {
-    return this.mapProfile.mapPromise(
-      this.miniGameService.findApprovalByIdPlatformGame(
-        ScoreStatusEnum.AwaitingApprovalPlayer,
-        idPlatform,
-        idGame,
-        player.id
-      )
+      this.miniGameService.findApprovalByIdPlatformGame(ScoreStatusEnum.AwaitingApproval, idPlatform, idGame)
     );
   }
 

@@ -7,9 +7,6 @@ import { Params } from '../shared/type/params';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { ScoreStatusEnum } from '../score/score-status/score-status.enum';
-import { AuthUser } from '../auth/auth-user.decorator';
-import { AuthPlayerPipe } from '../auth/auth-player.decorator';
-import { Player } from '../player/player.entity';
 import { ModeViewModel } from './mode.view-model';
 import { MapProfile } from '../mapper/map-profile';
 import { InjectMapProfile } from '../mapper/inject-map-profile';
@@ -45,7 +42,7 @@ export class ModeController {
   }
 
   @ApiAdmin()
-  @Get(`approval/admin/platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}`)
+  @Get(`approval/platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}`)
   async findApprovalAdminByIdPlatformGameMiniGame(
     @Param(Params.idPlatform) idPlatform: number,
     @Param(Params.idGame) idGame: number,
@@ -53,28 +50,10 @@ export class ModeController {
   ): Promise<ModeViewModel[]> {
     return this.mapProfile.mapPromise(
       this.modeService.findApprovalByIdPlatformGameMiniGame(
-        ScoreStatusEnum.AwaitingApprovalAdmin,
+        ScoreStatusEnum.AwaitingApproval,
         idPlatform,
         idGame,
         idMiniGame
-      )
-    );
-  }
-
-  @Get(`approval/player/platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}`)
-  async findApprovalPlayerByIdPlatformGameMiniGame(
-    @Param(Params.idPlatform) idPlatform: number,
-    @Param(Params.idGame) idGame: number,
-    @Param(Params.idMiniGame) idMiniGame: number,
-    @AuthUser(AuthPlayerPipe) player: Player
-  ): Promise<ModeViewModel[]> {
-    return this.mapProfile.mapPromise(
-      this.modeService.findApprovalByIdPlatformGameMiniGame(
-        ScoreStatusEnum.AwaitingApprovalPlayer,
-        idPlatform,
-        idGame,
-        idMiniGame,
-        player.id
       )
     );
   }

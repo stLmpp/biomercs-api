@@ -7,9 +7,6 @@ import { ApiAdmin } from '../auth/api-admin.decorator';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { StageViewModel } from './stage.view-model';
 import { ScoreStatusEnum } from '../score/score-status/score-status.enum';
-import { AuthUser } from '../auth/auth-user.decorator';
-import { AuthPlayerPipe } from '../auth/auth-player.decorator';
-import { Player } from '../player/player.entity';
 import { InjectMapProfile } from '../mapper/inject-map-profile';
 import { Stage } from './stage.entity';
 import { MapProfile } from '../mapper/map-profile';
@@ -48,7 +45,7 @@ export class StageController {
   }
 
   @Get(
-    `approval/admin/platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}/mode/:${Params.idMode}`
+    `approval/platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}/mode/:${Params.idMode}`
   )
   async findApprovalAdminByIdPlatformGameMiniGameMode(
     @Param(Params.idPlatform) idPlatform: number,
@@ -58,33 +55,11 @@ export class StageController {
   ): Promise<StageViewModel[]> {
     return this.mapProfile.mapPromise(
       this.stageService.findApprovalByIdPlatformGameMiniGameMode(
-        ScoreStatusEnum.AwaitingApprovalAdmin,
+        ScoreStatusEnum.AwaitingApproval,
         idPlatform,
         idGame,
         idMiniGame,
         idMode
-      )
-    );
-  }
-
-  @Get(
-    `approval/player/platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}/mode/:${Params.idMode}`
-  )
-  async findApprovalPlayerByIdPlatformGameMiniGameMode(
-    @Param(Params.idPlatform) idPlatform: number,
-    @Param(Params.idGame) idGame: number,
-    @Param(Params.idMiniGame) idMiniGame: number,
-    @Param(Params.idMode) idMode: number,
-    @AuthUser(AuthPlayerPipe) player: Player
-  ): Promise<StageViewModel[]> {
-    return this.mapProfile.mapPromise(
-      this.stageService.findApprovalByIdPlatformGameMiniGameMode(
-        ScoreStatusEnum.AwaitingApprovalPlayer,
-        idPlatform,
-        idGame,
-        idMiniGame,
-        idMode,
-        player.id
       )
     );
   }

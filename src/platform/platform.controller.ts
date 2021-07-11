@@ -14,9 +14,6 @@ import { PlatformGameMiniGameModeCharacterCostumeService } from './platform-game
 import { PlatformGameMiniGameModeCharacterCostume } from './platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.entity';
 import { PlatformGameMiniGameModeStage } from './platform-game-mini-game-mode-stage/platform-game-mini-game-mode-stage.entity';
 import { ScoreStatusEnum } from '../score/score-status/score-status.enum';
-import { AuthUser } from '../auth/auth-user.decorator';
-import { AuthPlayerPipe } from '../auth/auth-player.decorator';
-import { Player } from '../player/player.entity';
 import { PlatformViewModel } from './platform.view-model';
 import { InjectMapProfile } from '../mapper/inject-map-profile';
 import { Platform } from './platform.entity';
@@ -192,16 +189,9 @@ export class PlatformController {
   }
 
   @ApiAdmin()
-  @Get('approval/admin')
+  @Get('approval')
   async findApprovalAdmin(): Promise<PlatformViewModel[]> {
-    return this.mapProfile.mapPromise(this.platformService.findApproval(ScoreStatusEnum.AwaitingApprovalAdmin));
-  }
-
-  @Get('approval/player')
-  async findApprovalUser(@AuthUser(AuthPlayerPipe) player: Player): Promise<PlatformViewModel[]> {
-    return this.mapProfile.mapPromise(
-      this.platformService.findApproval(ScoreStatusEnum.AwaitingApprovalPlayer, player.id)
-    );
+    return this.mapProfile.mapPromise(this.platformService.findApproval(ScoreStatusEnum.AwaitingApproval));
   }
 
   @Get(`:${Params.idPlatform}`)
