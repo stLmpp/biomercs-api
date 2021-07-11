@@ -21,10 +21,6 @@ import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.
 import { ScoreWorldRecordService } from './score-world-record/score-world-record.service';
 import { arrayRemoveMutate, orderBy } from 'st-utils';
 import { addSeconds } from 'date-fns';
-import {
-  ScoreChangeRequestsPaginationViewModel,
-  ScoreWithScoreChangeRequestsViewModel,
-} from './view-model/score-change-request.view-model';
 import { ScoreChangeRequestService } from './score-change-request/score-change-request.service';
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
@@ -422,17 +418,8 @@ export class ScoreService {
     );
   }
 
-  async findScoresWithChangeRequests(
-    idUser: number,
-    page: number,
-    limit: number
-  ): Promise<ScoreChangeRequestsPaginationViewModel> {
-    const idPlayer = await this.playerService.findIdByIdUser(idUser);
-    const { items, meta } = await this.scoreRepository.findScoresWithChangeRequests(idPlayer, page, limit);
-    const viewModel = new ScoreChangeRequestsPaginationViewModel();
-    viewModel.meta = meta;
-    viewModel.scores = this.mapperService.map(Score, ScoreWithScoreChangeRequestsViewModel, items);
-    return viewModel;
+  async findScoresWithChangeRequests(idPlayer: number, page: number, limit: number): Promise<Pagination<Score>> {
+    return this.scoreRepository.findScoresWithChangeRequests(idPlayer, page, limit);
   }
 
   async findApprovalPlayerCount(user: User): Promise<number> {

@@ -15,7 +15,10 @@ import { ScoreApprovalAddDto } from './score-approval/score-approval.dto';
 import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.enum';
 import { ApiOrderByAndDir } from '../shared/order-by/api-order-by';
 import { OrderByDirection } from 'st-utils';
-import { ScoreChangeRequestsPaginationViewModel } from './view-model/score-change-request.view-model';
+import {
+  ScoreChangeRequestsPaginationViewModel,
+  ScoreWithScoreChangeRequestsViewModel,
+} from './view-model/score-change-request.view-model';
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ApiPagination } from '../shared/decorator/api-pagination';
@@ -48,7 +51,9 @@ export class ScoreController {
     @InjectMapProfile(ScoreTopTableWorldRecord, ScoreTopTableWorldRecordViewModel)
     private mapProfileScoreTopTableWorldRecord: MapProfile<ScoreTopTableWorldRecord, ScoreTopTableWorldRecordViewModel>,
     @InjectMapProfile(ScoresGroupedByStatus, ScoresGroupedByStatusViewModel)
-    private mapProfileScoresGroupedByStatus: MapProfile<ScoresGroupedByStatus, ScoresGroupedByStatusViewModel>
+    private mapProfileScoresGroupedByStatus: MapProfile<ScoresGroupedByStatus, ScoresGroupedByStatusViewModel>,
+    @InjectMapProfile(Score, ScoreWithScoreChangeRequestsViewModel)
+    private mapProfileScoreWithScoreChangeRequests: MapProfile<Score, ScoreWithScoreChangeRequestsViewModel>
   ) {}
 
   @Post()
@@ -170,12 +175,16 @@ export class ScoreController {
   @ApiQuery({ name: Params.limit, required: false })
   @Get('player/change-requests')
   async findScoresWithChangeRequests(
-    @AuthUser() user: User,
+    @AuthUser(AuthPlayerPipe) player: Player,
     @Query(Params.page) page: number,
     @Query(Params.limit, OptionalQueryPipe) limit?: number
   ): Promise<ScoreChangeRequestsPaginationViewModel> {
     limit ??= 10;
-    return this.scoreService.findScoresWithChangeRequests(user.id, page, limit);
+    const { items, meta } = await this.scoreService.findScoresWithChangeRequests(player.id, page, limit);
+    const viewModel = new ScoreChangeRequestsPaginationViewModel();
+    viewModel.meta = meta;
+    viewModel.scores = this.mapProfileScoreWithScoreChangeRequests.map(items);
+    return viewModel;
   }
 
   @Get('player/change-requests/count')
