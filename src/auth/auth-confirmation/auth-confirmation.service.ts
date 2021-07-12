@@ -3,7 +3,7 @@ import { AuthConfirmationRepository } from './auth-confirmation.repository';
 import { AuthConfirmationAddDto } from './auth-confirmation.dto';
 import { AuthConfirmation } from './auth-confirmation.entity';
 import { IsNull, MoreThanOrEqual } from 'typeorm';
-import { addDays, addHours, isBefore } from 'date-fns';
+import { addDays, isBefore, subHours } from 'date-fns';
 import { random } from '../../util/util';
 import { User } from '../../user/user.entity';
 
@@ -24,7 +24,7 @@ export class AuthConfirmationService {
   }
 
   async invalidateCode(idAuthConfirmation: number): Promise<void> {
-    await this.authConfirmationRepository.update(idAuthConfirmation, { expirationDate: addHours(new Date(), -1) });
+    await this.authConfirmationRepository.update(idAuthConfirmation, { expirationDate: subHours(new Date(), 1) });
   }
 
   async confirmCode(idAuthConfirmation: number, code: number): Promise<void> {
@@ -38,11 +38,19 @@ export class AuthConfirmationService {
     await this.authConfirmationRepository.update(idAuthConfirmation, { confirmationDate: new Date() });
   }
 
+  async generateConfirmationCodeAndInvalidLast(idUser: number): Promise<AuthConfirmation> {
+    await this.authConfirmationRepository.update(
+      { idUser, confirmationDate: IsNull(), expirationDate: MoreThanOrEqual(new Date()) },
+      { expirationDate: subHours(new Date(), 1) }
+    );
+    return this.add({ idUser, code: random(100_000, 999_999), expirationDate: addDays(new Date(), 1) });
+  }
+
   async generateConfirmationCode(user: User): Promise<AuthConfirmation> {
     if (user.idCurrentAuthConfirmation) {
       throw new PreconditionFailedException({ message: 'User waiting for confirmation', extra: user.id });
     }
-    const code = random(100000, 999999);
-    return await this.add({ idUser: user.id, code, expirationDate: addDays(new Date(), 1) });
+    const code = random(100_000, 999_999);
+    return this.add({ idUser: user.id, code, expirationDate: addDays(new Date(), 1) });
   }
 }

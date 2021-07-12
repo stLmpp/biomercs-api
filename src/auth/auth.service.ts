@@ -145,6 +145,31 @@ export class AuthService {
   }
 
   @Transactional()
+  async sendChangePasswordConfirmationCode(idUser: number): Promise<void> {
+    const user = await this.userService.getById(idUser);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const authConfirmation = await this.authConfirmationService.generateConfirmationCodeAndInvalidLast(user.id);
+    await this.mailService.sendMailInfo(
+      { to: user.email, subject: 'Biomercs - Change password' },
+      {
+        title: 'Change password',
+        info: [
+          {
+            title: 'Code',
+            value: authConfirmation.code,
+          },
+          {
+            title: 'Link to change password',
+            value: environment.frontEndUrl + `/auth/change-password/`, // TODO figure out url in the front-end to change de password, maybe a base64 with a salt
+          },
+        ],
+      }
+    );
+  }
+
+  @Transactional()
   async authSteam(steamid: string, uuid: string): Promise<void> {
     const user = await this.userService.getBySteamid(steamid);
     if (!user) {
