@@ -28,6 +28,7 @@
     "create-orm-config": "ts-node scripts/create-ormconfig.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-ses": "~3.21.0",
     "@nestjs-modules/mailer": "~1.6.0",
     "@nestjs/axios": "^0.0.1",
     "@nestjs/common": "~8.0.2",

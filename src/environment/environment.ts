@@ -63,8 +63,11 @@ class Env {
   }
 
   get apiUrl(): string {
-    // TODO change to https when production
-    let url = `http://${this.host}`;
+    let http = 'http';
+    if (this.production) {
+      http += 's';
+    }
+    let url = `${http}://${this.host}`;
     const port = this.port;
     if (!this.production && port) {
       url += `:${this.port}`;
@@ -81,8 +84,11 @@ class Env {
   }
 
   get frontEndUrl(): string {
-    // TODO change to https when production
-    let url = `http://${this.hostFrontEnd}`;
+    let http = 'http';
+    if (this.production) {
+      http += 's';
+    }
+    let url = `${http}://${this.hostFrontEnd}`;
     const frontEndPort = this.portFrontEnd;
     if (!this.production && frontEndPort) {
       url += `:${frontEndPort}`;
@@ -137,6 +143,22 @@ class Env {
 
   get mailQueueMaxRetries(): number {
     return this.config('MAIL_QUEUE_MAX_RETRIES');
+  }
+
+  get mailAwsAccessKeyId(): string {
+    return this.get('MAIL_AWS_ACCESS_KEY_ID');
+  }
+
+  get mailAwsSecretAccessKey(): string {
+    return this.get('MAIL_AWS_SECRET_ACCESS_KEY');
+  }
+
+  get mailAwsRegion(): string {
+    return this.get('MAIL_AWS_REGION');
+  }
+
+  get mailAwsApiVersion(): string {
+    return this.get('MAIL_AWS_API_VERSION');
   }
 
   static create(): Env {

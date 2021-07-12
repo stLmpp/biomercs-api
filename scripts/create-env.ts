@@ -4,8 +4,6 @@ import { access, writeFile } from 'fs-extra';
 const envOptions = [
   ['NODE_ENV', 'development'],
   ['MAIL_ADDRESS', 'mail_address'],
-  ['MAIL_PASSWORD', 'mail_password'],
-  ['MAIL_SERVICE', 'gmail'],
   ['JWT_SECRET', 'jwt_secret'],
   ['SECRET_CHAR', 'secret_char'],
   ['STEAM_API_KEY', 'steam_api_key'],
@@ -14,6 +12,10 @@ const envOptions = [
   ['DB_DATABASE', 'biomercs'],
   ['DB_PORT', '5432'],
   ['DB_HOST', 'localhost'],
+  ['MAIL_AWS_ACCESS_KEY_ID', 'MAIL_AWS_ACCESS_KEY_ID'],
+  ['MAIL_AWS_SECRET_ACCESS_KEY', 'MAIL_AWS_SECRET_ACCESS_KEY'],
+  ['MAIL_AWS_REGION', 'MAIL_AWS_REGION'],
+  ['MAIL_AWS_API_VERSION', 'MAIL_AWS_API_VERSION'],
 ];
 
 async function envExists(): Promise<boolean> {

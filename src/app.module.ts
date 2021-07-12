@@ -31,16 +31,25 @@ import { ContactModule } from './contact/contact.module';
 import { RateLimiterInterceptor, RateLimiterModule } from 'nestjs-rate-limiter';
 import { RuleModule } from './rule/rule.module';
 import { MailModule } from './mail/mail.module';
+import { SendRawEmailCommand, SES } from '@aws-sdk/client-ses';
+
+const awsSES = new SES({
+  apiVersion: environment.mailAwsApiVersion,
+  region: environment.mailAwsRegion,
+  credentials: {
+    accessKeyId: environment.mailAwsAccessKeyId,
+    secretAccessKey: environment.mailAwsSecretAccessKey,
+  },
+});
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(DB_TYPEORM_CONFIG),
     MailerModule.forRoot({
       transport: {
-        service: environment.get('MAIL_SERVICE'),
-        auth: {
-          user: environment.mail,
-          pass: environment.get('MAIL_PASSWORD'),
+        SES: {
+          ses: awsSES,
+          aws: { SendRawEmailCommand }, // https://github.com/nodemailer/nodemailer/issues/1293
         },
       },
       defaults: {

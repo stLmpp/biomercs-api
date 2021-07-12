@@ -90,7 +90,7 @@
       },
       {
         "selector": "memberLike",
-        "format": ["camelCase"],
+        "format": ["camelCase", "PascalCase"],
         "leadingUnderscore": "allow"
       },
       {
