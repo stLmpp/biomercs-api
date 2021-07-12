@@ -10,7 +10,7 @@ import {
 import { UserService } from '../user/user.service';
 import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto, AuthRegisterSteamDto } from './auth.dto';
 import { UserAddDto } from '../user/user.dto';
-import { genSalt, hash } from 'bcryptjs';
+import { genSalt, hash } from 'bcrypt';
 import { AuthRegisterViewModel, AuthSteamLoginSocketErrorType } from './auth.view-model';
 import { isNumber } from 'st-utils';
 import { AuthConfirmationService } from './auth-confirmation/auth-confirmation.service';
