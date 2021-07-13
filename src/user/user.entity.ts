@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 import { BaseEntity } from '../shared/super/base-entity';
 import { ApiHideProperty } from '@nestjs/swagger';
-import { hash } from 'bcryptjs';
+import { hash } from 'bcrypt';
 import { Player } from '../player/player.entity';
 import { AuthConfirmation } from '../auth/auth-confirmation/auth-confirmation.entity';
 import { UserInterface } from './user.interface';

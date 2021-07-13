@@ -27,4 +27,12 @@ export class UserRepository extends Repository<User> {
       .andWhere('ac.code = :code', { code })
       .getOne();
   }
+
+  async findByIdWithPasswordAndSalt(idUser: number): Promise<User> {
+    return this.createQueryBuilder('user')
+      .addSelect('user.password')
+      .addSelect('user.salt')
+      .andWhere('user.id = :idUser', { idUser })
+      .getOneOrFail();
+  }
 }

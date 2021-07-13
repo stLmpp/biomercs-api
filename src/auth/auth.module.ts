@@ -12,6 +12,7 @@ import { AuthGateway } from './auth.gateway';
 import { SteamModule } from '../steam/steam.module';
 import { MapperModule } from '../mapper/mapper.module';
 import { MailModule } from '../mail/mail.module';
+import { EncryptorModule } from '../encryptor/encryptor.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { MailModule } from '../mail/mail.module';
     SteamModule,
     MapperModule,
     MailModule,
+    EncryptorModule,
   ],
   providers: [JwtStrategy, AuthService, AuthGateway],
   exports: [AuthService, PassportModule],

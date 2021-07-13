@@ -2,7 +2,7 @@ import { get } from 'config';
 import { version } from '../../package.json';
 import { isArray } from 'st-utils';
 import { KeyValue } from '../shared/inteface/key-value.interface';
-import { genSalt } from 'bcryptjs';
+import { genSalt } from 'bcrypt';
 import { resolve } from 'path';
 
 function tryGetEnvVar(property: string): any {

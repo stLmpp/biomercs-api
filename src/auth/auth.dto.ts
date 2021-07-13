@@ -34,7 +34,7 @@ export class AuthCredentialsDto {
   rememberMe?: boolean;
 }
 
-export class AuthChangePasswordDto {
+export class AuthChangeForgottenPasswordDto {
   @IsString()
   @IsDefined()
   @IsNotEmpty()
@@ -55,4 +55,23 @@ export class AuthRegisterSteamDto {
   @IsDefined()
   @IsNotEmpty()
   steamid!: string;
+}
+
+export class AuthChangePasswordDto {
+  @IsString()
+  @IsDefined()
+  key!: string;
+
+  @IsString()
+  @IsDefined()
+  oldPassword!: string;
+
+  @IsString()
+  @IsDefined()
+  @MinLength(6)
+  newPassword!: string;
+
+  @IsNumber()
+  @IsDefined()
+  confirmationCode!: number;
 }
