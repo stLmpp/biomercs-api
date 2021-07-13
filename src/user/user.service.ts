@@ -100,6 +100,10 @@ export class UserService {
     return [user, null];
   }
 
+  async findByIdWithPasswordAndSaltOrFail(idUser: number): Promise<User> {
+    return this.userRepository.findByIdWithPasswordAndSalt(idUser);
+  }
+
   async getPasswordAndSalt(idUser: number): Promise<Pick<User, 'password' | 'salt'>> {
     const user = await this.userRepository.findOne(idUser, { select: ['password', 'salt'] });
     if (!user) {

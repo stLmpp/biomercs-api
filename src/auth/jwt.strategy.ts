@@ -19,13 +19,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!payload?.id || !payload?.password) {
       throw new UnauthorizedException();
     }
-    const user = await this.userService.getById(payload.id);
-    if (!user || !user.canLogin()) {
+    let user: User;
+    try {
+      user = await this.userService.findByIdWithPasswordAndSaltOrFail(payload.id);
+    } catch {
       throw new UnauthorizedException();
     }
-    const { salt, password } = await this.userService.getPasswordAndSalt(payload.id);
-    user.salt = salt;
-    user.password = password;
+    if (!user.canLogin()) {
+      throw new UnauthorizedException();
+    }
     if (user.password !== payload.password) {
       throw new UnauthorizedException();
     }

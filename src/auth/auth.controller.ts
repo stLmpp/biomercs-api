@@ -14,7 +14,13 @@ import {
 import { ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthRegisterViewModel } from './auth.view-model';
-import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto, AuthRegisterSteamDto } from './auth.dto';
+import {
+  AuthChangeForgottenPasswordDto,
+  AuthChangePasswordDto,
+  AuthCredentialsDto,
+  AuthRegisterDto,
+  AuthRegisterSteamDto,
+} from './auth.dto';
 import { HeaderParams, Params } from '../shared/type/params';
 import { User } from '../user/user.entity';
 import { ApiAuth } from './api-auth.decorator';
@@ -142,7 +148,19 @@ export class AuthController {
   }
 
   @Post('forgot-password/change-password')
-  async changeForgottenPassword(@Body() dto: AuthChangePasswordDto): Promise<UserViewModel> {
+  async changeForgottenPassword(@Body() dto: AuthChangeForgottenPasswordDto): Promise<UserViewModel> {
     return this.mapProfile.mapPromise(this.authService.changeForgottenPassword(dto));
+  }
+
+  @ApiAuth()
+  @Post('change-password')
+  async sendChangePasswordConfirmationCode(@AuthUser() user: User): Promise<void> {
+    await this.authService.sendChangePasswordConfirmationCode(user.id);
+  }
+
+  @ApiAuth()
+  @Post('change-password/confirm')
+  async confirmChangePassword(@AuthUser() user: User, @Body() dto: AuthChangePasswordDto): Promise<UserViewModel> {
+    return this.mapProfile.mapPromise(this.authService.confirmCodeAndChangePassword(user.id, dto));
   }
 }

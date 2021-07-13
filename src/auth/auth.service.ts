@@ -8,7 +8,13 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from '../user/user.service';
-import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto, AuthRegisterSteamDto } from './auth.dto';
+import {
+  AuthChangeForgottenPasswordDto,
+  AuthChangePasswordDto,
+  AuthCredentialsDto,
+  AuthRegisterDto,
+  AuthRegisterSteamDto,
+} from './auth.dto';
 import { UserAddDto } from '../user/user.dto';
 import { genSalt, hash } from 'bcrypt';
 import { AuthRegisterViewModel, AuthSteamLoginSocketErrorType } from './auth.view-model';
@@ -24,6 +30,7 @@ import { SteamService } from '../steam/steam.service';
 import { random } from '../util/util';
 import { MailService } from '../mail/mail.service';
 import { MailPriorityEnum } from '../mail/mail-priority.enum';
+import { EncryptorService } from '../encryptor/encryptor.service';
 
 @Injectable()
 export class AuthService {
@@ -34,7 +41,8 @@ export class AuthService {
     private playerService: PlayerService,
     private authGateway: AuthGateway,
     private steamService: SteamService,
-    private mailService: MailService
+    private mailService: MailService,
+    private encryptorService: EncryptorService
   ) {}
 
   private _mapUserLoginAttempts = new Map<number, number | null>();
@@ -97,17 +105,11 @@ export class AuthService {
 
   @Transactional()
   async confirmCode(idUser: number, code: number): Promise<User> {
-    const user = await this.userService.getById(idUser);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    const user = await this.userService.findByIdWithPasswordAndSaltOrFail(idUser);
     if (!user.idCurrentAuthConfirmation) {
       throw new BadRequestException('User is not waiting for confirmation');
     }
     await this.authConfirmationService.confirmCode(user.idCurrentAuthConfirmation, code);
-    const { password, salt } = await this.userService.getPasswordAndSalt(idUser);
-    user.password = password;
-    user.salt = salt;
     user.token = await this.getToken(user);
     user.lastOnline = new Date();
     await this.userService.update(idUser, { lastOnline: user.lastOnline, idCurrentAuthConfirmation: null });
@@ -115,7 +117,7 @@ export class AuthService {
   }
 
   @Transactional()
-  async changeForgottenPassword(dto: AuthChangePasswordDto): Promise<User> {
+  async changeForgottenPassword(dto: AuthChangeForgottenPasswordDto): Promise<User> {
     let user = await this.userService.findByAuthCode(dto.confirmationCode);
     if (!user?.idCurrentAuthConfirmation) {
       throw new BadRequestException('Confirmation code does not exists');
@@ -151,6 +153,7 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
     const authConfirmation = await this.authConfirmationService.generateConfirmationCodeAndInvalidLast(user.id);
+    const payload = JSON.stringify({ idUser, idAuthConfirmation: authConfirmation.id });
     await this.mailService.sendMailInfo(
       { to: user.email, subject: 'Biomercs - Change password' },
       {
@@ -162,11 +165,47 @@ export class AuthService {
           },
           {
             title: 'Link to change password',
-            value: environment.frontEndUrl + `/auth/change-password/`, // TODO figure out url in the front-end to change de password, maybe a base64 with a salt
+            value: environment.frontEndUrl + `/auth/change-password/confirm/${this.encryptorService.encrypt(payload)}`,
           },
         ],
-      }
+      },
+      MailPriorityEnum.now
     );
+  }
+
+  @Transactional()
+  async confirmCodeAndChangePassword(
+    idUser: number,
+    { confirmationCode, newPassword, oldPassword, key }: AuthChangePasswordDto
+  ): Promise<User> {
+    if (oldPassword === newPassword) {
+      throw new BadRequestException(`The new password is equal to the old password`);
+    }
+    const decrypted = this.encryptorService.decrypt(key);
+    if (!decrypted) {
+      throw new BadRequestException('Wrong key');
+    }
+    let payload: { idUser: number; idAuthConfirmation: number };
+    try {
+      payload = JSON.parse(decrypted);
+    } catch {
+      throw new BadRequestException('Wrong key');
+    }
+    if (idUser !== payload.idUser) {
+      throw new ForbiddenException();
+    }
+    const user = await this.userService.findByIdWithPasswordAndSaltOrFail(idUser);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const isOldPasswordValid = await user.validatePassword(oldPassword);
+    if (!isOldPasswordValid) {
+      throw new ForbiddenException();
+    }
+    await this.authConfirmationService.confirmCode(payload.idAuthConfirmation, confirmationCode);
+    const newPasswordHash = await hash(newPassword, user.salt);
+    await this.userService.updatePasswordAndRemoveLocks(user.id, newPasswordHash);
+    return this.login({ username: user.username, password: newPassword, rememberMe: true });
   }
 
   @Transactional()

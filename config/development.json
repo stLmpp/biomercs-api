@@ -4,6 +4,6 @@
   "HOST": "localhost",
   "CONFIG_USE_HANDLE_ERROR": true,
   "CONFIG_USE_AUTH": true,
-  "FRONT_END_HOST": "http://localhost",
+  "FRONT_END_HOST": "localhost",
   "FRONT_END_PORT": 4200
 }
