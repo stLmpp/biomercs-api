@@ -57,6 +57,11 @@ export class AuthRegisterSteamDto {
   steamid!: string;
 }
 
+export interface AuthChangePasswordKey {
+  idUser: number;
+  idAuthConfirmation: number;
+}
+
 export class AuthChangePasswordDto {
   @IsString()
   @IsDefined()

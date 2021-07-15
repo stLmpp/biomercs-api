@@ -163,4 +163,11 @@ export class AuthController {
   async confirmChangePassword(@AuthUser() user: User, @Body() dto: AuthChangePasswordDto): Promise<UserViewModel> {
     return this.mapProfile.mapPromise(this.authService.confirmCodeAndChangePassword(user.id, dto));
   }
+
+  @ApiAuth()
+  @Get(`change-password/validate/:${Params.key}`)
+  async validateChangePassword(@Param(Params.key) key: string, @AuthUser() user: User): Promise<boolean> {
+    const payload = this.authService.validateChangePassword(key);
+    return payload?.idUser === user.id;
+  }
 }

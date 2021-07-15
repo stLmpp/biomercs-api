@@ -25,7 +25,11 @@ export class EncryptorService {
     if (!iv) {
       return '';
     }
-    const decipher = createDecipheriv(this._algorithm, this._key, Buffer.from(iv, 'hex'));
-    return decipher.update(encrypted, 'hex', 'utf8') + decipher.final('utf8');
+    try {
+      const decipher = createDecipheriv(this._algorithm, this._key, Buffer.from(iv, 'hex'));
+      return decipher.update(encrypted, 'hex', 'utf8') + decipher.final('utf8');
+    } catch {
+      return '';
+    }
   }
 }

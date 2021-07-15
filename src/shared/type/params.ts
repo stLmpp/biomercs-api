@@ -45,6 +45,7 @@ export enum Params {
   combinationWorldRecord = 'combinationWorldRecord',
   score = 'score',
   usernameOrEmail = 'usernameOrEmail',
+  key = 'key',
 }
 
 export enum HeaderParams {

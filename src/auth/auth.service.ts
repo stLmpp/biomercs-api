@@ -11,6 +11,7 @@ import { UserService } from '../user/user.service';
 import {
   AuthChangeForgottenPasswordDto,
   AuthChangePasswordDto,
+  AuthChangePasswordKey,
   AuthCredentialsDto,
   AuthRegisterDto,
   AuthRegisterSteamDto,
@@ -153,7 +154,8 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
     const authConfirmation = await this.authConfirmationService.generateConfirmationCodeAndInvalidLast(user.id);
-    const payload = JSON.stringify({ idUser, idAuthConfirmation: authConfirmation.id });
+    const payload: AuthChangePasswordKey = { idUser, idAuthConfirmation: authConfirmation.id };
+    const payloadString = JSON.stringify(payload);
     await this.mailService.sendMailInfo(
       { to: user.email, subject: 'Biomercs - Change password' },
       {
@@ -165,7 +167,8 @@ export class AuthService {
           },
           {
             title: 'Link to change password',
-            value: environment.frontEndUrl + `/auth/change-password/confirm/${this.encryptorService.encrypt(payload)}`,
+            value:
+              environment.frontEndUrl + `/auth/change-password/confirm/${this.encryptorService.encrypt(payloadString)}`,
           },
         ],
       },
@@ -181,14 +184,8 @@ export class AuthService {
     if (oldPassword === newPassword) {
       throw new BadRequestException(`The new password is equal to the old password`);
     }
-    const decrypted = this.encryptorService.decrypt(key);
-    if (!decrypted) {
-      throw new BadRequestException('Wrong key');
-    }
-    let payload: { idUser: number; idAuthConfirmation: number };
-    try {
-      payload = JSON.parse(decrypted);
-    } catch {
+    const payload = this.validateChangePassword(key);
+    if (!payload) {
       throw new BadRequestException('Wrong key');
     }
     if (idUser !== payload.idUser) {
@@ -200,7 +197,7 @@ export class AuthService {
     }
     const isOldPasswordValid = await user.validatePassword(oldPassword);
     if (!isOldPasswordValid) {
-      throw new ForbiddenException();
+      throw new BadRequestException(`Old password is incorrect`);
     }
     await this.authConfirmationService.confirmCode(payload.idAuthConfirmation, confirmationCode);
     const newPasswordHash = await hash(newPassword, user.salt);
@@ -320,5 +317,19 @@ export class AuthService {
     const envSalt = await environment.envSalt();
     const hashed = await hash(steamid, envSalt);
     return hashed === token;
+  }
+
+  validateChangePassword(key: string): AuthChangePasswordKey | null {
+    const decrypted = this.encryptorService.decrypt(key);
+    if (!decrypted) {
+      return null;
+    }
+    let payload: AuthChangePasswordKey;
+    try {
+      payload = JSON.parse(decrypted);
+    } catch {
+      return null;
+    }
+    return payload;
   }
 }
