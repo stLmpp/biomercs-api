@@ -7,7 +7,7 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { environment } from './environment';
+import { environment } from '../environment/environment';
 import { isObject } from 'st-utils';
 import { EntityNotFoundError, QueryFailedError } from 'typeorm';
 import { PostgresQueryError } from '../shared/type/postgress-error';

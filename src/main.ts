@@ -43,8 +43,7 @@ async function bootstrap(): Promise<void> {
     });
   }
 
-  // TODO remove the contentSecurityPolicy when the domain is ready
-  app.use(helmet({ contentSecurityPolicy: false }));
+  app.use(helmet());
   app.use(compression());
   app.use(morgan('combined'));
 
