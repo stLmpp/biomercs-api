@@ -22,7 +22,6 @@ import { AuthRegisterViewModel, AuthSteamLoginSocketErrorType } from './auth.vie
 import { isNumber } from 'st-utils';
 import { AuthConfirmationService } from './auth-confirmation/auth-confirmation.service';
 import { User } from '../user/user.entity';
-import { environment } from '../environment/environment';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { PlayerService } from '../player/player.service';
@@ -32,6 +31,7 @@ import { random } from '../util/util';
 import { MailService } from '../mail/mail.service';
 import { MailPriorityEnum } from '../mail/mail-priority.enum';
 import { EncryptorService } from '../encryptor/encryptor.service';
+import { Environment } from '../environment/environment';
 
 @Injectable()
 export class AuthService {
@@ -43,7 +43,8 @@ export class AuthService {
     private authGateway: AuthGateway,
     private steamService: SteamService,
     private mailService: MailService,
-    private encryptorService: EncryptorService
+    private encryptorService: EncryptorService,
+    private environment: Environment
   ) {}
 
   private _mapUserLoginAttempts = new Map<number, number | null>();
@@ -168,7 +169,8 @@ export class AuthService {
           {
             title: 'Link to change password',
             value:
-              environment.frontEndUrl + `/auth/change-password/confirm/${this.encryptorService.encrypt(payloadString)}`,
+              this.environment.frontEndUrl +
+              `/auth/change-password/confirm/${this.encryptorService.encrypt(payloadString)}`,
           },
         ],
       },
@@ -211,7 +213,7 @@ export class AuthService {
     if (!user) {
       this.authGateway.sendTokenSteam({
         uuid,
-        token: await hash(steamid, await environment.envSalt()),
+        token: await hash(steamid, await this.environment.envSalt()),
         error: 'This steam has no user linked to it',
         steamid,
         errorType: AuthSteamLoginSocketErrorType.userNotFound,
@@ -230,7 +232,7 @@ export class AuthService {
       }
       this.authGateway.sendTokenSteam({
         uuid,
-        token: await hash(steamid, await environment.envSalt()),
+        token: await hash(steamid, await this.environment.envSalt()),
         error,
         steamid,
         errorType,
@@ -244,7 +246,7 @@ export class AuthService {
         errorType: AuthSteamLoginSocketErrorType.userNotConfirmed,
         error: 'Account already exists, but it needs to be confirmed.',
         steamid,
-        token: await hash(steamid, await environment.envSalt()),
+        token: await hash(steamid, await this.environment.envSalt()),
         idUser: user.id,
       });
       return;
@@ -260,7 +262,7 @@ export class AuthService {
 
   @Transactional()
   async registerSteam({ email, steamid }: AuthRegisterSteamDto, auth: string): Promise<AuthRegisterViewModel> {
-    const envSalt = await environment.envSalt();
+    const envSalt = await this.environment.envSalt();
     const hashed = await hash(steamid, envSalt);
     if (hashed !== auth) {
       throw new UnauthorizedException();
@@ -314,7 +316,7 @@ export class AuthService {
   }
 
   async validateSteamToken(steamid: string, token: string): Promise<boolean> {
-    const envSalt = await environment.envSalt();
+    const envSalt = await this.environment.envSalt();
     const hashed = await hash(steamid, envSalt);
     return hashed === token;
   }

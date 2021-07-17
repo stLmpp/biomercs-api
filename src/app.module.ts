@@ -2,17 +2,14 @@ import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { DB_TYPEORM_CONFIG } from './environment/database';
-import { CoreModule } from './core/core.module';
+import { TypeOrmConfig } from './environment/typeorm.config';
 import { ValidationModule } from './validation/validation.module';
 import { HandleErrorFilter } from './error/handle-error.filter';
 import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { UserModule } from './user/user.module';
 import { AuthModule } from './auth/auth.module';
 import { MailerModule } from '@nestjs-modules/mailer';
-import { environment } from './environment/environment';
 import { resolve } from 'path';
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 import { PlayerModule } from './player/player.module';
 import { SteamModule } from './steam/steam.module';
 import { AuthSubscriber } from './auth/auth-subscriber';
@@ -31,45 +28,19 @@ import { ContactModule } from './contact/contact.module';
 import { RateLimiterInterceptor, RateLimiterModule } from 'nestjs-rate-limiter';
 import { RuleModule } from './rule/rule.module';
 import { MailModule } from './mail/mail.module';
-import { SendRawEmailCommand, SES } from '@aws-sdk/client-ses';
 import { ErrorModule } from './error/error.module';
 import { ErrorInterceptor } from './error/error.interceptor';
 import { ScheduleModule } from '@nestjs/schedule';
-
-const awsSES = new SES({
-  apiVersion: environment.mailAwsApiVersion,
-  region: environment.mailAwsRegion,
-  credentials: {
-    accessKeyId: environment.mailAwsAccessKeyId,
-    secretAccessKey: environment.mailAwsSecretAccessKey,
-  },
-});
+import { EnvironmentModule } from './environment/environment.module';
+import { MailerConfig } from './mail/mailer.config';
 
 @Module({
   imports: [
-    TypeOrmModule.forRoot(DB_TYPEORM_CONFIG),
-    MailerModule.forRoot({
-      transport: {
-        SES: {
-          ses: awsSES,
-          aws: { SendRawEmailCommand }, // https://github.com/nodemailer/nodemailer/issues/1293
-        },
-      },
-      defaults: {
-        from: `"Biomercs" <${environment.mail}>`,
-      },
-      template: {
-        dir: resolve(process.cwd() + '/mail/templates/'),
-        adapter: new HandlebarsAdapter(),
-        options: {
-          strict: true,
-        },
-      },
-    }),
+    TypeOrmModule.forRootAsync({ imports: [EnvironmentModule], useExisting: TypeOrmConfig }),
+    MailerModule.forRootAsync({ imports: [MailModule], useExisting: MailerConfig }),
     ServeStaticModule.forRoot({
       rootPath: resolve(process.cwd() + '/frontend'),
     }),
-    CoreModule,
     ValidationModule,
     UserModule,
     AuthModule,
@@ -91,6 +62,7 @@ const awsSES = new SES({
     MailModule,
     ErrorModule,
     ScheduleModule.forRoot(),
+    EnvironmentModule,
   ],
   controllers: [AppController],
   providers: [

@@ -1,9 +1,7 @@
 import './polyfills/polyfills';
-import './config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import { environment } from './environment/environment';
 import * as helmet from 'helmet';
 import * as compression from 'compression';
 import * as morgan from 'morgan';
@@ -13,6 +11,8 @@ import { useContainer } from 'class-validator';
 import { ValidationModule } from './validation/validation.module';
 import { registerRequestContext } from './async-hooks';
 import { AUTH_USER_CONTEXT_TOKEN } from './auth/auth-user-context-token';
+import { Environment } from './environment/environment';
+import { SocketIoAdapter } from './environment/socket-io.adapter';
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
@@ -25,6 +25,8 @@ async function bootstrap(): Promise<void> {
   app.useGlobalInterceptors(
     registerRequestContext(AUTH_USER_CONTEXT_TOKEN, context => context.switchToHttp().getRequest().user)
   );
+
+  const environment = app.get(Environment);
 
   if (!environment.production) {
     app.enableCors();
@@ -47,7 +49,9 @@ async function bootstrap(): Promise<void> {
   app.use(compression());
   app.use(morgan('combined'));
 
-  await app.listen(environment.port);
+  app.useWebSocketAdapter(new SocketIoAdapter(app, environment));
+
+  await app.listen(environment.get('PORT'));
 }
 
 bootstrap()

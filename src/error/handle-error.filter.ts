@@ -7,24 +7,28 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { environment } from '../environment/environment';
 import { isObject } from 'st-utils';
 import { EntityNotFoundError, QueryFailedError } from 'typeorm';
 import { PostgresQueryError } from '../shared/type/postgress-error';
 import { PostgresError } from 'pg-error-enum';
 import { Type } from '../util/type';
+import { Environment } from '../environment/environment';
 
 @Catch()
 export class HandleErrorFilter extends BaseExceptionFilter {
+  constructor(private environment: Environment) {
+    super();
+  }
+
   override catch(exception: any, host: ArgumentsHost): void {
-    if (!environment.config('USE_HANDLE_ERROR')) {
+    if (!this.environment.get('USE_ERROR_FILTER')) {
       super.catch(exception, host);
       return;
     }
     const applicationRef = this.applicationRef ?? this.httpAdapterHost?.httpAdapter;
     if (!applicationRef) {
       super.catch(exception, host);
-      if (!environment.production) {
+      if (!this.environment.production) {
         Logger.error(exception);
       }
       return;
@@ -38,7 +42,7 @@ export class HandleErrorFilter extends BaseExceptionFilter {
       error = this.handleThrownError(exception);
     } else {
       super.catch(exception, host);
-      if (!environment.production) {
+      if (!this.environment.production) {
         Logger.error(exception);
       }
       return;
@@ -51,7 +55,7 @@ export class HandleErrorFilter extends BaseExceptionFilter {
     } else {
       errorObj.message = response;
     }
-    if (!environment.production) {
+    if (!this.environment.production) {
       Logger.error(errorObj);
     }
     host.switchToHttp().getResponse().status(status).json(errorObj);

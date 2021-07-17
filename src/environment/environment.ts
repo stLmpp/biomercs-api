@@ -1,50 +1,84 @@
-import { get } from 'config';
-import { version } from '../../package.json';
-import { isArray } from 'st-utils';
-import { KeyValue } from '../shared/inteface/key-value.interface';
+import { get, has } from 'config';
+import { snakeCase } from 'snake-case';
 import { genSalt } from 'bcrypt';
 import { resolve } from 'path';
+import { Injectable } from '@nestjs/common';
+import { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import { NamingStrategy } from './naming.strategy';
+import { version } from '../../package.json';
+import { JwtModuleOptions } from '@nestjs/jwt';
 
-function tryGetEnvVar(property: string): any {
-  try {
-    return get(property);
-  } catch {
-    return process.env[property];
-  }
+// TODO figure out a way to convert the values to number/boolean/array/etc
+export interface EnvironmentInterface {
+  JWT_EXPIRES_IN: number;
+  JWT_SECRET: string;
+  SECRET_CHAR: string;
+  STEAM_API_KEY: string;
+  USE_AUTH: boolean;
+  USE_ERROR_FILTER: boolean;
+  WEBSOCKET_PATH: string;
+  WEBSOCKET_TRANSPORTS: Array<'polling' | 'websocket'>;
+  MAIL_QUEUE_AUDIT_TIME: number;
+  MAIL_QUEUE_MAX_RETRIES: number;
+  MAIL_AWS_ACCESS_KEY_ID: string;
+  MAIL_AWS_SECRET_ACCESS_KEY: string;
+  MAIL_AWS_REGION: string;
+  MAIL_AWS_API_VERSION: string;
+  STEAM_OPENID_URL: string;
+  FRONT_END_HOST: string;
+  FRONT_END_PORT: number | undefined;
+  HOST: string;
+  PORT: number;
+  MAIL_ADDRESS: string;
+  MAIL_ADDRESS_OWNER: string;
+  USERNAME_OWNER: string;
+  DB_SYNCHRONIZE: boolean;
+  DB_PASSWORD: string;
+  DB_USERNAME: string;
+  DB_DATABASE: string;
+  DB_PORT: number;
+  DB_HOST: string;
+  NODE_ENV: string;
 }
 
-function getEnvVar(properties: string[]): { key: string; value: any }[];
-function getEnvVar(property: string): any;
-function getEnvVar(propertyOrProperties: string | string[]): any {
-  if (isArray(propertyOrProperties)) {
-    return propertyOrProperties.map(key => ({ key, value: tryGetEnvVar(key) }));
-  } else {
-    return tryGetEnvVar(propertyOrProperties);
-  }
-}
-
-export type Configs =
-  | 'USE_HANDLE_ERROR'
-  | 'USE_ROLE'
-  | 'USE_AUTH'
-  | 'WEBSOCKET_PATH'
-  | 'WEBSOCKET_TRANSPORTS'
-  | 'MAIL_QUEUE_AUDIT_TIME'
-  | 'MAIL_QUEUE_MAX_RETRIES';
-
-class Env {
+// TODO added cache of values, will be slightly faster than get the env from config
+@Injectable()
+export class Environment {
   private _salt?: string;
+  private readonly _prefix = 'BIO';
 
-  config<T = any>(config: Configs): T {
-    return getEnvVar('CONFIG_' + config);
+  readonly production = this.get('NODE_ENV') === 'production';
+  readonly http = 'http' + (this.production ? 's' : '');
+  readonly apiUrl = this._getUrl(this.get('HOST'), this.get('PORT')) + '/api';
+  readonly frontEndUrl = this._getUrl(this.get('FRONT_END_HOST'), this.get('FRONT_END_PORT'));
+  readonly appVersion = version;
+
+  private _getUrl(host: string, port?: number): string {
+    let url = `${this.http}://${host}`;
+    if (this.production && port) {
+      url += `:${port}`;
+    }
+    return url;
   }
 
-  getMany(keys: string[]): KeyValue[] {
-    return getEnvVar(keys);
+  private _normalizeKey(key: keyof EnvironmentInterface): string {
+    if (key === 'NODE_ENV') {
+      return key;
+    }
+    return snakeCase(`${this._prefix}_${key.toString()}`).toUpperCase();
   }
 
-  get<T = any>(key: string): T {
-    return getEnvVar(key);
+  private _getConfig(key: keyof EnvironmentInterface): any {
+    const param = this._normalizeKey(key);
+    if (has(param)) {
+      return get(param);
+    } else {
+      return process.env[param];
+    }
+  }
+
+  get<K extends keyof EnvironmentInterface>(key: K): EnvironmentInterface[K] {
+    return this._getConfig(key);
   }
 
   async envSalt(): Promise<string> {
@@ -54,116 +88,30 @@ class Env {
     return this._salt;
   }
 
-  get host(): string {
-    return this.get('HOST');
+  getTypeOrmConfig(): TypeOrmModuleOptions {
+    return {
+      host: this.get('DB_HOST'),
+      port: this.get('DB_PORT'),
+      username: this.get('DB_USERNAME'),
+      password: this.get('DB_PASSWORD'),
+      database: this.get('DB_DATABASE'),
+      synchronize: this.get('DB_SYNCHRONIZE'),
+      type: 'postgres',
+      autoLoadEntities: true,
+      logging: !this.production ? 'all' : false,
+      namingStrategy: new NamingStrategy(),
+      dropSchema: false,
+      migrations: [resolve(process.cwd() + '/migration/*.js')],
+      cli: { migrationsDir: 'migration' },
+    };
   }
 
-  get port(): number {
-    return this.get('PORT');
-  }
-
-  get apiUrl(): string {
-    let http = 'http';
-    if (this.production) {
-      http += 's';
-    }
-    let url = `${http}://${this.host}`;
-    const port = this.port;
-    if (!this.production && port) {
-      url += `:${this.port}`;
-    }
-    return url + '/api';
-  }
-
-  get hostFrontEnd(): string {
-    return this.get('FRONT_END_HOST');
-  }
-
-  get portFrontEnd(): number | undefined {
-    return this.get('FRONT_END_PORT');
-  }
-
-  get frontEndUrl(): string {
-    let http = 'http';
-    if (this.production) {
-      http += 's';
-    }
-    let url = `${http}://${this.hostFrontEnd}`;
-    const frontEndPort = this.portFrontEnd;
-    if (!this.production && frontEndPort) {
-      url += `:${frontEndPort}`;
-    }
-    return url;
-  }
-
-  get production(): boolean {
-    return this.get('NODE_ENV') === 'production';
-  }
-
-  get defaultPaginationSize(): number {
-    return this.get('DEFAULT_PAGINATION_SIZE');
-  }
-
-  get appVersion(): string {
-    return version;
-  }
-
-  get steamOpenIDUrl(): string {
-    return this.get('STEAM_OPENID_URL');
-  }
-
-  get steamKey(): string {
-    return this.get('STEAM_API_KEY');
-  }
-
-  get entitiesPaths(): string[] {
-    const path = this.production ? 'src' : 'dist';
-    return [resolve(process.cwd() + `/${path}/**/*.entity.js`)];
-  }
-
-  get websocketPath(): string {
-    return this.config('WEBSOCKET_PATH');
-  }
-
-  get websocketTransports(): string[] {
-    return this.config('WEBSOCKET_TRANSPORTS');
-  }
-
-  get mail(): string {
-    return this.get('MAIL_ADDRESS');
-  }
-
-  get mailAuditTime(): number {
-    return +this.config('MAIL_QUEUE_AUDIT_TIME');
-  }
-
-  get mailOwner(): string {
-    return this.get('MAIL_ADDRESS_OWNER');
-  }
-
-  get mailQueueMaxRetries(): number {
-    return this.config('MAIL_QUEUE_MAX_RETRIES');
-  }
-
-  get mailAwsAccessKeyId(): string {
-    return this.get('MAIL_AWS_ACCESS_KEY_ID');
-  }
-
-  get mailAwsSecretAccessKey(): string {
-    return this.get('MAIL_AWS_SECRET_ACCESS_KEY');
-  }
-
-  get mailAwsRegion(): string {
-    return this.get('MAIL_AWS_REGION');
-  }
-
-  get mailAwsApiVersion(): string {
-    return this.get('MAIL_AWS_API_VERSION');
-  }
-
-  static create(): Env {
-    return new Env();
+  getJwtOptions(): JwtModuleOptions {
+    return {
+      secret: this.get('JWT_SECRET'),
+      signOptions: {
+        expiresIn: this.get('JWT_EXPIRES_IN'),
+      },
+    };
   }
 }
-
-export const environment = Env.create();

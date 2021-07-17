@@ -5,12 +5,12 @@ import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { OptionalQueryPipe } from '../shared/pipe/optional-query.pipe';
 import { ApiAdmin } from '../auth/api-admin.decorator';
-import { environment } from '../environment/environment';
 import { Params } from '../shared/type/params';
 import { SteamProfileViewModel, SteamProfileWithPlayerViewModel } from './steam-profile.view-model';
 import { InjectMapProfile } from '../mapper/inject-map-profile';
 import { SteamProfile } from './steam-profile.entity';
 import { MapProfile } from '../mapper/map-profile';
+import { Environment } from '../environment/environment';
 
 @ApiTags('Steam')
 @Controller('steam')
@@ -20,7 +20,8 @@ export class SteamController {
     @InjectMapProfile(SteamProfile, SteamProfileWithPlayerViewModel)
     private mapProfileSteamProfileWithPlayer: MapProfile<SteamProfile, SteamProfileWithPlayerViewModel>,
     @InjectMapProfile(SteamProfile, SteamProfileViewModel)
-    private mapProfile: MapProfile<SteamProfile, SteamProfileViewModel>
+    private mapProfile: MapProfile<SteamProfile, SteamProfileViewModel>,
+    private environment: Environment
   ) {}
 
   @Get('auth')
@@ -40,7 +41,7 @@ export class SteamController {
     } else {
       throw new BadRequestException('Needs an idUser or idPlayer to authenticate');
     }
-    res.redirect(environment.frontEndUrl);
+    res.redirect(this.environment.frontEndUrl);
   }
 
   @ApiAuth()

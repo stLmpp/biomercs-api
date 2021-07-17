@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { MailInfoTemplate } from './mail-info.interface';
-import { environment } from '../environment/environment';
 import { MailQueueRepository } from './mail-queue.repository';
 import { auditTime, catchError, filter, of, Subject, switchMap } from 'rxjs';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
@@ -9,10 +8,15 @@ import { MailQueue } from './mail-queue.entity';
 import { MailPriorityEnum } from './mail-priority.enum';
 import { MailSendDto } from './mail.dto';
 import { MailStatusQueueViewModel } from './mail.view-model';
+import { Environment } from '../environment/environment';
 
 @Injectable()
 export class MailService {
-  constructor(private mailerService: MailerService, private mailQueueRepository: MailQueueRepository) {
+  constructor(
+    private mailerService: MailerService,
+    private mailQueueRepository: MailQueueRepository,
+    private environment: Environment
+  ) {
     this._init().then();
   }
 
@@ -28,7 +32,7 @@ export class MailService {
   private async _sendErrorSupport(error: any): Promise<void> {
     await this.sendMailInfo(
       {
-        to: [environment.mail, environment.mailOwner],
+        to: [this.environment.get('MAIL_ADDRESS'), this.environment.get('MAIL_ADDRESS_OWNER')],
         subject: 'Failed to send mail after 3 attempts, mail services stopped',
       },
       {
@@ -46,12 +50,12 @@ export class MailService {
   private async _init(): Promise<void> {
     this._mailQueue$
       .pipe(
-        auditTime(environment.mailAuditTime),
+        auditTime(this.environment.get('MAIL_QUEUE_AUDIT_TIME')),
         switchMap(() => this.mailQueueRepository.find()),
         filter(mailQueues => !!mailQueues.length),
         switchMap(mailQueues => this._sendMails(mailQueues)),
         catchError(err => {
-          if (this._retryAttempts <= environment.mailQueueMaxRetries) {
+          if (this._retryAttempts <= this.environment.get('MAIL_QUEUE_MAX_RETRIES')) {
             this._retryAttempts++;
             this._init();
           } else {
@@ -74,7 +78,7 @@ export class MailService {
   }
 
   statusQueue(): MailStatusQueueViewModel {
-    const maxRetries = environment.mailQueueMaxRetries;
+    const maxRetries = this.environment.get('MAIL_QUEUE_MAX_RETRIES');
     const queueWorking = this._retryAttempts <= maxRetries;
     return {
       maxRetries,
@@ -92,10 +96,10 @@ export class MailService {
     const newOptions: MailSendDto = {
       ...options,
       template: './info.hbs',
-      from: environment.mail,
+      from: this.environment.get('MAIL_ADDRESS'),
       context: {
         title: mailInfoTemplate.title,
-        version: environment.appVersion,
+        version: this.environment.appVersion,
         year: new Date().getFullYear(),
         info: mailInfoTemplate.info,
       },

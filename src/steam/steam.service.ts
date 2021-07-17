@@ -4,7 +4,6 @@ import { lastValueFrom, map } from 'rxjs';
 import { Request } from 'express';
 import { SteamProfileRepository } from './steam-profile.repository';
 import { User } from '../user/user.entity';
-import { environment } from '../environment/environment';
 import { RelyingParty } from 'openid';
 import { isString } from 'st-utils';
 import { PlayerService } from '../player/player.service';
@@ -16,6 +15,7 @@ import { RegionService } from '../region/region.service';
 import { PlayerAddDto } from '../player/player.dto';
 import { SteamGateway } from './steam.gateway';
 import { HttpService } from '@nestjs/axios';
+import { Environment } from '../environment/environment';
 
 @Injectable()
 export class SteamService {
@@ -25,7 +25,8 @@ export class SteamService {
     @Inject(forwardRef(() => PlayerService)) private playerService: PlayerService,
     private scoreService: ScoreService,
     private regionService: RegionService,
-    private steamGateway: SteamGateway
+    private steamGateway: SteamGateway,
+    private environment: Environment
   ) {}
 
   private async _createOrReplaceSteamProfile(req: Request, player?: Player, returnUrl?: string): Promise<SteamProfile> {
@@ -114,7 +115,7 @@ export class SteamService {
           `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002`,
           {
             params: {
-              key: environment.steamKey,
+              key: this.environment.get('STEAM_API_KEY'),
               steamids: steamid,
             },
           }
@@ -124,10 +125,10 @@ export class SteamService {
   }
 
   getRelyingParty(returnUrl = '/steam/auth'): RelyingParty {
-    if (!returnUrl.includes(environment.host)) {
-      returnUrl = environment.apiUrl + returnUrl;
+    if (!returnUrl.includes(this.environment.get('HOST'))) {
+      returnUrl = this.environment.apiUrl + returnUrl;
     }
-    return new RelyingParty(returnUrl, environment.apiUrl, true, true, []);
+    return new RelyingParty(returnUrl, this.environment.apiUrl, true, true, []);
   }
 
   async openIdUrl(urlOrUser?: string | User | Player): Promise<string> {
@@ -144,7 +145,7 @@ export class SteamService {
     url += '?' + query.toString();
     const relyingParty = this.getRelyingParty(url);
     return new Promise((resolve, reject) => {
-      relyingParty.authenticate(environment.steamOpenIDUrl, false, (error, authUrl) => {
+      relyingParty.authenticate(this.environment.get('STEAM_OPENID_URL'), false, (error, authUrl) => {
         if (error) return reject('Authentication failed: ' + error);
         if (!authUrl) return reject('Authentication failed.');
         resolve(authUrl);

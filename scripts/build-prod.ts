@@ -1,9 +1,9 @@
 import { resolve } from 'path';
 import { copy, rm, writeFile } from 'fs-extra';
 import * as AdmZip from 'adm-zip';
-import { environment } from '../src/environment/environment';
 import { asyncSpawn, getArg, getSpinner } from './util';
 import { PackageJson } from 'type-fest';
+import { Environment } from '../src/environment/environment';
 
 const spinner = getSpinner();
 
@@ -81,6 +81,7 @@ async function main(): Promise<void> {
     await installDependencies();
   }
   if (!args.skipZip) {
+    const environment = new Environment();
     await zipFile(environment.appVersion);
   }
 }

@@ -1,9 +1,9 @@
 {
-  "DB_SYNCHRONIZE": false,
-  "PORT": 3000,
-  "HOST": "localhost",
-  "CONFIG_USE_HANDLE_ERROR": true,
-  "CONFIG_USE_AUTH": true,
-  "FRONT_END_HOST": "localhost",
-  "FRONT_END_PORT": 4200
+  "BIO_DB_SYNCHRONIZE": false,
+  "BIO_PORT": 3000,
+  "BIO_HOST": "localhost",
+  "BIO_USE_ERROR_FILTER": true,
+  "BIO_USE_AUTH": true,
+  "BIO_FRONT_END_HOST": "localhost",
+  "BIO_FRONT_END_PORT": 4200
 }

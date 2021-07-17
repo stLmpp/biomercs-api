@@ -5,9 +5,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { MiniGameRepository } from './mini-game.repository';
 import { PlayerModule } from '../player/player.module';
 import { MapperModule } from '../mapper/mapper.module';
+import { EnvironmentModule } from '../environment/environment.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([MiniGameRepository]), PlayerModule, MapperModule],
+  imports: [TypeOrmModule.forFeature([MiniGameRepository]), PlayerModule, MapperModule, EnvironmentModule],
   providers: [MiniGameService],
   controllers: [MiniGameController],
   exports: [MiniGameService],

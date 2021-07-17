@@ -3,6 +3,7 @@ import { resolve as pathResolve } from 'path';
 import { getArg, getSpinner, resolvePrettierrc } from './util';
 import { format as prettierFormat } from 'prettier';
 import { config } from 'dotenv';
+import { Environment } from '../src/environment/environment';
 
 const path = getArg<boolean>(['p', 'prod', 'production']) ? '/.env-prod' : '/.env';
 
@@ -17,15 +18,15 @@ async function writeOrmConfig(file: string): Promise<void> {
 }
 
 export async function generateOrmConfig(): Promise<void> {
-  const { DB_TYPEORM_CONFIG } = await import('../src/environment/database');
+  const typeormConfig = new Environment().getTypeOrmConfig();
 
   const dbOptions = JSON.stringify({
-    ...DB_TYPEORM_CONFIG,
+    ...typeormConfig,
     synchronize: false,
     namingStrategy: 'new NamingStrategy()',
   }).replace(`"new NamingStrategy()"`, 'new NamingStrategy()');
 
-  let file = `const { NamingStrategy } = require('./dist/src/environment/naming.strategy');\n\nmodule.exports = ${dbOptions};`;
+  let file = `const { NamingStrategy } = require('./dist/src/environment/naming.strategy'); module.exports = ${dbOptions};`;
 
   const prettierrc = await resolvePrettierrc();
   file = prettierFormat(file, prettierrc);

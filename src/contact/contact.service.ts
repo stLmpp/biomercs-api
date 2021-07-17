@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { MailService } from '../mail/mail.service';
 import { ContactSendMailDto } from './contact.dto';
-import { environment } from '../environment/environment';
+import { Environment } from '../environment/environment';
 
 @Injectable()
 export class ContactService {
-  constructor(private mailService: MailService) {}
+  constructor(private mailService: MailService, private environment: Environment) {}
 
   async sendMail({ from, body, subject }: ContactSendMailDto): Promise<void> {
     await this.mailService.sendMailInfo(
-      { to: environment.mail, subject },
+      { to: this.environment.get('MAIL_ADDRESS'), subject },
       {
         title: 'Contact',
         info: [
