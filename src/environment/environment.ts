@@ -1,5 +1,4 @@
 import { get, has } from 'config';
-import { snakeCase } from 'snake-case';
 import { genSalt } from 'bcrypt';
 import { resolve } from 'path';
 import { Injectable } from '@nestjs/common';
@@ -41,11 +40,11 @@ export interface EnvironmentInterface {
   NODE_ENV: string;
 }
 
-// TODO added cache of values, will be slightly faster than get the env from config
 @Injectable()
 export class Environment {
   private _salt?: string;
   private readonly _prefix = 'BIO';
+  private readonly _cache = new Map<keyof EnvironmentInterface, EnvironmentInterface[keyof EnvironmentInterface]>();
 
   readonly production = this.get('NODE_ENV') === 'production';
   readonly http = 'http' + (this.production ? 's' : '');
@@ -65,20 +64,22 @@ export class Environment {
     if (key === 'NODE_ENV') {
       return key;
     }
-    return snakeCase(`${this._prefix}_${key.toString()}`).toUpperCase();
-  }
-
-  private _getConfig(key: keyof EnvironmentInterface): any {
-    const param = this._normalizeKey(key);
-    if (has(param)) {
-      return get(param);
-    } else {
-      return process.env[param];
-    }
+    return `${this._prefix}_${key.toString()}`;
   }
 
   get<K extends keyof EnvironmentInterface>(key: K): EnvironmentInterface[K] {
-    return this._getConfig(key);
+    if (this._cache.has(key)) {
+      return this._cache.get(key) as EnvironmentInterface[K];
+    }
+    const param = this._normalizeKey(key);
+    let value: EnvironmentInterface[K];
+    if (has(param)) {
+      value = get(param);
+    } else {
+      value = process.env[param] as EnvironmentInterface[K]; // TODO type
+    }
+    this._cache.set(key, value);
+    return value;
   }
 
   async envSalt(): Promise<string> {
