@@ -1,55 +1,85 @@
 import { get, has } from 'config';
 import { genSalt } from 'bcrypt';
 import { resolve } from 'path';
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { NamingStrategy } from './naming.strategy';
 import { version } from '../../package.json';
 import { JwtModuleOptions } from '@nestjs/jwt';
+import { getPropertiesMetadata, Property } from '../mapper/property.decorator';
+import { isUndefined } from 'st-utils';
 
-// TODO figure out a way to convert the values to number/boolean/array/etc
-export interface EnvironmentInterface {
-  JWT_EXPIRES_IN: number;
-  JWT_SECRET: string;
-  SECRET_CHAR: string;
-  STEAM_API_KEY: string;
-  USE_AUTH: boolean;
-  USE_ERROR_FILTER: boolean;
-  WEBSOCKET_PATH: string;
-  WEBSOCKET_TRANSPORTS: Array<'polling' | 'websocket'>;
-  MAIL_QUEUE_AUDIT_TIME: number;
-  MAIL_QUEUE_MAX_RETRIES: number;
-  MAIL_AWS_ACCESS_KEY_ID: string;
-  MAIL_AWS_SECRET_ACCESS_KEY: string;
-  MAIL_AWS_REGION: string;
-  MAIL_AWS_API_VERSION: string;
-  STEAM_OPENID_URL: string;
-  FRONT_END_HOST: string;
-  FRONT_END_PORT: number | undefined;
-  HOST: string;
-  PORT: number;
-  MAIL_ADDRESS: string;
-  MAIL_ADDRESS_OWNER: string;
-  USERNAME_OWNER: string;
-  DB_SYNCHRONIZE: boolean;
-  DB_PASSWORD: string;
-  DB_USERNAME: string;
-  DB_DATABASE: string;
-  DB_PORT: number;
-  DB_HOST: string;
-  NODE_ENV: string;
+export class EnvironmentVariables {
+  @Property() DB_DATABASE!: string;
+  @Property() DB_HOST!: string;
+  @Property() DB_PASSWORD!: string;
+  @Property() DB_PORT!: number;
+  @Property() DB_SYNCHRONIZE!: boolean;
+  @Property() DB_USERNAME!: string;
+  @Property() FRONT_END_HOST!: string;
+  @Property(() => Number, true) FRONT_END_PORT!: number | undefined;
+  @Property() HOST!: string;
+  @Property() JWT_EXPIRES_IN!: number;
+  @Property() JWT_SECRET!: string;
+  @Property() MAIL_ADDRESS!: string;
+  @Property() MAIL_ADDRESS_OWNER!: string;
+  @Property() MAIL_AWS_ACCESS_KEY_ID!: string;
+  @Property() MAIL_AWS_API_VERSION!: string;
+  @Property() MAIL_AWS_REGION!: string;
+  @Property() MAIL_AWS_SECRET_ACCESS_KEY!: string;
+  @Property() MAIL_QUEUE_AUDIT_TIME!: number;
+  @Property() MAIL_QUEUE_MAX_RETRIES!: number;
+  @Property() NODE_ENV!: 'production' | 'development';
+  @Property() PORT!: number;
+  @Property() SECRET_CHAR!: string;
+  @Property() STEAM_API_KEY!: string;
+  @Property() STEAM_OPENID_URL!: string;
+  @Property() USERNAME_OWNER!: string;
+  @Property() USE_AUTH!: boolean;
+  @Property() USE_ERROR_FILTER!: boolean;
+  @Property() WEBSOCKET_PATH!: string;
+  @Property() WEBSOCKET_TRANSPORTS!: Array<'polling' | 'websocket'>;
 }
 
 @Injectable()
 export class Environment {
+  constructor() {
+    const properties = getPropertiesMetadata(EnvironmentVariables);
+    for (const { propertyKey, type, possibleUndefined } of properties) {
+      let value = this._get(propertyKey);
+      if (type !== String) {
+        switch (type) {
+          case Number: {
+            if (!isUndefined(value)) {
+              value = Number(value);
+            }
+            break;
+          }
+          case Boolean:
+            value = value === true || value === 'true';
+            break;
+        }
+      }
+      if (isUndefined(value) && !possibleUndefined) {
+        throw new InternalServerErrorException(`Environment variable "${propertyKey}" not found!`);
+      }
+      this._cache.set(propertyKey, value);
+    }
+
+    this.production = this.get('NODE_ENV') === 'production';
+    this.http = 'http' + (this.production ? 's' : '');
+    this.apiUrl = this._getUrl(this.get('HOST'), this.get('PORT')) + '/api';
+    this.frontEndUrl = this._getUrl(this.get('FRONT_END_HOST'), this.get('FRONT_END_PORT'));
+  }
+
   private _salt?: string;
   private readonly _prefix = 'BIO';
-  private readonly _cache = new Map<keyof EnvironmentInterface, EnvironmentInterface[keyof EnvironmentInterface]>();
+  private readonly _cache = new Map<keyof EnvironmentVariables, EnvironmentVariables[keyof EnvironmentVariables]>();
 
-  readonly production = this.get('NODE_ENV') === 'production';
-  readonly http = 'http' + (this.production ? 's' : '');
-  readonly apiUrl = this._getUrl(this.get('HOST'), this.get('PORT')) + '/api';
-  readonly frontEndUrl = this._getUrl(this.get('FRONT_END_HOST'), this.get('FRONT_END_PORT'));
+  readonly production: boolean;
+  readonly http: string;
+  readonly apiUrl: string;
+  readonly frontEndUrl: string;
   readonly appVersion = version;
 
   private _getUrl(host: string, port?: number): string {
@@ -60,26 +90,24 @@ export class Environment {
     return url;
   }
 
-  private _normalizeKey(key: keyof EnvironmentInterface): string {
+  private _normalizeKey(key: keyof EnvironmentVariables): string {
     if (key === 'NODE_ENV') {
       return key;
     }
     return `${this._prefix}_${key.toString()}`;
   }
 
-  get<K extends keyof EnvironmentInterface>(key: K): EnvironmentInterface[K] {
-    if (this._cache.has(key)) {
-      return this._cache.get(key) as EnvironmentInterface[K];
-    }
+  private _get<K extends keyof EnvironmentVariables>(key: K): EnvironmentVariables[K] | string | undefined {
     const param = this._normalizeKey(key);
-    let value: EnvironmentInterface[K];
     if (has(param)) {
-      value = get(param);
+      return get(param);
     } else {
-      value = process.env[param] as EnvironmentInterface[K]; // TODO type
+      return process.env[param];
     }
-    this._cache.set(key, value);
-    return value;
+  }
+
+  get<K extends keyof EnvironmentVariables>(key: K): EnvironmentVariables[K] {
+    return this._cache.get(key) as EnvironmentVariables[K];
   }
 
   async envSalt(): Promise<string> {

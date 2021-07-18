@@ -7,16 +7,20 @@ export interface PropertyMetadata<T extends Record<any, any> = Record<any, any>,
   propertyKey: K;
   type: any;
   typeFn?: () => Type;
+  possibleUndefined: boolean;
 }
 
-const targets = new Set<any>();
 const propertiesMetadataCache = new Map<any, PropertyMetadata[]>();
 
-export function Property(typeFn?: () => Type): PropertyDecorator {
+export function Property(typeFn?: () => Type, possibleUndefined = false): PropertyDecorator {
   return (target, propertyKey) => {
     const type = Reflect.getMetadata('design:type', target, propertyKey);
-    setPropertyMetadata(target.constructor, propertyKey, { propertyKey: propertyKey.toString(), type, typeFn });
-    targets.add(target.constructor);
+    setPropertyMetadata(target.constructor, propertyKey, {
+      propertyKey: propertyKey.toString(),
+      type,
+      typeFn,
+      possibleUndefined,
+    });
   };
 }
 
