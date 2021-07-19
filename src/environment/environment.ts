@@ -73,7 +73,6 @@ export class Environment {
   }
 
   private _salt?: string;
-  private readonly _prefix = 'BIO';
   private readonly _cache = new Map<keyof EnvironmentVariables, EnvironmentVariables[keyof EnvironmentVariables]>();
 
   readonly production: boolean;
@@ -90,20 +89,17 @@ export class Environment {
     return url;
   }
 
-  private _normalizeKey(key: keyof EnvironmentVariables): string {
-    if (key === 'NODE_ENV') {
-      return key;
-    }
-    return `${this._prefix}_${key.toString()}`;
-  }
-
   private _get<K extends keyof EnvironmentVariables>(key: K): EnvironmentVariables[K] | string | undefined {
-    const param = this._normalizeKey(key);
+    const param = this.normalizeKey(key);
     if (has(param)) {
       return get(param);
     } else {
       return process.env[param];
     }
+  }
+
+  normalizeKey(key: keyof EnvironmentVariables): string {
+    return normalizeEnvironmentKey(key);
   }
 
   get<K extends keyof EnvironmentVariables>(key: K): EnvironmentVariables[K] {
@@ -143,4 +139,11 @@ export class Environment {
       },
     };
   }
+}
+
+export function normalizeEnvironmentKey(key: string): string {
+  if (key === 'NODE_ENV') {
+    return key;
+  }
+  return 'BIO_' + key.toString();
 }
