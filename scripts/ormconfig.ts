@@ -18,12 +18,13 @@ async function writeOrmConfig(file: string): Promise<void> {
 }
 
 export async function generateOrmConfig(): Promise<void> {
-  const typeormConfig = new Environment().getTypeOrmConfig();
+  const { autoLoadEntities, ...typeormConfig } = new Environment().getTypeOrmConfig();
 
   const dbOptions = JSON.stringify({
     ...typeormConfig,
     synchronize: false,
     namingStrategy: 'new NamingStrategy()',
+    entities: [pathResolve(process.cwd() + `/dist/**/*.entity.js`)],
   }).replace(`"new NamingStrategy()"`, 'new NamingStrategy()');
 
   let file = `const { NamingStrategy } = require('./dist/src/environment/naming.strategy'); module.exports = ${dbOptions};`;
