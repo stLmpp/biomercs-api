@@ -84,7 +84,7 @@ export class Environment {
 
   private _getUrl(host: string, port?: number): string {
     let url = `${this.http}://${host}`;
-    if (this.production && port) {
+    if (!this.production && port) {
       url += `:${port}`;
     }
     return url;
