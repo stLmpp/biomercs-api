@@ -22,5 +22,5 @@
     "strictFunctionTypes": true,
     "strictPropertyInitialization": true
   },
-  "exclude": ["migration"]
+  "exclude": ["node_modules", "test", "dist", "**/*spec.ts", "scripts"]
 }

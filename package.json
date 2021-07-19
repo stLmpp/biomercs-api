@@ -10,7 +10,7 @@
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node src/main.js",
-    "start:dev": "nest start --watch",
+    "start:dev": "nest start --watch -p tsconfig.json",
     "start:dev:clean": "rimraf dist && yarn start:dev",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node src/main.js",
