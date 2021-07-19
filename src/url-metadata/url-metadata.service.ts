@@ -2,14 +2,16 @@ import { Injectable } from '@nestjs/common';
 import { UrlMetadataViewModel } from './url-metadata.view-model';
 import * as urlMetadata from 'url-metadata';
 import * as normalizeUrl from 'normalize-url';
-import { environment } from '../environment/environment';
+import { Environment } from '../environment/environment';
 
 @Injectable()
 export class UrlMetadataService {
+  constructor(private environment: Environment) {}
+
   async getMetadata(url: string): Promise<UrlMetadataViewModel> {
     url = normalizeUrl(url);
     try {
-      const rawMetadata = await urlMetadata(url, { fromEmail: environment.mail });
+      const rawMetadata = await urlMetadata(url, { fromEmail: this.environment.get('MAIL_ADDRESS') });
       return new UrlMetadataViewModel({
         url: rawMetadata.url ?? rawMetadata['og:url'],
         description: rawMetadata.description ?? rawMetadata['og:description'],

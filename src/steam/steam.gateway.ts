@@ -1,5 +1,4 @@
 import { WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
-import { environment } from '../environment/environment';
 import { Server } from 'socket.io';
 import { SteamPlayerLinkedSocket, SteamPlayerLinkedSocketViewModel } from './steam-player-linked.view-model';
 import { InjectMapProfile } from '../mapper/inject-map-profile';
@@ -9,7 +8,7 @@ export enum SteamGatewayEvents {
   playerLinked = 'player-linked',
 }
 
-@WebSocketGateway({ path: environment.websocketPath, transports: environment.websocketTransports, namespace: '/steam' })
+@WebSocketGateway({ namespace: '/steam' })
 export class SteamGateway {
   constructor(
     @InjectMapProfile(SteamPlayerLinkedSocket, SteamPlayerLinkedSocketViewModel)

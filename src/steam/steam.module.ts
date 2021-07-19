@@ -9,6 +9,7 @@ import { ScoreModule } from '../score/score.module';
 import { RegionModule } from '../region/region.module';
 import { SteamGateway } from './steam.gateway';
 import { HttpModule } from '@nestjs/axios';
+import { EnvironmentModule } from '../environment/environment.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { HttpModule } from '@nestjs/axios';
     MapperModule,
     ScoreModule,
     RegionModule,
+    EnvironmentModule,
   ],
   controllers: [SteamController],
   providers: [SteamService, SteamGateway],

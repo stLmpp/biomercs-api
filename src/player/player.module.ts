@@ -6,9 +6,16 @@ import { PlayerRepository } from './player.repository';
 import { SteamModule } from '../steam/steam.module';
 import { RegionModule } from '../region/region.module';
 import { MapperModule } from '../mapper/mapper.module';
+import { EnvironmentModule } from '../environment/environment.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PlayerRepository]), forwardRef(() => SteamModule), RegionModule, MapperModule],
+  imports: [
+    TypeOrmModule.forFeature([PlayerRepository]),
+    forwardRef(() => SteamModule),
+    RegionModule,
+    MapperModule,
+    EnvironmentModule,
+  ],
   controllers: [PlayerController],
   providers: [PlayerService],
   exports: [PlayerService],

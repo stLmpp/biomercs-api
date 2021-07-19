@@ -9,6 +9,7 @@ import { PlatformGameMiniGameModeStageModule } from './platform-game-mini-game-m
 import { PlatformGameMiniGameModeCharacterCostumeModule } from './platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.module';
 import { PlayerModule } from '../player/player.module';
 import { MapperModule } from '../mapper/mapper.module';
+import { EnvironmentModule } from '../environment/environment.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { MapperModule } from '../mapper/mapper.module';
     PlatformGameMiniGameModeCharacterCostumeModule,
     PlayerModule,
     MapperModule,
+    EnvironmentModule,
   ],
   providers: [PlatformService],
   controllers: [PlatformController],

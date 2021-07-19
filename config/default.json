@@ -1,13 +1,10 @@
 {
-  "JWT_EXPIRES_IN": 86400,
-  "CONFIG_USE_ROLE": true,
-  "CONFIG_USE_AUTH": true,
-  "CONFIG_USE_HANDLE_ERROR": true,
-  "DEFAULT_PAGINATION_SIZE": 15,
-  "HEADER_RECAPTCHA_TOKEN": "Biomercs-reCAPTCHA-Token",
-  "STEAM_OPENID_URL": "https://steamcommunity.com/openid",
-  "CONFIG_WEBSOCKET_PATH": "/api/socket",
-  "CONFIG_WEBSOCKET_TRANSPORTS": ["websocket", "polling"],
-  "CONFIG_MAIL_QUEUE_AUDIT_TIME": 120000,
-  "CONFIG_MAIL_QUEUE_MAX_RETRIES": 3
+  "BIO_JWT_EXPIRES_IN": 86400,
+  "BIO_CONFIG_USE_AUTH": true,
+  "BIO_CONFIG_USE_HANDLE_ERROR": true,
+  "BIO_STEAM_OPENID_URL": "https://steamcommunity.com/openid",
+  "BIO_WEBSOCKET_PATH": "/api/socket",
+  "BIO_WEBSOCKET_TRANSPORTS": ["websocket", "polling"],
+  "BIO_MAIL_QUEUE_AUDIT_TIME": 120000,
+  "BIO_MAIL_QUEUE_MAX_RETRIES": 3
 }

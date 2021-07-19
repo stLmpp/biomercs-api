@@ -17,6 +17,7 @@ import { ScoreChangeRequestModule } from './score-change-request/score-change-re
 import { ScoreGateway } from './score.gateway';
 import { MailModule } from '../mail/mail.module';
 import { ScoreStatusModule } from './score-status/score-status.module';
+import { EnvironmentModule } from '../environment/environment.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { ScoreStatusModule } from './score-status/score-status.module';
     ScoreChangeRequestModule,
     MailModule,
     ScoreStatusModule,
+    EnvironmentModule,
   ],
   providers: [ScoreService, ScoreGateway],
   controllers: [ScoreController],
