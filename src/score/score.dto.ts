@@ -5,6 +5,7 @@ import { Type } from 'class-transformer';
 import { IsArrayNumberQuery } from '../validation/is-array-number';
 import { IsBoolean } from '../validation/is-boolean';
 import { ScoreStatusEnum } from './score-status/score-status.enum';
+import { IsDate } from '../validation/is-date';
 
 export class ScoreAddDto {
   @IsNumber()
@@ -46,6 +47,10 @@ export class ScoreAddDto {
   @Type(() => ScorePlayerAddDto)
   @ValidateNested({ each: true })
   scorePlayers!: ScorePlayerAddDto[];
+
+  @IsOptional()
+  @IsDate()
+  achievedDate?: Date;
 }
 
 export class ScoreChangeRequestsFulfilDto {

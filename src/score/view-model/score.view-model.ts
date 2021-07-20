@@ -49,4 +49,5 @@ export class ScoreViewModel {
   @Property() isWorldRecord!: boolean;
   @Property() isCharacterWorldRecord!: boolean;
   @Property() isCombinationWorldRecord!: boolean;
+  @Property() achievedDate?: Date;
 }

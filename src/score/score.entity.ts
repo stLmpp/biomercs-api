@@ -64,4 +64,8 @@ export class Score extends BaseEntity {
   @Property(() => ScoreChangeRequest)
   @OneToMany(() => ScoreChangeRequest, scoreChangeRequest => scoreChangeRequest.score)
   scoreChangeRequests!: ScoreChangeRequest[];
+
+  @Property()
+  @Column({ nullable: true })
+  achievedDate?: Date;
 }
