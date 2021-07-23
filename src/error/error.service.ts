@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { ErrorAddDto } from './error.dto';
 import { ErrorEntity } from './error.entity';
-import { isFunction } from 'st-utils';
 import { ErrorRepository } from './error.repository';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { FindConditions, LessThan } from 'typeorm';
 import { subDays } from 'date-fns';
+import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class ErrorService {
@@ -18,15 +18,13 @@ export class ErrorService {
   }
 
   async add(dto: ErrorAddDto): Promise<ErrorEntity> {
-    if (dto.sqlParameters?.length) {
-      dto.sqlParameters = dto.sqlParameters.map(param => {
-        if (isFunction(param?.toString)) {
-          return param.toString();
-        } else {
-          return `${param}`;
-        }
-      });
-    }
     return this.errorRepository.save(dto);
+  }
+
+  async paginate(page: number, limit: number): Promise<Pagination<ErrorEntity>> {
+    return this.errorRepository.paginate(
+      { page, limit },
+      { order: { creationDate: 'DESC' }, relations: ['createdByUser'] }
+    );
   }
 }

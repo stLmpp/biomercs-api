@@ -1,9 +1,11 @@
-import { Column, Entity } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { BaseEntity } from '../shared/super/base-entity';
 import { Property } from '../mapper/property.decorator';
+import { ErrorInterface } from './error.interface';
+import { User } from '../user/user.entity';
 
 @Entity()
-export class ErrorEntity extends BaseEntity {
+export class ErrorEntity extends BaseEntity implements ErrorInterface {
   @Property()
   @Column()
   name!: string;
@@ -29,6 +31,11 @@ export class ErrorEntity extends BaseEntity {
   sqlQuery?: string;
 
   @Property()
-  @Column({ type: 'varchar', array: true, nullable: true })
-  sqlParameters?: string[];
+  @Column({ type: 'json', nullable: true })
+  sqlParameters?: any[];
+
+  @Property(() => User)
+  @ManyToOne(() => User, { createForeignKeyConstraints: false })
+  @JoinColumn({ name: 'createdBy' })
+  createdByUser?: User;
 }

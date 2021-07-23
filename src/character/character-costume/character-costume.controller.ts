@@ -29,6 +29,7 @@ export class CharacterCostumeController {
     return this.mapProfile.mapPromise(this.characterCostumeService.add(dto));
   }
 
+  @ApiAdmin()
   @Patch(`:${Params.idCharacterCostume}`)
   async update(
     @Param(Params.idCharacterCostume) idCharacterCostume: number,

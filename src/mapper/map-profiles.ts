@@ -66,6 +66,10 @@ import {
   ScoresGroupedByStatus,
 } from '../score/view-model/score-grouped-by-status.view-model';
 import { SteamPlayerLinkedSocket, SteamPlayerLinkedSocketViewModel } from '../steam/steam-player-linked.view-model';
+import { ErrorEntity } from '../error/error.entity';
+import { ErrorViewModel } from '../error/error.view-model';
+import { format } from 'sql-formatter';
+import { isString } from 'st-utils';
 
 const mapProfiles: MapProfile<any, any>[] = [
   mapperService.create(Game, GameViewModel),
@@ -147,6 +151,37 @@ const mapProfiles: MapProfile<any, any>[] = [
       from => from.scoreStatus.id
     ),
   mapperService.create(SteamPlayerLinkedSocket, SteamPlayerLinkedSocketViewModel),
+  mapperService
+    .create(ErrorEntity, ErrorViewModel)
+    .for(
+      dest => dest.createdByUsername,
+      from => from.createdByUser?.username
+    )
+    .for(
+      dest => dest.stack,
+      from => from.stack.replace(new RegExp(process.cwd(), 'g'), '')
+    )
+    .for(
+      dest => dest.sqlQuery,
+      from => from.sqlQuery && format(from.sqlQuery, { language: 'postgresql' })
+    )
+    .for(
+      dest => dest.sqlQueryWithParameters,
+      from => {
+        if (!from.sqlQuery || !from.sqlParameters?.length) {
+          return undefined;
+        }
+        let query = from.sqlQuery;
+        for (let index = 0, length = from.sqlParameters.length; index < length; index++) {
+          let param = from.sqlParameters[index];
+          if (isString(param)) {
+            param = `'${param.replace(/'/g, `\\'`)}'`;
+          }
+          query = query.replace(`$${index + 1}`, param + '');
+        }
+        return format(query, { language: 'postgresql' });
+      }
+    ),
 ];
 
 function createScoreViewModeMap<T extends ScoreViewModel>(type: Type<T>): MapProfile<Score, T> {
