@@ -51,7 +51,7 @@ async function bootstrap(): Promise<void> {
         useDefaults: true,
         directives: {
           'font-src': [`'self'`, 'https://fonts.googleapis.com'],
-          'style-src': [`'self'`, 'https://fonts.googleapis.com/'],
+          'style-src': [`'self'`, 'https://fonts.googleapis.com', `https: 'unsafe-inline'`],
         },
       },
     })
