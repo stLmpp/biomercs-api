@@ -141,8 +141,10 @@ export class Environment {
   }
 }
 
+const exceptionKeys = new Set<keyof EnvironmentVariables>(['NODE_ENV', 'PORT']);
+
 export function normalizeEnvironmentKey(key: string): string {
-  if (key === 'NODE_ENV') {
+  if (exceptionKeys.has(key as keyof EnvironmentVariables)) {
     return key;
   }
   return 'BIO_' + key.toString();

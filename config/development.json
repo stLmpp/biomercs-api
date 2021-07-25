@@ -1,6 +1,6 @@
 {
   "BIO_DB_SYNCHRONIZE": false,
-  "BIO_PORT": 3000,
+  "PORT": 3000,
   "BIO_HOST": "localhost",
   "BIO_USE_ERROR_FILTER": true,
   "BIO_USE_AUTH": true,
