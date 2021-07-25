@@ -17,7 +17,7 @@ export class EnvironmentVariables {
   @Property() DB_SYNCHRONIZE!: boolean;
   @Property() DB_USERNAME!: string;
   @Property() FRONT_END_HOST!: string;
-  @Property(() => Number, true) FRONT_END_PORT!: number | undefined;
+  @Property(() => Number, true) FRONT_END_PORT: number | undefined;
   @Property() HOST!: string;
   @Property() JWT_EXPIRES_IN!: number;
   @Property() JWT_SECRET!: string;

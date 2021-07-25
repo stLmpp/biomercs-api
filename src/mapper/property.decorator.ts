@@ -59,6 +59,7 @@ export function getPropertiesMetadata<T>(target: Type<T>): PropertyMetadata<T>[]
           type: item.type ?? acc.type,
           typeFn: item.typeFn ?? acc.typeFn,
           propertyKey: item.propertyKey ?? acc.propertyKey,
+          possibleUndefined: item.possibleUndefined ?? acc.possibleUndefined,
         }),
         { propertyKey, type: null } as PropertyMetadata
       )
