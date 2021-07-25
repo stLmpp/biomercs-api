@@ -34,6 +34,6 @@ export class GameService {
     idPlatform: number,
     idPlayer?: number
   ): Promise<Game[]> {
-    return this.gameRepository.findApprovalByIdPlatform(idScoreStatus, idPlatform, idPlayer);
+    return await this.gameRepository.findApprovalByIdPlatform(idScoreStatus, idPlatform, idPlayer);
   }
 }

@@ -1,7 +1,7 @@
 import { Property } from '../../mapper/property.decorator';
 
 export class ScorePlayerViewModel {
-  @Property() idScorePlayer!: number;
+  @Property() id!: number;
   @Property() idScore!: number;
   @Property() idPlayer!: number;
   @Property() playerPersonaName!: string;
@@ -31,7 +31,7 @@ export class ScoreViewModel {
   @Property() gameShortName!: string;
   @Property() idMiniGame!: number;
   @Property() miniGameName!: string;
-  @Property() idScore!: number;
+  @Property() id!: number;
   @Property() idStage!: number;
   @Property() stageName!: string;
   @Property() stageShortName!: string;
@@ -49,4 +49,5 @@ export class ScoreViewModel {
   @Property() isWorldRecord!: boolean;
   @Property() isCharacterWorldRecord!: boolean;
   @Property() isCombinationWorldRecord!: boolean;
+  @Property() achievedDate?: Date;
 }

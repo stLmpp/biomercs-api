@@ -8,24 +8,30 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { UserService } from '../user/user.service';
-import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto, AuthRegisterSteamDto } from './auth.dto';
+import {
+  AuthChangeForgottenPasswordDto,
+  AuthChangePasswordDto,
+  AuthChangePasswordKey,
+  AuthCredentialsDto,
+  AuthRegisterDto,
+  AuthRegisterSteamDto,
+} from './auth.dto';
 import { UserAddDto } from '../user/user.dto';
-import { genSalt, hash } from 'bcryptjs';
+import { genSalt, hash } from 'bcrypt';
 import { AuthRegisterViewModel, AuthSteamLoginSocketErrorType } from './auth.view-model';
 import { isNumber } from 'st-utils';
 import { AuthConfirmationService } from './auth-confirmation/auth-confirmation.service';
 import { User } from '../user/user.entity';
-import { environment } from '../environment/environment';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { PlayerService } from '../player/player.service';
 import { AuthGateway } from './auth.gateway';
 import { SteamService } from '../steam/steam.service';
 import { random } from '../util/util';
-import { UserViewModel } from '../user/user.view-model';
-import { MapperService } from '../mapper/mapper.service';
 import { MailService } from '../mail/mail.service';
 import { MailPriorityEnum } from '../mail/mail-priority.enum';
+import { EncryptorService } from '../encryptor/encryptor.service';
+import { Environment } from '../environment/environment';
 
 @Injectable()
 export class AuthService {
@@ -36,8 +42,9 @@ export class AuthService {
     private playerService: PlayerService,
     private authGateway: AuthGateway,
     private steamService: SteamService,
-    private mapperService: MapperService,
-    private mailService: MailService
+    private mailService: MailService,
+    private encryptorService: EncryptorService,
+    private environment: Environment
   ) {}
 
   private _mapUserLoginAttempts = new Map<number, number | null>();
@@ -99,26 +106,20 @@ export class AuthService {
   }
 
   @Transactional()
-  async confirmCode(idUser: number, code: number): Promise<UserViewModel> {
-    const user = await this.userService.getById(idUser);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+  async confirmCode(idUser: number, code: number): Promise<User> {
+    const user = await this.userService.findByIdWithPasswordAndSaltOrFail(idUser);
     if (!user.idCurrentAuthConfirmation) {
       throw new BadRequestException('User is not waiting for confirmation');
     }
     await this.authConfirmationService.confirmCode(user.idCurrentAuthConfirmation, code);
-    const { password, salt } = await this.userService.getPasswordAndSalt(idUser);
-    user.password = password;
-    user.salt = salt;
     user.token = await this.getToken(user);
     user.lastOnline = new Date();
     await this.userService.update(idUser, { lastOnline: user.lastOnline, idCurrentAuthConfirmation: null });
-    return this.mapperService.map(User, UserViewModel, user);
+    return user;
   }
 
   @Transactional()
-  async changeForgottenPassword(dto: AuthChangePasswordDto): Promise<UserViewModel> {
+  async changeForgottenPassword(dto: AuthChangeForgottenPasswordDto): Promise<User> {
     let user = await this.userService.findByAuthCode(dto.confirmationCode);
     if (!user?.idCurrentAuthConfirmation) {
       throw new BadRequestException('Confirmation code does not exists');
@@ -148,12 +149,71 @@ export class AuthService {
   }
 
   @Transactional()
+  async sendChangePasswordConfirmationCode(idUser: number): Promise<void> {
+    const user = await this.userService.getById(idUser);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const authConfirmation = await this.authConfirmationService.generateConfirmationCodeAndInvalidLast(user.id);
+    const payload: AuthChangePasswordKey = { idUser, idAuthConfirmation: authConfirmation.id };
+    const payloadString = JSON.stringify(payload);
+    await this.mailService.sendMailInfo(
+      { to: user.email, subject: 'Biomercs - Change password' },
+      {
+        title: 'Change password',
+        info: [
+          {
+            title: 'Code',
+            value: authConfirmation.code,
+          },
+          {
+            title: 'Link to change password',
+            value:
+              this.environment.frontEndUrl +
+              `/auth/change-password/confirm/${this.encryptorService.encrypt(payloadString)}`,
+          },
+        ],
+      },
+      MailPriorityEnum.now
+    );
+  }
+
+  @Transactional()
+  async confirmCodeAndChangePassword(
+    idUser: number,
+    { confirmationCode, newPassword, oldPassword, key }: AuthChangePasswordDto
+  ): Promise<User> {
+    if (oldPassword === newPassword) {
+      throw new BadRequestException(`The new password is equal to the old password`);
+    }
+    const payload = this.validateChangePassword(key);
+    if (!payload) {
+      throw new BadRequestException('Wrong key');
+    }
+    if (idUser !== payload.idUser) {
+      throw new ForbiddenException();
+    }
+    const user = await this.userService.findByIdWithPasswordAndSaltOrFail(idUser);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    const isOldPasswordValid = await user.validatePassword(oldPassword);
+    if (!isOldPasswordValid) {
+      throw new BadRequestException(`Old password is incorrect`);
+    }
+    await this.authConfirmationService.confirmCode(payload.idAuthConfirmation, confirmationCode);
+    const newPasswordHash = await hash(newPassword, user.salt);
+    await this.userService.updatePasswordAndRemoveLocks(user.id, newPasswordHash);
+    return this.login({ username: user.username, password: newPassword, rememberMe: true });
+  }
+
+  @Transactional()
   async authSteam(steamid: string, uuid: string): Promise<void> {
     const user = await this.userService.getBySteamid(steamid);
     if (!user) {
       this.authGateway.sendTokenSteam({
         uuid,
-        token: await hash(steamid, await environment.envSalt()),
+        token: await hash(steamid, await this.environment.envSalt()),
         error: 'This steam has no user linked to it',
         steamid,
         errorType: AuthSteamLoginSocketErrorType.userNotFound,
@@ -172,7 +232,7 @@ export class AuthService {
       }
       this.authGateway.sendTokenSteam({
         uuid,
-        token: await hash(steamid, await environment.envSalt()),
+        token: await hash(steamid, await this.environment.envSalt()),
         error,
         steamid,
         errorType,
@@ -186,7 +246,7 @@ export class AuthService {
         errorType: AuthSteamLoginSocketErrorType.userNotConfirmed,
         error: 'Account already exists, but it needs to be confirmed.',
         steamid,
-        token: await hash(steamid, await environment.envSalt()),
+        token: await hash(steamid, await this.environment.envSalt()),
         idUser: user.id,
       });
       return;
@@ -202,7 +262,7 @@ export class AuthService {
 
   @Transactional()
   async registerSteam({ email, steamid }: AuthRegisterSteamDto, auth: string): Promise<AuthRegisterViewModel> {
-    const envSalt = await environment.envSalt();
+    const envSalt = await this.environment.envSalt();
     const hashed = await hash(steamid, envSalt);
     if (hashed !== auth) {
       throw new UnauthorizedException();
@@ -218,7 +278,7 @@ export class AuthService {
    * @description Not transactional because the e-mail must be sent.
    * Also there's no need for this method to be transactional, since there's only one update that matters
    */
-  async login(dto: AuthCredentialsDto): Promise<UserViewModel> {
+  async login(dto: AuthCredentialsDto): Promise<User> {
     const [user, error] = await this.userService.validateUserToLogin(dto);
     if (!user) {
       throw error;
@@ -244,7 +304,7 @@ export class AuthService {
     await this.userService.update(user.id, { lastOnline: user.lastOnline, rememberMe: user.rememberMe });
     user.token = await this.getToken(user);
     this._mapUserLoginAttempts.set(user.id, null);
-    return this.mapperService.map(User, UserViewModel, user);
+    return user;
   }
 
   async getToken({ id, password, rememberMe }: User): Promise<string> {
@@ -256,8 +316,22 @@ export class AuthService {
   }
 
   async validateSteamToken(steamid: string, token: string): Promise<boolean> {
-    const envSalt = await environment.envSalt();
+    const envSalt = await this.environment.envSalt();
     const hashed = await hash(steamid, envSalt);
     return hashed === token;
+  }
+
+  validateChangePassword(key: string): AuthChangePasswordKey | null {
+    const decrypted = this.encryptorService.decrypt(key);
+    if (!decrypted) {
+      return null;
+    }
+    let payload: AuthChangePasswordKey;
+    try {
+      payload = JSON.parse(decrypted);
+    } catch {
+      return null;
+    }
+    return payload;
   }
 }

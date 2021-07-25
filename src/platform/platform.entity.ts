@@ -2,9 +2,10 @@ import { Column, Entity, Index, OneToMany } from 'typeorm';
 import { BaseEntity } from '../shared/super/base-entity';
 import { Property } from '../mapper/property.decorator';
 import { PlatformGameMiniGame } from './platform-game-mini-game/platform-game-mini-game.entity';
+import { PlatformInterface } from './platform.interface';
 
 @Entity()
-export class Platform extends BaseEntity {
+export class Platform extends BaseEntity implements PlatformInterface {
   @Property()
   @Column()
   @Index()

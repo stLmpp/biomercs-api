@@ -1,7 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Put } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { PlatformService } from './platform.service';
-import { Platform } from './platform.entity';
 import { PlatformAddDto, PlatformUpdateDto } from './platform.dto';
 import { Params } from '../shared/type/params';
 import { ApiAdmin } from '../auth/api-admin.decorator';
@@ -15,9 +14,14 @@ import { PlatformGameMiniGameModeCharacterCostumeService } from './platform-game
 import { PlatformGameMiniGameModeCharacterCostume } from './platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.entity';
 import { PlatformGameMiniGameModeStage } from './platform-game-mini-game-mode-stage/platform-game-mini-game-mode-stage.entity';
 import { ScoreStatusEnum } from '../score/score-status/score-status.enum';
-import { AuthUser } from '../auth/auth-user.decorator';
-import { AuthPlayerPipe } from '../auth/auth-player.decorator';
-import { Player } from '../player/player.entity';
+import { PlatformViewModel } from './platform.view-model';
+import { InjectMapProfile } from '../mapper/inject-map-profile';
+import { Platform } from './platform.entity';
+import { MapProfile } from '../mapper/map-profile';
+import { PlatformGameMiniGameViewModel } from './platform-game-mini-game/platform-game-mini-game.view-model';
+import { PlatformGameMiniGameModeViewModel } from './platform-game-mini-game-mode/platform-game-mini-game-mode.view-model';
+import { PlatformGameMiniGameModeCharacterCostumeViewModel } from './platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.view-model';
+import { PlatformGameMiniGameModeStageViewModel } from './platform-game-mini-game-mode-stage/platform-game-mini-game-mode-stage.view-model';
 
 @ApiAuth()
 @ApiTags('Platform')
@@ -28,19 +32,37 @@ export class PlatformController {
     private platformGameMiniGameService: PlatformGameMiniGameService,
     private platformGameMiniGameModeService: PlatformGameMiniGameModeService,
     private platformGameMiniGameModeCharacterCostumeService: PlatformGameMiniGameModeCharacterCostumeService,
-    private platformGameMiniGameModeStageService: PlatformGameMiniGameModeStageService
+    private platformGameMiniGameModeStageService: PlatformGameMiniGameModeStageService,
+    @InjectMapProfile(Platform, PlatformViewModel) private mapProfile: MapProfile<Platform, PlatformViewModel>,
+    @InjectMapProfile(PlatformGameMiniGame, PlatformGameMiniGameViewModel)
+    private mapProfilePlatformGameMiniGame: MapProfile<PlatformGameMiniGame, PlatformGameMiniGameViewModel>,
+    @InjectMapProfile(PlatformGameMiniGameMode, PlatformGameMiniGameModeViewModel)
+    private mapProfilePlatformGameMiniGameMode: MapProfile<PlatformGameMiniGameMode, PlatformGameMiniGameModeViewModel>,
+    @InjectMapProfile(PlatformGameMiniGameModeCharacterCostume, PlatformGameMiniGameModeCharacterCostumeViewModel)
+    private mapProfilePlatformGameMiniGameModeCharacterCostume: MapProfile<
+      PlatformGameMiniGameModeCharacterCostume,
+      PlatformGameMiniGameModeCharacterCostumeViewModel
+    >,
+    @InjectMapProfile(PlatformGameMiniGameModeStage, PlatformGameMiniGameModeStageViewModel)
+    private mapProfilePlatformGameMiniGameModeStage: MapProfile<
+      PlatformGameMiniGameModeStage,
+      PlatformGameMiniGameModeStageViewModel
+    >
   ) {}
 
   @ApiAdmin()
   @Post()
-  async add(@Body() dto: PlatformAddDto): Promise<Platform> {
-    return this.platformService.add(dto);
+  async add(@Body() dto: PlatformAddDto): Promise<PlatformViewModel> {
+    return this.mapProfile.mapPromise(this.platformService.add(dto));
   }
 
   @ApiAdmin()
   @Patch(`:${Params.idPlatform}`)
-  async update(@Param(Params.idPlatform) idPlatform: number, @Body() dto: PlatformUpdateDto): Promise<Platform> {
-    return this.platformService.update(idPlatform, dto);
+  async update(
+    @Param(Params.idPlatform) idPlatform: number,
+    @Body() dto: PlatformUpdateDto
+  ): Promise<PlatformViewModel> {
+    return this.mapProfile.mapPromise(this.platformService.update(idPlatform, dto));
   }
 
   @ApiAdmin()
@@ -49,8 +71,10 @@ export class PlatformController {
     @Param(Params.idPlatform) idPlatform: number,
     @Param(Params.idGame) idGame: number,
     @Param(Params.idMiniGame) idMiniGame: number
-  ): Promise<PlatformGameMiniGame> {
-    return this.platformGameMiniGameService.link(idPlatform, idGame, idMiniGame);
+  ): Promise<PlatformGameMiniGameViewModel> {
+    return this.mapProfilePlatformGameMiniGame.mapPromise(
+      this.platformGameMiniGameService.link(idPlatform, idGame, idMiniGame)
+    );
   }
 
   @ApiAdmin()
@@ -70,8 +94,10 @@ export class PlatformController {
     @Param(Params.idGame) idGame: number,
     @Param(Params.idMiniGame) idMiniGame: number,
     @Param(Params.idMode) idMode: number
-  ): Promise<PlatformGameMiniGameMode> {
-    return this.platformGameMiniGameModeService.link(idPlatform, idGame, idMiniGame, idMode);
+  ): Promise<PlatformGameMiniGameModeViewModel> {
+    return this.mapProfilePlatformGameMiniGameMode.mapPromise(
+      this.platformGameMiniGameModeService.link(idPlatform, idGame, idMiniGame, idMode)
+    );
   }
 
   @ApiAdmin()
@@ -95,13 +121,15 @@ export class PlatformController {
     @Param(Params.idMiniGame) idMiniGame: number,
     @Param(Params.idMode) idMode: number,
     @Param(Params.idCharacterCostume) idCharacterCostume: number
-  ): Promise<PlatformGameMiniGameModeCharacterCostume> {
-    return this.platformGameMiniGameModeCharacterCostumeService.link(
-      idPlatform,
-      idGame,
-      idMiniGame,
-      idMode,
-      idCharacterCostume
+  ): Promise<PlatformGameMiniGameModeCharacterCostumeViewModel> {
+    return this.mapProfilePlatformGameMiniGameModeCharacterCostume.mapPromise(
+      this.platformGameMiniGameModeCharacterCostumeService.link(
+        idPlatform,
+        idGame,
+        idMiniGame,
+        idMode,
+        idCharacterCostume
+      )
     );
   }
 
@@ -135,8 +163,10 @@ export class PlatformController {
     @Param(Params.idMiniGame) idMiniGame: number,
     @Param(Params.idMode) idMode: number,
     @Param(Params.idStage) idStage: number
-  ): Promise<PlatformGameMiniGameModeStage> {
-    return this.platformGameMiniGameModeStageService.link(idPlatform, idGame, idMiniGame, idMode, idStage);
+  ): Promise<PlatformGameMiniGameModeStageViewModel> {
+    return this.mapProfilePlatformGameMiniGameModeStage.mapPromise(
+      this.platformGameMiniGameModeStageService.link(idPlatform, idGame, idMiniGame, idMode, idStage)
+    );
   }
 
   @ApiAdmin()
@@ -154,23 +184,18 @@ export class PlatformController {
   }
 
   @Get()
-  async findAll(): Promise<Platform[]> {
-    return this.platformService.findAll();
+  async findAll(): Promise<PlatformViewModel[]> {
+    return this.mapProfile.mapPromise(this.platformService.findAll());
   }
 
   @ApiAdmin()
-  @Get('approval/admin')
-  async findApprovalAdmin(): Promise<Platform[]> {
-    return this.platformService.findApproval(ScoreStatusEnum.AwaitingApprovalAdmin);
-  }
-
-  @Get('approval/player')
-  async findApprovalUser(@AuthUser(AuthPlayerPipe) player: Player): Promise<Platform[]> {
-    return this.platformService.findApproval(ScoreStatusEnum.AwaitingApprovalPlayer, player.id);
+  @Get('approval')
+  async findApprovalAdmin(): Promise<PlatformViewModel[]> {
+    return this.mapProfile.mapPromise(this.platformService.findApproval(ScoreStatusEnum.AwaitingApproval));
   }
 
   @Get(`:${Params.idPlatform}`)
-  async findById(@Param(Params.idPlatform) idPlatform: number): Promise<Platform> {
-    return this.platformService.findById(idPlatform);
+  async findById(@Param(Params.idPlatform) idPlatform: number): Promise<PlatformViewModel> {
+    return this.mapProfile.mapPromise(this.platformService.findById(idPlatform));
   }
 }

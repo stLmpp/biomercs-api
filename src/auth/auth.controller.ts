@@ -14,7 +14,13 @@ import {
 import { ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { AuthRegisterViewModel } from './auth.view-model';
-import { AuthChangePasswordDto, AuthCredentialsDto, AuthRegisterDto, AuthRegisterSteamDto } from './auth.dto';
+import {
+  AuthChangeForgottenPasswordDto,
+  AuthChangePasswordDto,
+  AuthCredentialsDto,
+  AuthRegisterDto,
+  AuthRegisterSteamDto,
+} from './auth.dto';
 import { HeaderParams, Params } from '../shared/type/params';
 import { User } from '../user/user.entity';
 import { ApiAuth } from './api-auth.decorator';
@@ -25,6 +31,8 @@ import { Request, Response } from 'express';
 import { UserViewModel } from '../user/user.view-model';
 import { PlayerService } from '../player/player.service';
 import { RateLimit } from 'nestjs-rate-limiter';
+import { InjectMapProfile } from '../mapper/inject-map-profile';
+import { MapProfile } from '../mapper/map-profile';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -33,7 +41,8 @@ export class AuthController {
     private authService: AuthService,
     private userService: UserService,
     private steamService: SteamService,
-    private playerService: PlayerService
+    private playerService: PlayerService,
+    @InjectMapProfile(User, UserViewModel) private mapProfile: MapProfile<User, UserViewModel>
   ) {}
 
   @RateLimit({
@@ -50,7 +59,7 @@ export class AuthController {
   @ApiOkResponse()
   @Post('login')
   async login(@Body() dto: AuthCredentialsDto): Promise<UserViewModel> {
-    return this.authService.login(dto);
+    return this.mapProfile.mapPromise(this.authService.login(dto));
   }
 
   @ApiOkResponse()
@@ -65,7 +74,7 @@ export class AuthController {
       throw new NotFoundException('User not found');
     }
     newUser.token = await this.authService.getToken(user);
-    return newUser;
+    return this.mapProfile.map(newUser);
   }
 
   @Post(`user/:${Params.idUser}/resend-code`)
@@ -78,7 +87,7 @@ export class AuthController {
     @Param(Params.idUser) idUser: number,
     @Param(Params.confirmationCode) confirmationCode: number
   ): Promise<UserViewModel> {
-    return this.authService.confirmCode(idUser, confirmationCode);
+    return this.mapProfile.mapPromise(this.authService.confirmCode(idUser, confirmationCode));
   }
 
   @ApiQuery({ name: Params.email, required: false })
@@ -139,7 +148,26 @@ export class AuthController {
   }
 
   @Post('forgot-password/change-password')
-  async changeForgottenPassword(@Body() dto: AuthChangePasswordDto): Promise<UserViewModel> {
-    return this.authService.changeForgottenPassword(dto);
+  async changeForgottenPassword(@Body() dto: AuthChangeForgottenPasswordDto): Promise<UserViewModel> {
+    return this.mapProfile.mapPromise(this.authService.changeForgottenPassword(dto));
+  }
+
+  @ApiAuth()
+  @Post('change-password')
+  async sendChangePasswordConfirmationCode(@AuthUser() user: User): Promise<void> {
+    await this.authService.sendChangePasswordConfirmationCode(user.id);
+  }
+
+  @ApiAuth()
+  @Post('change-password/confirm')
+  async confirmChangePassword(@AuthUser() user: User, @Body() dto: AuthChangePasswordDto): Promise<UserViewModel> {
+    return this.mapProfile.mapPromise(this.authService.confirmCodeAndChangePassword(user.id, dto));
+  }
+
+  @ApiAuth()
+  @Get(`change-password/validate/:${Params.key}`)
+  async validateChangePassword(@Param(Params.key) key: string, @AuthUser() user: User): Promise<boolean> {
+    const payload = this.authService.validateChangePassword(key);
+    return payload?.idUser === user.id;
   }
 }

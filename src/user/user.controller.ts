@@ -8,16 +8,22 @@ import { UserViewModel } from './user.view-model';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ApiPagination } from '../shared/decorator/api-pagination';
+import { InjectMapProfile } from '../mapper/inject-map-profile';
+import { User } from './user.entity';
+import { MapProfile } from '../mapper/map-profile';
 
 @ApiAuth()
 @ApiTags('User')
 @Controller('user')
 export class UserController {
-  constructor(private userService: UserService) {}
+  constructor(
+    private userService: UserService,
+    @InjectMapProfile(User, UserViewModel) private mapProfile: MapProfile<User, UserViewModel>
+  ) {}
 
   @Patch(`:${Params.idUser}`)
   async update(@Param(Params.idUser) idUser: number, @Body() dto: UserUpdateDto): Promise<UserViewModel> {
-    return this.userService.update(idUser, dto);
+    return this.mapProfile.mapPromise(this.userService.update(idUser, dto));
   }
 
   @ApiAdmin()
@@ -40,6 +46,10 @@ export class UserController {
     @Query(Params.page) page: number,
     @Query(Params.limit) limit: number
   ): Promise<Pagination<UserViewModel>> {
-    return this.userService.findByUsernameOrEmail(term, page, limit);
+    const { items, meta } = await this.userService.findByUsernameOrEmail(term, page, limit);
+    return {
+      meta,
+      items: this.mapProfile.map(items),
+    };
   }
 }

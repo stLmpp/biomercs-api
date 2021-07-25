@@ -4,10 +4,11 @@ import { BaseEntity } from '../../shared/super/base-entity';
 import { MiniGame } from '../../mini-game/mini-game.entity';
 import { PlatformGameMiniGame } from '../../platform/platform-game-mini-game/platform-game-mini-game.entity';
 import { Property } from '../../mapper/property.decorator';
+import { GameMiniGameInterface } from './game-mini-game.interface';
 
 @Unique(['idGame', 'idMiniGame'])
 @Entity()
-export class GameMiniGame extends BaseEntity {
+export class GameMiniGame extends BaseEntity implements GameMiniGameInterface {
   @Property()
   @Column()
   idGame!: number;

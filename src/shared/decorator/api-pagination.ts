@@ -6,8 +6,8 @@ import { Type } from '../../util/type';
 
 function paginateType(type: Type, name?: string): Type<Pagination<any>> {
   class Paginate implements Pagination<any> {
-    @ApiProperty()
-    links!: PaginationLinks;
+    @ApiProperty({ required: false })
+    links?: PaginationLinks;
 
     @ApiProperty()
     meta!: PaginationMeta;

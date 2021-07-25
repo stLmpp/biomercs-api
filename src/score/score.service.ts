@@ -6,41 +6,30 @@ import { PlatformGameMiniGameModeStageService } from '../platform/platform-game-
 import { ModeService } from '../mode/mode.service';
 import { ScorePlayerService } from './score-player/score-player.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
-import { ScoreViewModel } from './view-model/score.view-model';
-import { MapperService } from '../mapper/mapper.service';
 import { PlayerService } from '../player/player.service';
 import { PlatformGameMiniGameModeCharacterCostumeService } from '../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.service';
-import {
-  ScoreTableViewModel,
-  ScoreTableWorldRecordViewModel,
-  ScoreTopTableViewModel,
-  ScoreTopTableWorldRecordViewModel,
-} from './view-model/score-table.view-model';
+import { ScoreTable, ScoreTopTable } from './view-model/score-table.view-model';
 import { User } from '../user/user.entity';
 import { ScoreApprovalParams } from './score.params';
 import { ScorePlayerAddDto } from './score-player/score-player.dto';
 import { ScoreApprovalService } from './score-approval/score-approval.service';
-import { ScoreApprovalViewModel } from './view-model/score-approval.view-model';
+import { ScoreApprovalPagination } from './view-model/score-approval.view-model';
 import { ScoreApprovalAddDto } from './score-approval/score-approval.dto';
 import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.enum';
-import { Stage } from '../stage/stage.entity';
 import { ScoreWorldRecordService } from './score-world-record/score-world-record.service';
 import { arrayRemoveMutate, orderBy } from 'st-utils';
 import { addSeconds } from 'date-fns';
-import {
-  ScoreChangeRequestsPaginationViewModel,
-  ScoreChangeRequestsViewModel,
-} from './view-model/score-change-request.view-model';
 import { ScoreChangeRequestService } from './score-change-request/score-change-request.service';
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
-import { StageViewModel } from '../stage/stage.view-model';
 import { ScoreGateway } from './score.gateway';
 import { MailService } from '../mail/mail.service';
 import { MailInfo } from '../mail/mail-info.interface';
-import { ScoreGroupedByStatusViewModel } from './view-model/score-grouped-by-status.view-model';
+import { ScoresGroupedByStatus } from './view-model/score-grouped-by-status.view-model';
 import { ScoreStatusEnum } from './score-status/score-status.enum';
 import { ScoreStatusService } from './score-status/score-status.service';
+import { ScoreTableWorldRecord, ScoreTopTableWorldRecord } from './view-model/score-table-world-record.view-model';
+import { ScoreWorldRecordTypeEnum } from './score-world-record/score-world-record-type.enum';
 
 @Injectable()
 export class ScoreService {
@@ -49,7 +38,6 @@ export class ScoreService {
     private platformGameMiniGameModeStageService: PlatformGameMiniGameModeStageService,
     private modeService: ModeService,
     private scorePlayerService: ScorePlayerService,
-    private mapperService: MapperService,
     @Inject(forwardRef(() => PlayerService)) private playerService: PlayerService,
     private platformGameMiniGameModeCharacterCostumeService: PlatformGameMiniGameModeCharacterCostumeService,
     private scoreApprovalService: ScoreApprovalService,
@@ -129,7 +117,7 @@ export class ScoreService {
   async add(
     { idPlatform, idGame, idMiniGame, idMode, idStage, scorePlayers, ...dto }: ScoreAddDto,
     user: User
-  ): Promise<ScoreViewModel> {
+  ): Promise<Score> {
     const [mode, createdByIdPlayer] = await Promise.all([
       this.modeService.findById(idMode),
       this.playerService.findIdByIdUser(user.id),
@@ -147,21 +135,13 @@ export class ScoreService {
         idMode,
         idStage
       );
-    let idScoreStatus = ScoreStatusEnum.AwaitingApprovalAdmin;
-    if (mode.playerQuantity > 1) {
-      const idOtherPlayers = scorePlayers
-        .filter(scorePlayer => scorePlayer.idPlayer !== createdByIdPlayer)
-        .map(scorePlayer => scorePlayer.idPlayer);
-      const otherPlayers = await this.playerService.findByIdsWithUser(idOtherPlayers);
-      const isAllOtherPlayersBanned = otherPlayers.every(player => player.user?.bannedDate);
-      // If all partners are banned, then, the approval will go directly to the admin
-      if (!isAllOtherPlayersBanned) {
-        idScoreStatus = ScoreStatusEnum.AwaitingApprovalPlayer;
-      }
-    }
-
     const score = await this.scoreRepository.save(
-      new Score().extendDto({ ...dto, idPlatformGameMiniGameModeStage, idScoreStatus, createdByIdPlayer })
+      new Score().extendDto({
+        ...dto,
+        idPlatformGameMiniGameModeStage,
+        idScoreStatus: ScoreStatusEnum.AwaitingApproval,
+        createdByIdPlayer,
+      })
     );
     if (scorePlayers.every(scorePlayer => !scorePlayer.host)) {
       const hostPlayer =
@@ -172,7 +152,7 @@ export class ScoreService {
     }
     await this.scorePlayerService.addMany(score.id, idPlatform, idGame, idMiniGame, idMode, scorePlayers);
     this.scoreGateway.updateCountApprovals();
-    return this.findByIdMapped(score.id);
+    return this.scoreRepository.findByIdWithAllRelations(score.id);
   }
 
   @Transactional()
@@ -183,15 +163,14 @@ export class ScoreService {
     action: ScoreApprovalActionEnum
   ): Promise<void> {
     const score = await this.scoreRepository.findOneOrFail(idScore, { relations: ['scorePlayers'] });
-    if (![ScoreStatusEnum.AwaitingApprovalAdmin, ScoreStatusEnum.RejectedByAdmin].includes(score.idScoreStatus)) {
+    if (![ScoreStatusEnum.AwaitingApproval, ScoreStatusEnum.Rejected].includes(score.idScoreStatus)) {
       throw new BadRequestException(`Score is not awaiting for Admin approval`);
     }
     const approvalDate = new Date();
     await Promise.all([
       this.scoreApprovalService.addAdmin({ ...dto, idUser: user.id, action, actionDate: approvalDate, idScore }),
       this.scoreRepository.update(idScore, {
-        idScoreStatus:
-          action === ScoreApprovalActionEnum.Approve ? ScoreStatusEnum.Approved : ScoreStatusEnum.RejectedByAdmin,
+        idScoreStatus: action === ScoreApprovalActionEnum.Approve ? ScoreStatusEnum.Approved : ScoreStatusEnum.Rejected,
         approvalDate,
       }),
     ]);
@@ -207,35 +186,6 @@ export class ScoreService {
         }),
         this._sendEmailScoreApproved(score.id),
       ]);
-    }
-    this.scoreGateway.updateCountApprovals();
-  }
-
-  @Transactional()
-  async approvalPlayer(
-    idScore: number,
-    dto: ScoreApprovalAddDto,
-    user: User,
-    action: ScoreApprovalActionEnum
-  ): Promise<void> {
-    const score = await this.scoreRepository.findOneOrFail(idScore);
-    if (![ScoreStatusEnum.AwaitingApprovalPlayer, ScoreStatusEnum.RejectedByPlayer].includes(score.idScoreStatus)) {
-      throw new BadRequestException(`Score is not awaiting for Player approval`);
-    }
-    const idPlayer = await this.playerService.findIdByIdUser(user.id);
-    await this.scoreApprovalService.addPlayer({ ...dto, idPlayer, action, actionDate: new Date(), idScore });
-    const [countPlayers, countApprovals] = await Promise.all([
-      this.scorePlayerService.findCountByIdScoreWithoutCreator(idScore),
-      this.scoreApprovalService.findCountByIdScoreWithoutCreator(idScore),
-    ]);
-    // Needs to be >=, because a player might be banned during the approval
-    if (countApprovals >= countPlayers || action === ScoreApprovalActionEnum.Reject) {
-      await this.scoreRepository.update(idScore, {
-        idScoreStatus:
-          action === ScoreApprovalActionEnum.Approve
-            ? ScoreStatusEnum.AwaitingApprovalAdmin
-            : ScoreStatusEnum.RejectedByPlayer,
-      });
     }
     this.scoreGateway.updateCountApprovals();
   }
@@ -257,7 +207,7 @@ export class ScoreService {
     const updateScore: Partial<Score> = dto;
     const hasAnyRequestChanges = await this.scoreChangeRequestService.hasAnyRequestChanges(idScore);
     if (!hasAnyRequestChanges) {
-      updateScore.idScoreStatus = ScoreStatusEnum.AwaitingApprovalAdmin;
+      updateScore.idScoreStatus = ScoreStatusEnum.AwaitingApproval;
     }
     if (scorePlayers?.length) {
       await this.scorePlayerService.updateMany(scorePlayers);
@@ -272,8 +222,8 @@ export class ScoreService {
     await this.scorePlayerService.transferScores(oldIdPlayer, newIdPlayer);
   }
 
-  async findByIdMapped(idScore: number): Promise<ScoreViewModel> {
-    return this.mapperService.map(Score, ScoreViewModel, await this.scoreRepository.findByIdWithAllRelations(idScore));
+  async findByIdWithAllRelations(idScore: number): Promise<Score> {
+    return this.scoreRepository.findByIdWithAllRelations(idScore);
   }
 
   async findLeaderboards(
@@ -283,35 +233,27 @@ export class ScoreService {
     idMode: number,
     page: number,
     limit: number
-  ): Promise<ScoreTopTableViewModel> {
+  ): Promise<ScoreTopTable> {
     const [platformGameMiniGameModeStages, [scoreMap, meta]] = await Promise.all([
       this.platformGameMiniGameModeStageService.findByPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode),
       this.scoreRepository.findLeaderboards(idPlatform, idGame, idMiniGame, idMode, page, limit),
     ]);
-
-    const scoreTableViewModel: ScoreTableViewModel[] = [];
+    const scoreTables: ScoreTable[] = [];
     let position = (page - 1) * limit + 1;
     for (const [idPlayer, scores] of scoreMap) {
       const player = scores
         .find(score => score)!
         .scorePlayers.find(scorePlayer => scorePlayer.idPlayer === idPlayer)!.player;
-      const scoreTable = new ScoreTableViewModel();
-      scoreTable.idPlayer = player.id;
-      scoreTable.personaName = player.personaName;
-      const scoresMapped = this.mapperService.map(Score, ScoreViewModel, scores);
+      const scoreTable = new ScoreTable();
+      scoreTable.player = player;
       scoreTable.scores = platformGameMiniGameModeStages.map(platformGameMiniGameModeStage =>
-        scoresMapped.find(score => score.idPlatformGameMiniGameModeStage === platformGameMiniGameModeStage.id)
+        scores.find(score => score.idPlatformGameMiniGameModeStage === platformGameMiniGameModeStage.id)
       );
       scoreTable.total = scoreTable.scores.reduce((acc, score) => acc + (score?.score ?? 0), 0);
       scoreTable.position = position++;
-      scoreTableViewModel.push(scoreTable);
+      scoreTables.push(scoreTable);
     }
-    const stages = this.mapperService.map(
-      Stage,
-      StageViewModel,
-      platformGameMiniGameModeStages.reduce((acc, item) => [...acc, item.stage], [] as Stage[])
-    );
-    return { scoreTables: scoreTableViewModel, stages, meta };
+    return new ScoreTopTable(platformGameMiniGameModeStages, scoreTables, meta);
   }
 
   async findWorldRecordsTable(
@@ -319,7 +261,7 @@ export class ScoreService {
     idGame: number,
     idMiniGame: number,
     idMode: number
-  ): Promise<ScoreTopTableWorldRecordViewModel> {
+  ): Promise<ScoreTopTableWorldRecord> {
     const [platformGameMiniGameModeStages, platformGameMiniGameModeCharacterCostumes, scores] = await Promise.all([
       this.platformGameMiniGameModeStageService.findByPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode),
       this.platformGameMiniGameModeCharacterCostumeService.findByPlatformGameMiniGameMode(
@@ -330,71 +272,66 @@ export class ScoreService {
       ),
       this.scoreRepository.findWorldRecordsTable(idPlatform, idGame, idMiniGame, idMode),
     ]);
-    const scoreViewModels = this.mapperService.map(Score, ScoreViewModel, scores);
-    const scoreTableViewModel: ScoreTableWorldRecordViewModel[] = [];
+    const scoreTableWorldRecords: ScoreTableWorldRecord[] = [];
     for (const platformGameMiniGameModeCharacterCostume of platformGameMiniGameModeCharacterCostumes) {
-      const scoreTable = new ScoreTableWorldRecordViewModel();
+      const scoresCharacter = scores.filter(
+        score =>
+          score.scorePlayers.some(
+            scorePlayer =>
+              scorePlayer.idPlatformGameMiniGameModeCharacterCostume === platformGameMiniGameModeCharacterCostume.id
+          ) &&
+          (score.scoreWorldRecords ?? []).some(
+            scoreWorldRecord =>
+              scoreWorldRecord.type === ScoreWorldRecordTypeEnum.CharacterWorldRecord &&
+              scoreWorldRecord.scoreWorldRecordCharacters.some(
+                scoreWorldRecordCharacter =>
+                  scoreWorldRecordCharacter.idPlatformGameMiniGameModeCharacterCostume ===
+                  platformGameMiniGameModeCharacterCostume.id
+              )
+          )
+      );
+      const scoreTable = new ScoreTableWorldRecord(
+        platformGameMiniGameModeStages.map(platformGameMiniGameModeStage =>
+          scoresCharacter.find(score => score.idPlatformGameMiniGameModeStage === platformGameMiniGameModeStage.id)
+        )
+      );
       scoreTable.idCharacter = platformGameMiniGameModeCharacterCostume.characterCostume.idCharacter;
       scoreTable.idCharacterCostume = platformGameMiniGameModeCharacterCostume.idCharacterCostume;
       scoreTable.characterName = platformGameMiniGameModeCharacterCostume.characterCostume.character.name;
       scoreTable.characterCostumeName = platformGameMiniGameModeCharacterCostume.characterCostume.name;
       scoreTable.characterCostumeShortName = platformGameMiniGameModeCharacterCostume.characterCostume.shortName;
-      const scoresWithCharacter = scoreViewModels.filter(score =>
-        score.scorePlayers.some(
-          scorePlayer =>
-            scorePlayer.idPlatformGameMiniGameModeCharacterCostume === platformGameMiniGameModeCharacterCostume.id &&
-            scorePlayer.isCharacterWorldRecord
-        )
-      );
-      scoreTable.scores = platformGameMiniGameModeStages.map(platformGameMiniGameModeStage =>
-        scoresWithCharacter.find(score => score.idPlatformGameMiniGameModeStage === platformGameMiniGameModeStage.id)
-      );
-      scoreTableViewModel.push(scoreTable);
+      scoreTableWorldRecords.push(scoreTable);
     }
     // WR
-    const scoreTableWorldRecord = new ScoreTableWorldRecordViewModel();
+    const scoreTableWorldRecord = new ScoreTableWorldRecord(
+      platformGameMiniGameModeStages.map(platformGameMiniGameModeStage =>
+        scores.find(
+          score =>
+            score.idPlatformGameMiniGameModeStage === platformGameMiniGameModeStage.id &&
+            score.scoreWorldRecords.some(
+              scoreWorldRecord => scoreWorldRecord.type === ScoreWorldRecordTypeEnum.WorldRecord
+            )
+        )
+      )
+    );
     scoreTableWorldRecord.idCharacter = -1;
     scoreTableWorldRecord.idCharacterCostume = -1;
     scoreTableWorldRecord.characterName = 'All';
     scoreTableWorldRecord.characterCostumeName = 'All';
     scoreTableWorldRecord.characterCostumeShortName = 'All';
-    scoreTableWorldRecord.scores = platformGameMiniGameModeStages.map(platformGameMiniGameModeStage =>
-      scoreViewModels.find(
-        score => score.idPlatformGameMiniGameModeStage === platformGameMiniGameModeStage.id && score.isWorldRecord
-      )
-    );
-    scoreTableViewModel.unshift(scoreTableWorldRecord);
-    const scoreTopTableViewModel = new ScoreTopTableWorldRecordViewModel();
-    scoreTopTableViewModel.scoreTables = scoreTableViewModel;
-    scoreTopTableViewModel.stages = this.mapperService.map(
-      Stage,
-      StageViewModel,
+    scoreTableWorldRecords.unshift(scoreTableWorldRecord);
+    return new ScoreTopTableWorldRecord(
+      scoreTableWorldRecords,
       platformGameMiniGameModeStages.map(platformGameMiniGameModeStage => platformGameMiniGameModeStage.stage)
     );
-    return scoreTopTableViewModel;
   }
 
-  async findApprovalListAdmin(params: ScoreApprovalParams): Promise<ScoreApprovalViewModel> {
+  async findApprovalListAdmin(params: ScoreApprovalParams): Promise<ScoreApprovalPagination> {
     if (!params.idPlatform || !params.page) {
       throw new BadRequestException('idPlatform and page are required');
     }
-    const { items, meta } = await this.scoreRepository.findApprovalListAdmin(params);
-    const scoreApprovalVW = new ScoreApprovalViewModel();
-    scoreApprovalVW.meta = meta;
-    scoreApprovalVW.scores = this.mapperService.map(Score, ScoreViewModel, items);
-    return scoreApprovalVW;
-  }
-
-  async findApprovalListUser(user: User, params: ScoreApprovalParams): Promise<ScoreApprovalViewModel> {
-    if (!params.idPlatform || !params.page) {
-      throw new BadRequestException('idPlatform and page are required');
-    }
-    const idPlayer = await this.playerService.findIdByIdUser(user.id);
-    const { items, meta } = await this.scoreRepository.findApprovalListUser(idPlayer, params);
-    const scoreApprovalVW = new ScoreApprovalViewModel();
-    scoreApprovalVW.meta = meta;
-    scoreApprovalVW.scores = this.mapperService.map(Score, ScoreViewModel, items);
-    return scoreApprovalVW;
+    const pagination = await this.scoreRepository.findApprovalListAdmin(params);
+    return new ScoreApprovalPagination(pagination);
   }
 
   async findTopScoreByIdPlatformGameMiniGameModeStage(
@@ -431,22 +368,8 @@ export class ScoreService {
     );
   }
 
-  async findScoresWithChangeRequests(
-    idUser: number,
-    page: number,
-    limit: number
-  ): Promise<ScoreChangeRequestsPaginationViewModel> {
-    const idPlayer = await this.playerService.findIdByIdUser(idUser);
-    const { items, meta } = await this.scoreRepository.findScoresWithChangeRequests(idPlayer, page, limit);
-    const viewModel = new ScoreChangeRequestsPaginationViewModel();
-    viewModel.meta = meta;
-    viewModel.scores = this.mapperService.map(Score, ScoreChangeRequestsViewModel, items);
-    return viewModel;
-  }
-
-  async findApprovalPlayerCount(user: User): Promise<number> {
-    const idPlayer = await this.playerService.findIdByIdUser(user.id);
-    return this.scoreRepository.findApprovalPlayerCount(idPlayer);
+  async findScoresWithChangeRequests(idPlayer: number, page: number, limit: number): Promise<Pagination<Score>> {
+    return this.scoreRepository.findScoresWithChangeRequests(idPlayer, page, limit);
   }
 
   async findApprovalAdminCount(): Promise<number> {
@@ -458,34 +381,26 @@ export class ScoreService {
     return this.scoreRepository.findScoresWithChangeRequestsCount(idPlayer);
   }
 
-  async searchScores(dto: ScoreSearchDto, idUser: number): Promise<Pagination<ScoreViewModel>> {
+  async searchScores(dto: ScoreSearchDto, idUser: number): Promise<Pagination<Score>> {
     let idPlayer: number | undefined;
     if (dto.onlyMyScores) {
       idPlayer = await this.playerService.findIdByIdUser(idUser);
     }
-    const pagination = await this.scoreRepository.searchScores(dto, idPlayer);
-    return { ...pagination, items: this.mapperService.map(Score, ScoreViewModel, pagination.items) };
+    return this.scoreRepository.searchScores(dto, idPlayer);
   }
 
-  async findRejectedAndPendingScoresByIdUser(idUser: number): Promise<ScoreGroupedByStatusViewModel[]> {
-    const idPlayer = await this.playerService.findIdByIdUser(idUser);
-    const scoresRaw = await this.scoreRepository.findRejectedAndPendingScoresByIdUser(idPlayer);
-    const scoreViewModels = this.mapperService.map(Score, ScoreViewModel, scoresRaw);
+  async findRejectedAndPendingScoresByIdPlayer(idPlayer: number): Promise<ScoresGroupedByStatus[]> {
+    const scores = await this.scoreRepository.findRejectedAndPendingScoresByIdPlayer(idPlayer);
     const allStatus = await this.scoreStatusService.findByIds([
-      ScoreStatusEnum.AwaitingApprovalAdmin,
-      ScoreStatusEnum.AwaitingApprovalPlayer,
-      ScoreStatusEnum.RejectedByAdmin,
-      ScoreStatusEnum.RejectedByPlayer,
+      ScoreStatusEnum.AwaitingApproval,
+      ScoreStatusEnum.Rejected,
     ]);
-    return allStatus.map(status => {
-      const scoreGroupedByStatusViewModel = new ScoreGroupedByStatusViewModel();
-      scoreGroupedByStatusViewModel.scores = arrayRemoveMutate(
-        scoreViewModels,
-        score => score.idScoreStatus === status.id
-      );
-      scoreGroupedByStatusViewModel.idScoreStatus = status.id;
-      scoreGroupedByStatusViewModel.description = status.description;
-      return scoreGroupedByStatusViewModel;
-    });
+    return allStatus.map(
+      status =>
+        new ScoresGroupedByStatus(
+          status,
+          arrayRemoveMutate(scores, score => score.idScoreStatus === status.id)
+        )
+    );
   }
 }

@@ -4,17 +4,11 @@ import { RuleService } from './rule.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RuleRepository } from './rule.repository';
 import { MapperModule } from '../mapper/mapper.module';
-import { MapperService } from '../mapper/mapper.service';
-import { Rule } from './rule.entity';
-import { RuleViewModel } from './rule.view-model';
+import { EnvironmentModule } from '../environment/environment.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([RuleRepository]), MapperModule],
+  imports: [TypeOrmModule.forFeature([RuleRepository]), MapperModule, EnvironmentModule],
   controllers: [RuleController],
   providers: [RuleService],
 })
-export class RuleModule {
-  constructor(private mapperService: MapperService) {
-    this.mapperService.create(Rule, RuleViewModel);
-  }
-}
+export class RuleModule {}

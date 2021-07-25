@@ -1,7 +1,6 @@
 import { resolve } from 'path';
 import { copy, rm, writeFile } from 'fs-extra';
 import * as AdmZip from 'adm-zip';
-import { environment } from '../src/environment/environment';
 import { asyncSpawn, getArg, getSpinner } from './util';
 import { PackageJson } from 'type-fest';
 
@@ -81,7 +80,7 @@ async function main(): Promise<void> {
     await installDependencies();
   }
   if (!args.skipZip) {
-    await zipFile(environment.appVersion);
+    await zipFile(await import('../package.json').then(json => json.version));
   }
 }
 

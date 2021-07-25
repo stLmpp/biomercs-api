@@ -7,17 +7,24 @@ import { ScoreApprovalMotiveAddDto, ScoreApprovalMotiveUpdateDto } from './score
 import { Params } from '../../shared/type/params';
 import { ScoreApprovalActionEnum } from '../score-approval/score-approval-action.enum';
 import { ApiAdmin } from '../../auth/api-admin.decorator';
+import { InjectMapProfile } from '../../mapper/inject-map-profile';
+import { ScoreApprovalMotiveViewModel } from './score-approval-motive.view-model';
+import { MapProfile } from '../../mapper/map-profile';
 
 @ApiAuth()
 @ApiTags('Score approval motive')
 @Controller('score-approval-motive')
 export class ScoreApprovalMotiveController {
-  constructor(private scoreApprovalMotiveService: ScoreApprovalMotiveService) {}
+  constructor(
+    private scoreApprovalMotiveService: ScoreApprovalMotiveService,
+    @InjectMapProfile(ScoreApprovalMotive, ScoreApprovalMotiveViewModel)
+    private mapProfile: MapProfile<ScoreApprovalMotive, ScoreApprovalMotiveViewModel>
+  ) {}
 
   @ApiAdmin()
   @Post()
-  async add(@Body() dto: ScoreApprovalMotiveAddDto): Promise<ScoreApprovalMotive> {
-    return this.scoreApprovalMotiveService.add(dto);
+  async add(@Body() dto: ScoreApprovalMotiveAddDto): Promise<ScoreApprovalMotiveViewModel> {
+    return this.mapProfile.mapPromise(this.scoreApprovalMotiveService.add(dto));
   }
 
   @ApiAdmin()
@@ -25,12 +32,12 @@ export class ScoreApprovalMotiveController {
   async update(
     @Param(Params.idScoreApprovalMotive) idScoreApprovalMotive: number,
     @Body() dto: ScoreApprovalMotiveUpdateDto
-  ): Promise<ScoreApprovalMotive> {
-    return this.scoreApprovalMotiveService.update(idScoreApprovalMotive, dto);
+  ): Promise<ScoreApprovalMotiveViewModel> {
+    return this.mapProfile.mapPromise(this.scoreApprovalMotiveService.update(idScoreApprovalMotive, dto));
   }
 
   @Get('action')
-  async findByAction(@Query(Params.action) action: ScoreApprovalActionEnum): Promise<ScoreApprovalMotive[]> {
-    return this.scoreApprovalMotiveService.findByAction(action);
+  async findByAction(@Query(Params.action) action: ScoreApprovalActionEnum): Promise<ScoreApprovalMotiveViewModel[]> {
+    return this.mapProfile.mapPromise(this.scoreApprovalMotiveService.findByAction(action));
   }
 }

@@ -7,30 +7,58 @@ import { Params } from '../shared/type/params';
 import { ScoreViewModel } from './view-model/score.view-model';
 import { AuthUser } from '../auth/auth-user.decorator';
 import { User } from '../user/user.entity';
-import { ScoreTopTableViewModel, ScoreTopTableWorldRecordViewModel } from './view-model/score-table.view-model';
+import { ScoreTopTable, ScoreTopTableViewModel } from './view-model/score-table.view-model';
 import { OptionalQueryPipe } from '../shared/pipe/optional-query.pipe';
 import { ApiAdmin } from '../auth/api-admin.decorator';
-import { ScoreApprovalViewModel } from './view-model/score-approval.view-model';
+import { ScoreApprovalPagination, ScoreApprovalPaginationViewModel } from './view-model/score-approval.view-model';
 import { ScoreApprovalAddDto } from './score-approval/score-approval.dto';
 import { ScoreApprovalActionEnum } from './score-approval/score-approval-action.enum';
 import { ApiOrderByAndDir } from '../shared/order-by/api-order-by';
 import { OrderByDirection } from 'st-utils';
-import { ScoreChangeRequestsPaginationViewModel } from './view-model/score-change-request.view-model';
+import {
+  ScoreChangeRequestsPaginationViewModel,
+  ScoreWithScoreChangeRequestsViewModel,
+} from './view-model/score-change-request.view-model';
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ApiPagination } from '../shared/decorator/api-pagination';
-import { ScoreGroupedByStatusViewModel } from './view-model/score-grouped-by-status.view-model';
+import { ScoresGroupedByStatus, ScoresGroupedByStatusViewModel } from './view-model/score-grouped-by-status.view-model';
 import { ScoreStatusEnum } from './score-status/score-status.enum';
+import { InjectMapProfile } from '../mapper/inject-map-profile';
+import { Score } from './score.entity';
+import { MapProfile } from '../mapper/map-profile';
+import { ScoreChangeRequestViewModel } from './score-change-request/score-change-request.view-model';
+import {
+  ScoreTopTableWorldRecord,
+  ScoreTopTableWorldRecordViewModel,
+} from './view-model/score-table-world-record.view-model';
+import { AuthPlayerPipe } from '../auth/auth-player.decorator';
+import { Player } from '../player/player.entity';
 
 @ApiAuth()
 @ApiTags('Score')
 @Controller('score')
 export class ScoreController {
-  constructor(private scoreService: ScoreService) {}
+  constructor(
+    private scoreService: ScoreService,
+    @InjectMapProfile(Score, ScoreViewModel) private mapProfile: MapProfile<Score, ScoreViewModel>,
+    @InjectMapProfile(ScoreChangeRequest, ScoreChangeRequestViewModel)
+    private mapProfileScoreChangeRequest: MapProfile<ScoreChangeRequest, ScoreChangeRequestViewModel>,
+    @InjectMapProfile(ScoreTopTable, ScoreTopTableViewModel)
+    private mapProfileScoreTopTable: MapProfile<ScoreTopTable, ScoreTopTableViewModel>,
+    @InjectMapProfile(ScoreApprovalPagination, ScoreApprovalPaginationViewModel)
+    private mapProfileScoreApprovalPagination: MapProfile<ScoreApprovalPagination, ScoreApprovalPaginationViewModel>,
+    @InjectMapProfile(ScoreTopTableWorldRecord, ScoreTopTableWorldRecordViewModel)
+    private mapProfileScoreTopTableWorldRecord: MapProfile<ScoreTopTableWorldRecord, ScoreTopTableWorldRecordViewModel>,
+    @InjectMapProfile(ScoresGroupedByStatus, ScoresGroupedByStatusViewModel)
+    private mapProfileScoresGroupedByStatus: MapProfile<ScoresGroupedByStatus, ScoresGroupedByStatusViewModel>,
+    @InjectMapProfile(Score, ScoreWithScoreChangeRequestsViewModel)
+    private mapProfileScoreWithScoreChangeRequests: MapProfile<Score, ScoreWithScoreChangeRequestsViewModel>
+  ) {}
 
   @Post()
   async add(@Body() dto: ScoreAddDto, @AuthUser() user: User): Promise<ScoreViewModel> {
-    return this.scoreService.add(dto, user);
+    return this.mapProfile.mapPromise(this.scoreService.add(dto, user));
   }
 
   @ApiQuery({ name: Params.limit, required: false })
@@ -45,7 +73,9 @@ export class ScoreController {
     @Query(Params.page) page: number,
     @Query(Params.limit, OptionalQueryPipe) limit?: number
   ): Promise<ScoreTopTableViewModel> {
-    return this.scoreService.findLeaderboards(idPlatform, idGame, idMiniGame, idMode, page, limit ?? 10);
+    return this.mapProfileScoreTopTable.mapPromise(
+      this.scoreService.findLeaderboards(idPlatform, idGame, idMiniGame, idMode, page, limit ?? 10)
+    );
   }
 
   @Get(
@@ -57,7 +87,9 @@ export class ScoreController {
     @Param(Params.idMiniGame) idMiniGame: number,
     @Param(Params.idMode) idMode: number
   ): Promise<ScoreTopTableWorldRecordViewModel> {
-    return this.scoreService.findWorldRecordsTable(idPlatform, idGame, idMiniGame, idMode);
+    return this.mapProfileScoreTopTableWorldRecord.mapPromise(
+      this.scoreService.findWorldRecordsTable(idPlatform, idGame, idMiniGame, idMode)
+    );
   }
 
   @ApiQuery({ name: Params.idPlatform, required: false })
@@ -68,7 +100,7 @@ export class ScoreController {
   @ApiQuery({ name: Params.idStage, required: false })
   @ApiOrderByAndDir()
   @ApiAdmin()
-  @Get(`approval/admin`)
+  @Get(`approval`)
   async findApprovalListAdmin(
     @Query(Params.idPlatform) idPlatform: number,
     @Query(Params.page) page: number,
@@ -79,72 +111,40 @@ export class ScoreController {
     @Query(Params.limit, OptionalQueryPipe) limit?: number,
     @Query(Params.orderBy, OptionalQueryPipe) orderBy?: string,
     @Query(Params.orderByDirection, OptionalQueryPipe) orderByDirection?: OrderByDirection
-  ): Promise<ScoreApprovalViewModel> {
-    return this.scoreService.findApprovalListAdmin({
-      idMiniGame,
-      idMode,
-      idPlatform,
-      limit: limit ?? 10,
-      page,
-      idGame,
-      orderBy: orderBy ?? 'creationDate',
-      orderByDirection: orderByDirection ?? 'desc',
-      idStage,
-    });
+  ): Promise<ScoreApprovalPaginationViewModel> {
+    return this.mapProfileScoreApprovalPagination.mapPromise(
+      this.scoreService.findApprovalListAdmin({
+        idMiniGame,
+        idMode,
+        idPlatform,
+        limit: limit ?? 10,
+        page,
+        idGame,
+        orderBy: orderBy ?? 'creationDate',
+        orderByDirection: orderByDirection ?? 'desc',
+        idStage,
+      })
+    );
   }
 
-  @Get('approval/admin/count')
+  @Get('approval/count')
   async findApprovalAdminCount(): Promise<number> {
     return this.scoreService.findApprovalAdminCount();
-  }
-
-  @ApiQuery({ name: Params.idPlatform, required: false })
-  @ApiQuery({ name: Params.idGame, required: false })
-  @ApiQuery({ name: Params.idMiniGame, required: false })
-  @ApiQuery({ name: Params.idMode, required: false })
-  @ApiQuery({ name: Params.limit, required: false })
-  @ApiQuery({ name: Params.idStage, required: false })
-  @ApiOrderByAndDir()
-  @Get(`approval/player`)
-  async findApprovalListPlayer(
-    @AuthUser() user: User,
-    @Query(Params.idPlatform) idPlatform: number,
-    @Query(Params.page) page: number,
-    @Query(Params.idGame, OptionalQueryPipe) idGame?: number,
-    @Query(Params.idMiniGame, OptionalQueryPipe) idMiniGame?: number,
-    @Query(Params.idMode, OptionalQueryPipe) idMode?: number,
-    @Query(Params.idStage, OptionalQueryPipe) idStage?: number,
-    @Query(Params.limit, OptionalQueryPipe) limit?: number,
-    @Query(Params.orderBy, OptionalQueryPipe) orderBy?: string,
-    @Query(Params.orderByDirection, OptionalQueryPipe) orderByDirection?: OrderByDirection
-  ): Promise<ScoreApprovalViewModel> {
-    return this.scoreService.findApprovalListUser(user, {
-      idMiniGame,
-      idMode,
-      idPlatform,
-      limit: limit ?? 10,
-      page,
-      idGame,
-      orderBy: orderBy ?? 'creationDate',
-      orderByDirection: orderByDirection ?? 'desc',
-      idStage,
-    });
-  }
-
-  @Get('approval/player/count')
-  async findApprovalPlayerCount(@AuthUser() user: User): Promise<number> {
-    return this.scoreService.findApprovalPlayerCount(user);
   }
 
   @ApiQuery({ name: Params.limit, required: false })
   @Get('player/change-requests')
   async findScoresWithChangeRequests(
-    @AuthUser() user: User,
+    @AuthUser(AuthPlayerPipe) player: Player,
     @Query(Params.page) page: number,
     @Query(Params.limit, OptionalQueryPipe) limit?: number
   ): Promise<ScoreChangeRequestsPaginationViewModel> {
     limit ??= 10;
-    return this.scoreService.findScoresWithChangeRequests(user.id, page, limit);
+    const { items, meta } = await this.scoreService.findScoresWithChangeRequests(player.id, page, limit);
+    const viewModel = new ScoreChangeRequestsPaginationViewModel();
+    viewModel.meta = meta;
+    viewModel.scores = this.mapProfileScoreWithScoreChangeRequests.map(items);
+    return viewModel;
   }
 
   @Get('player/change-requests/count')
@@ -153,8 +153,12 @@ export class ScoreController {
   }
 
   @Get('player/rejected-and-pending')
-  async findRejectedAndPendingScoresByIdUser(@AuthUser() user: User): Promise<ScoreGroupedByStatusViewModel[]> {
-    return this.scoreService.findRejectedAndPendingScoresByIdUser(user.id);
+  async findRejectedAndPendingScoresByIdPlayer(
+    @AuthUser(AuthPlayerPipe) player: Player
+  ): Promise<ScoresGroupedByStatusViewModel[]> {
+    return this.mapProfileScoresGroupedByStatus.mapPromise(
+      this.scoreService.findRejectedAndPendingScoresByIdPlayer(player.id)
+    );
   }
 
   @ApiQuery({ name: Params.worldRecord, required: false })
@@ -171,11 +175,12 @@ export class ScoreController {
   @ApiPagination(ScoreViewModel)
   @Get('search')
   async searchScores(@Query() dto: ScoreSearchDto, @AuthUser() user: User): Promise<Pagination<ScoreViewModel>> {
-    return this.scoreService.searchScores(dto, user.id);
+    const { items, meta, links } = await this.scoreService.searchScores(dto, user.id);
+    return new Pagination<ScoreViewModel>(this.mapProfile.map(items), meta, links);
   }
 
   @ApiAdmin()
-  @Post(`:${Params.idScore}/approve/admin`)
+  @Post(`:${Params.idScore}/approve`)
   async approveAdmin(
     @Param(Params.idScore) idScore: number,
     @Body() dto: ScoreApprovalAddDto,
@@ -184,17 +189,8 @@ export class ScoreController {
     return this.scoreService.approvalAdmin(idScore, dto, user, ScoreApprovalActionEnum.Approve);
   }
 
-  @Post(`:${Params.idScore}/approve/player`)
-  async approvePlayer(
-    @Param(Params.idScore) idScore: number,
-    @Body() dto: ScoreApprovalAddDto,
-    @AuthUser() user: User
-  ): Promise<void> {
-    return this.scoreService.approvalPlayer(idScore, dto, user, ScoreApprovalActionEnum.Approve);
-  }
-
   @ApiAdmin()
-  @Post(`:${Params.idScore}/reject/admin`)
+  @Post(`:${Params.idScore}/reject`)
   async rejectAdmin(
     @Param(Params.idScore) idScore: number,
     @Body() dto: ScoreApprovalAddDto,
@@ -203,20 +199,14 @@ export class ScoreController {
     return this.scoreService.approvalAdmin(idScore, dto, user, ScoreApprovalActionEnum.Reject);
   }
 
-  @Post(`:${Params.idScore}/reject/player`)
-  async rejectPlayer(
-    @Param(Params.idScore) idScore: number,
-    @Body() dto: ScoreApprovalAddDto,
-    @AuthUser() user: User
-  ): Promise<void> {
-    return this.scoreService.approvalPlayer(idScore, dto, user, ScoreApprovalActionEnum.Reject);
-  }
-
   @ApiAdmin()
   @ApiBody({ type: String, isArray: true })
   @Post(`:${Params.idScore}/request-changes`)
-  async requestChanges(@Param(Params.idScore) idScore: number, @Body() dtos: string[]): Promise<ScoreChangeRequest[]> {
-    return this.scoreService.requestChanges(idScore, dtos);
+  async requestChanges(
+    @Param(Params.idScore) idScore: number,
+    @Body() dtos: string[]
+  ): Promise<ScoreChangeRequestViewModel[]> {
+    return this.mapProfileScoreChangeRequest.mapPromise(this.scoreService.requestChanges(idScore, dtos));
   }
 
   @Patch(`:${Params.idScore}/fulfil-change-requests`)
@@ -229,6 +219,6 @@ export class ScoreController {
 
   @Get(`:${Params.idScore}`)
   async findByIdMapped(@Param(Params.idScore) idScore: number): Promise<ScoreViewModel> {
-    return this.scoreService.findByIdMapped(idScore);
+    return this.mapProfile.mapPromise(this.scoreService.findByIdWithAllRelations(idScore));
   }
 }

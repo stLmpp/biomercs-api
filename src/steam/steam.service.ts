@@ -1,23 +1,21 @@
-import { BadRequestException, forwardRef, HttpService, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { SteamProfile } from './steam-profile.entity';
-import { map } from 'rxjs/operators';
+import { lastValueFrom, map } from 'rxjs';
 import { Request } from 'express';
 import { SteamProfileRepository } from './steam-profile.repository';
 import { User } from '../user/user.entity';
-import { environment } from '../environment/environment';
 import { RelyingParty } from 'openid';
 import { isString } from 'st-utils';
 import { PlayerService } from '../player/player.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { Player } from '../player/player.entity';
 import { RawSteamProfile } from './steam-profile.interface';
-import { SteamProfileViewModel, SteamProfileWithPlayerViewModel } from './steam-profile.view-model';
-import { MapperService } from '../mapper/mapper.service';
 import { ScoreService } from '../score/score.service';
 import { RegionService } from '../region/region.service';
 import { PlayerAddDto } from '../player/player.dto';
 import { SteamGateway } from './steam.gateway';
-import { lastValueFrom } from 'rxjs';
+import { HttpService } from '@nestjs/axios';
+import { Environment } from '../environment/environment';
 
 @Injectable()
 export class SteamService {
@@ -25,10 +23,10 @@ export class SteamService {
     private http: HttpService,
     private steamProfileRepository: SteamProfileRepository,
     @Inject(forwardRef(() => PlayerService)) private playerService: PlayerService,
-    private mapperService: MapperService,
     private scoreService: ScoreService,
     private regionService: RegionService,
-    private steamGateway: SteamGateway
+    private steamGateway: SteamGateway,
+    private environment: Environment
   ) {}
 
   private async _createOrReplaceSteamProfile(req: Request, player?: Player, returnUrl?: string): Promise<SteamProfile> {
@@ -59,9 +57,7 @@ export class SteamService {
       steamProfile = await this.add(rawSteamProfile);
       await this.playerService.update(player.id, { idSteamProfile: steamProfile.id });
     }
-    this.steamGateway.playerLinked(player.id, {
-      steamProfile: this.mapperService.map(SteamProfile, SteamProfileViewModel, steamProfile),
-    });
+    this.steamGateway.playerLinked(player.id, { steamProfile });
     return steamProfile;
   }
 
@@ -76,7 +72,7 @@ export class SteamService {
   }
 
   @Transactional()
-  async createWithPlayer(steamid: string): Promise<SteamProfileWithPlayerViewModel> {
+  async createWithPlayer(steamid: string): Promise<SteamProfile> {
     const steamProfile = await this.create(steamid);
     const playerDto: PlayerAddDto & { noUser: boolean } = {
       personaName: steamProfile.personaname,
@@ -90,7 +86,7 @@ export class SteamService {
       }
     }
     steamProfile.player = await this.playerService.add(playerDto);
-    return this.mapperService.map(SteamProfile, SteamProfileWithPlayerViewModel, steamProfile);
+    return steamProfile;
   }
 
   async create(steamid: string): Promise<SteamProfile> {
@@ -101,18 +97,15 @@ export class SteamService {
     return (await this.checkIfSteamProfileIsAlreadyLinked(steamid)) ?? (await this.add(rawSteamProfile));
   }
 
-  async updateSteamProfile(idSteamProfile: number): Promise<SteamProfileViewModel> {
+  async updateSteamProfile(idSteamProfile: number): Promise<SteamProfile> {
     const steamProfile = await this.steamProfileRepository.findOne(idSteamProfile);
     if (!steamProfile?.steamid) {
       throw new BadRequestException('Steam Profile does not exist');
     }
     const rawSteamProfile = await this.getPlayerSummary(steamProfile.steamid);
     await this.steamProfileRepository.update(idSteamProfile, rawSteamProfile);
-    return this.mapperService.map(
-      SteamProfile,
-      SteamProfileViewModel,
-      new SteamProfile().extendDto({ ...steamProfile, ...rawSteamProfile })
-    );
+
+    return new SteamProfile().extendDto({ ...steamProfile, ...rawSteamProfile });
   }
 
   async getPlayerSummary(steamid: string): Promise<RawSteamProfile> {
@@ -122,7 +115,7 @@ export class SteamService {
           `https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002`,
           {
             params: {
-              key: environment.steamKey,
+              key: this.environment.get('STEAM_API_KEY'),
               steamids: steamid,
             },
           }
@@ -132,10 +125,10 @@ export class SteamService {
   }
 
   getRelyingParty(returnUrl = '/steam/auth'): RelyingParty {
-    if (!returnUrl.includes(environment.host)) {
-      returnUrl = environment.apiUrl + returnUrl;
+    if (!returnUrl.includes(this.environment.get('HOST'))) {
+      returnUrl = this.environment.apiUrl + returnUrl;
     }
-    return new RelyingParty(returnUrl, environment.apiUrl, true, true, []);
+    return new RelyingParty(returnUrl, this.environment.apiUrl, true, true, []);
   }
 
   async openIdUrl(urlOrUser?: string | User | Player): Promise<string> {
@@ -152,7 +145,7 @@ export class SteamService {
     url += '?' + query.toString();
     const relyingParty = this.getRelyingParty(url);
     return new Promise((resolve, reject) => {
-      relyingParty.authenticate(environment.steamOpenIDUrl, false, (error, authUrl) => {
+      relyingParty.authenticate(this.environment.get('STEAM_OPENID_URL'), false, (error, authUrl) => {
         if (error) return reject('Authentication failed: ' + error);
         if (!authUrl) return reject('Authentication failed.');
         resolve(authUrl);
@@ -196,10 +189,6 @@ export class SteamService {
       return steamProfile;
     }
     throw new BadRequestException('Steam profile already registered and linked with one player');
-  }
-
-  async findBySteamid(steamid: string): Promise<SteamProfile> {
-    return this.steamProfileRepository.findOneOrFail({ where: { steamid } });
   }
 
   async steamIdExists(steamid: string): Promise<boolean> {

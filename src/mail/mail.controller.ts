@@ -20,6 +20,6 @@ export class MailController {
   @ApiAdmin()
   @Put('restart-queue')
   async restartQueue(): Promise<MailStatusQueueViewModel> {
-    return await this.mailService.restartQueue();
+    return this.mailService.restartQueue();
   }
 }

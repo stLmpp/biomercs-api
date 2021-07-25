@@ -3,10 +3,14 @@ import { BaseEntity } from '../../shared/super/base-entity';
 import { PlatformGameMiniGameMode } from '../platform-game-mini-game-mode/platform-game-mini-game-mode.entity';
 import { CharacterCostume } from '../../character/character-costume/character-costume.entity';
 import { Property } from '../../mapper/property.decorator';
+import { PlatformGameMiniGameModeCharacterCostumeInterface } from './platform-game-mini-game-mode-character-costume.interface';
 
 @Unique(['idPlatformGameMiniGameMode', 'idCharacterCostume'])
 @Entity()
-export class PlatformGameMiniGameModeCharacterCostume extends BaseEntity {
+export class PlatformGameMiniGameModeCharacterCostume
+  extends BaseEntity
+  implements PlatformGameMiniGameModeCharacterCostumeInterface
+{
   @Property()
   @Column()
   idPlatformGameMiniGameMode!: number;
