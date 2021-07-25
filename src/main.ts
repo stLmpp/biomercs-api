@@ -50,7 +50,8 @@ async function bootstrap(): Promise<void> {
       contentSecurityPolicy: {
         useDefaults: true,
         directives: {
-          'connect-src': ['self', 'https://fonts.googleapis.com'],
+          'font-src': [`'self'`, 'https://fonts.googleapis.com'],
+          'style-src': [`'self'`, 'https://fonts.googleapis.com/'],
         },
       },
     })
