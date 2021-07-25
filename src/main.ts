@@ -45,7 +45,16 @@ async function bootstrap(): Promise<void> {
     });
   }
 
-  app.use(helmet());
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        useDefaults: true,
+        directives: {
+          'connect-src': ['self', 'https://fonts.googleapis.com'],
+        },
+      },
+    })
+  );
   app.use(compression());
   app.use(morgan('combined'));
 
