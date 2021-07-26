@@ -17,7 +17,7 @@ export class EnvironmentVariables {
   @Property() DB_SYNCHRONIZE!: boolean;
   @Property() DB_USERNAME!: string;
   @Property() FRONT_END_HOST!: string;
-  @Property(() => Number, true) FRONT_END_PORT!: number | undefined;
+  @Property(() => Number, true) FRONT_END_PORT: number | undefined;
   @Property() HOST!: string;
   @Property() JWT_EXPIRES_IN!: number;
   @Property() JWT_SECRET!: string;
@@ -141,8 +141,10 @@ export class Environment {
   }
 }
 
+const exceptionKeys = new Set<keyof EnvironmentVariables>(['NODE_ENV', 'PORT']);
+
 export function normalizeEnvironmentKey(key: string): string {
-  if (key === 'NODE_ENV') {
+  if (exceptionKeys.has(key as keyof EnvironmentVariables)) {
     return key;
   }
   return 'BIO_' + key.toString();

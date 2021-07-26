@@ -45,7 +45,8 @@ async function bootstrap(): Promise<void> {
     });
   }
 
-  app.use(helmet());
+  // CSP Disabled until a find a better solution
+  app.use(helmet({ contentSecurityPolicy: false }));
   app.use(compression());
   app.use(morgan('combined'));
 
