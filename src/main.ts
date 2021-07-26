@@ -45,17 +45,8 @@ async function bootstrap(): Promise<void> {
     });
   }
 
-  app.use(
-    helmet({
-      contentSecurityPolicy: {
-        useDefaults: true,
-        directives: {
-          'font-src': [`'self'`, 'https://fonts.googleapis.com', 'https://fonts.gstatic.com'],
-          'style-src': [`'self'`, 'https://fonts.googleapis.com', `https: 'unsafe-inline'`],
-        },
-      },
-    })
-  );
+  // CSP Disabled until a find a better solution
+  app.use(helmet({ contentSecurityPolicy: false }));
   app.use(compression());
   app.use(morgan('combined'));
 
