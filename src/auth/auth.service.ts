@@ -100,7 +100,9 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
     if (user.idCurrentAuthConfirmation) {
+      await this.userService.update(user.id, { idCurrentAuthConfirmation: null });
       await this.authConfirmationService.invalidateCode(user.idCurrentAuthConfirmation);
+      user.idCurrentAuthConfirmation = null;
     }
     await this._sendConfirmationCodeEmail(user);
   }
