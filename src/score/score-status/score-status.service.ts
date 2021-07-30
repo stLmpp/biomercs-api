@@ -15,4 +15,8 @@ export class ScoreStatusService {
   async findByIds(ids: ScoreStatusEnum[]): Promise<ScoreStatus[]> {
     return this.scoreStatusRepository.find({ where: { id: In(ids) } });
   }
+
+  async findOneOrFail(idScoreStatus: ScoreStatusEnum): Promise<ScoreStatus> {
+    return this.scoreStatusRepository.findOneOrFail(idScoreStatus);
+  }
 }

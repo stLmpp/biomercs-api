@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { ScoreService } from './score.service';
@@ -215,6 +215,11 @@ export class ScoreController {
     @Body() dto: ScoreChangeRequestsFulfilDto
   ): Promise<boolean> {
     return this.scoreService.fulfilScoreChangeRequests(idScore, dto);
+  }
+
+  @Put(`:${Params.idScore}/cancel`)
+  async cancelScore(@Param(Params.idScore) idScore: number): Promise<void> {
+    return this.scoreService.cancelScore(idScore);
   }
 
   @Get(`:${Params.idScore}`)
