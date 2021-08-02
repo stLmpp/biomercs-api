@@ -42,10 +42,6 @@ export class ScorePlayerService {
     return this.scorePlayerRepository.save(scorePlayersDto);
   }
 
-  async findCountByIdScoreWithoutCreator(idScore: number): Promise<number> {
-    return this.scorePlayerRepository.findCountByIdScoreWithoutCreator(idScore);
-  }
-
   async updateMany(dtos: ScorePlayerUpdateDto[]): Promise<void> {
     await this.scorePlayerRepository.save(
       dtos.map(dto => {

@@ -19,7 +19,7 @@ import {
 import { UserAddDto } from '../user/user.dto';
 import { genSalt, hash } from 'bcrypt';
 import { AuthRegisterViewModel, AuthSteamLoginSocketErrorType } from './auth.view-model';
-import { isNumber } from 'st-utils';
+import { isNumber, random } from 'st-utils';
 import { AuthConfirmationService } from './auth-confirmation/auth-confirmation.service';
 import { User } from '../user/user.entity';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
@@ -27,7 +27,6 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { PlayerService } from '../player/player.service';
 import { AuthGateway } from './auth.gateway';
 import { SteamService } from '../steam/steam.service';
-import { random } from '../util/util';
 import { MailService } from '../mail/mail.service';
 import { MailPriorityEnum } from '../mail/mail-priority.enum';
 import { EncryptorService } from '../encryptor/encryptor.service';

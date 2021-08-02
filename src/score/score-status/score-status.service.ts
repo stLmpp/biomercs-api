@@ -8,10 +8,6 @@ import { ScoreStatusEnum } from './score-status.enum';
 export class ScoreStatusService {
   constructor(private scoreStatusRepository: ScoreStatusRepository) {}
 
-  async findAll(): Promise<ScoreStatus[]> {
-    return this.scoreStatusRepository.find();
-  }
-
   async findByIds(ids: ScoreStatusEnum[]): Promise<ScoreStatus[]> {
     return this.scoreStatusRepository.find({ where: { id: In(ids) } });
   }

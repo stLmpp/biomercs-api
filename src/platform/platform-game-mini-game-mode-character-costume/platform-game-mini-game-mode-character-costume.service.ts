@@ -74,18 +74,4 @@ export class PlatformGameMiniGameModeCharacterCostumeService {
       idMode
     );
   }
-
-  async findRandom(
-    idPlatformGameMiniGameMode: number,
-    characterCostume?: string
-  ): Promise<PlatformGameMiniGameModeCharacterCostume> {
-    const qb = this.platformGameMiniGameModeCharacterCostumeRepository
-      .createQueryBuilder('pgmmcc')
-      .andWhere('pgmmcc.idPlatformGameMiniGameMode = :idPlatformGameMiniGameMode', { idPlatformGameMiniGameMode })
-      .orderBy('random()');
-    if (characterCostume) {
-      qb.innerJoin('pgmmcc.characterCostume', 'cc').andWhere('cc.shortName = :characterCostume', { characterCostume });
-    }
-    return qb.getOneOrFail();
-  }
 }
