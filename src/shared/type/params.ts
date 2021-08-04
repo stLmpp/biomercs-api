@@ -46,6 +46,7 @@ export enum Params {
   score = 'score',
   usernameOrEmail = 'usernameOrEmail',
   key = 'key',
+  flag = 'flag',
 }
 
 export enum HeaderParams {
