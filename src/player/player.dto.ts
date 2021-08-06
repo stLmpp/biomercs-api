@@ -48,3 +48,12 @@ export class PlayerUpdateDto {
   @IsNumber()
   idRegion?: number;
 }
+
+export interface PlayerSearchDto {
+  personaName: string;
+  idUser: number;
+  isAdmin: boolean;
+  page: number;
+  limit: number;
+  idPlayersSelected: number[];
+}

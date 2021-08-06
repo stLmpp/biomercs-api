@@ -1,4 +1,15 @@
-import { BadRequestException, Body, Controller, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseArrayPipe,
+  Patch,
+  Post,
+  Put,
+  Query,
+} from '@nestjs/common';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { PlayerService } from './player.service';
@@ -62,9 +73,17 @@ export class PlayerController {
     @Query(Params.personaName) personaName: string,
     @AuthUser() user: User,
     @Query(Params.page) page: number,
-    @Query(Params.limit) limit: number
+    @Query(Params.limit) limit: number,
+    @Query(Params.idPlayersSelected, new ParseArrayPipe({ items: Number, optional: true })) idPlayersSelected?: number[]
   ): Promise<Pagination<PlayerViewModel>> {
-    const { items, meta } = await this.playerService.findBySearch(personaName, user.id, page, limit);
+    const { items, meta } = await this.playerService.findBySearch({
+      page,
+      limit,
+      personaName,
+      isAdmin: user.admin,
+      idUser: user.id,
+      idPlayersSelected: idPlayersSelected ?? [],
+    });
     const players = this.mapProfile.map(items);
     return new Pagination(players, meta);
   }
