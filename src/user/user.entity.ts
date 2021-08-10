@@ -28,8 +28,8 @@ export class User extends BaseEntity implements UserInterface {
   email!: string;
 
   @Property()
-  @Column({ nullable: true })
-  lastOnline?: Date;
+  @Column({ nullable: true, type: 'timestamp' })
+  lastOnline?: Date | null;
 
   @Property()
   @Column({ nullable: true })

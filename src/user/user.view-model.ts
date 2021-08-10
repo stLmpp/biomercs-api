@@ -7,7 +7,8 @@ export class UserViewModel implements UserInterface {
   @Property() admin!: boolean;
   @Property() dateFormat!: string;
   @Property() email!: string;
-  @Property() lastOnline?: Date;
+  @Property(() => Date) lastOnline?: Date | null;
   @Property() rememberMe?: boolean;
   @Property() token!: string;
+  @Property(() => Date) bannedDate?: Date | null;
 }
