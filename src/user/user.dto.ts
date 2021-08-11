@@ -1,4 +1,4 @@
-import { IsBoolean, IsDefined, IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsDefined, IsEmail, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 import { IsDate } from '../validation/is-date';
 import { IsNumber } from '../validation/is-number';
 import { IsArrayNumber } from '../validation/is-array-number';
@@ -11,6 +11,7 @@ export class UserAddDto {
   @IsDefined()
   @IsString()
   @IsNotEmpty()
+  @MaxLength(100)
   username!: string;
 
   @IsDefined()

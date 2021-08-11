@@ -9,15 +9,15 @@ import { Property } from '../mapper/property.decorator';
 @Entity()
 export class Player extends BaseEntity implements PlayerInterface {
   @Property()
-  @Column({ unique: true })
+  @Column({ unique: true, length: 100 })
   personaName!: string;
 
   @Property()
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 250 })
   title?: string;
 
   @Property()
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 2000 })
   aboutMe?: string;
 
   @Property()

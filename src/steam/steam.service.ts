@@ -75,7 +75,7 @@ export class SteamService {
   async createWithPlayer(steamid: string, noUser = false): Promise<SteamProfile> {
     const steamProfile = await this.create(steamid);
     const playerDto: PlayerAddDto & { noUser: boolean } = {
-      personaName: steamProfile.personaname,
+      personaName: steamProfile.personaname.substr(0, 100),
       idSteamProfile: steamProfile.id,
       noUser,
     };

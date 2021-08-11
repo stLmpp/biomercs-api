@@ -1,9 +1,10 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsOptional, IsString, MaxLength } from 'class-validator';
 import { IsNumber } from '../validation/is-number';
 
 export class PlayerAddDto {
   @IsOptional()
   @IsString()
+  @MaxLength(100)
   personaName?: string;
 
   @IsNumber()
@@ -16,10 +17,12 @@ export class PlayerAddDto {
 
   @IsString()
   @IsOptional()
+  @MaxLength(250)
   title?: string;
 
   @IsString()
   @IsOptional()
+  @MaxLength(2000)
   aboutMe?: string;
 
   @IsOptional()
@@ -38,10 +41,12 @@ export class PlayerUpdateDto {
 
   @IsString()
   @IsOptional()
+  @MaxLength(250)
   title?: string;
 
   @IsString()
   @IsOptional()
+  @MaxLength(2000)
   aboutMe?: string;
 
   @IsOptional()

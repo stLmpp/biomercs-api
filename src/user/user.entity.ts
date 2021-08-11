@@ -10,7 +10,7 @@ import { Property } from '../mapper/property.decorator';
 @Entity()
 export class User extends BaseEntity implements UserInterface {
   @Property()
-  @Column({ unique: true })
+  @Column({ unique: true, length: 100 })
   username!: string;
 
   @Property()
