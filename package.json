@@ -25,7 +25,8 @@
     "run-migration": "typeorm migration:run",
     "build-prod": "ts-node scripts/build-prod.ts",
     "create-env": "ts-node scripts/create-env.ts",
-    "create-orm-config": "ts-node scripts/create-ormconfig.ts"
+    "create-orm-config": "ts-node scripts/create-ormconfig.ts",
+    "before-start": "ts-node scripts/before-start.ts"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "~3.24.0",
