@@ -61,7 +61,7 @@ export class Player extends BaseEntity implements PlayerInterface {
   idInputType?: number;
 
   @Property(() => InputType)
-  @ManyToOne(() => InputType)
+  @ManyToOne(() => InputType, { nullable: true })
   @JoinColumn()
   inputType?: InputType;
 }

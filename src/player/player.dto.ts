@@ -52,6 +52,10 @@ export class PlayerUpdateDto {
   @IsOptional()
   @IsNumber()
   idRegion?: number;
+
+  @IsOptional()
+  @IsNumber()
+  idInputType?: number;
 }
 
 export interface PlayerSearchDto {

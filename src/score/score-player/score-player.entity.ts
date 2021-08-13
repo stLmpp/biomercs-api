@@ -57,7 +57,7 @@ export class ScorePlayer extends BaseEntity {
   idInputType?: number;
 
   @Property(() => InputType)
-  @ManyToOne(() => InputType)
+  @ManyToOne(() => InputType, { nullable: true })
   @JoinColumn()
   inputType?: InputType;
 }
