@@ -388,6 +388,9 @@ export class ScoreRepository extends Repository<Score> {
     if (dto.idCharacterCostumes?.length) {
       queryBuilder.andWhere('cc.id in (:...idCharacterCostumes)', { idCharacterCostumes: dto.idCharacterCostumes });
     }
+    if (dto.idStages?.length) {
+      queryBuilder.andWhere('s.id in (:...idStages)', { idStages: dto.idStages });
+    }
     if (dto.worldRecord || dto.characterWorldRecord || dto.combinationWorldRecord) {
       const types: ScoreWorldRecordTypeEnum[] = [];
       if (dto.characterWorldRecord) {
