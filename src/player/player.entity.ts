@@ -5,6 +5,7 @@ import { SteamProfile } from '../steam/steam-profile.entity';
 import { Region } from '../region/region.entity';
 import { PlayerInterface } from './player.interface';
 import { Property } from '../mapper/property.decorator';
+import { InputType } from '../input-type/input-type.entity';
 
 @Entity()
 export class Player extends BaseEntity implements PlayerInterface {
@@ -54,4 +55,13 @@ export class Player extends BaseEntity implements PlayerInterface {
   @Property()
   @Column({ nullable: true })
   lastUpdatedPersonaNameDate?: Date;
+
+  @Property()
+  @Column({ nullable: true })
+  idInputType?: number;
+
+  @Property(() => InputType)
+  @ManyToOne(() => InputType)
+  @JoinColumn()
+  inputType?: InputType;
 }

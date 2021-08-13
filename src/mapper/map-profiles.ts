@@ -76,7 +76,10 @@ const mapProfiles: MapProfile<any, any>[] = [
   mapperService.create(MiniGame, MiniGameViewModel),
   mapperService.create(Platform, PlatformViewModel),
   mapperService.create(Mode, ModeViewModel),
-  mapperService.create(Player, PlayerViewModel),
+  mapperService.create(Player, PlayerViewModel).for(
+    dest => dest.inputTypeName,
+    from => from.inputType?.name
+  ),
   mapperService.create(Player, PlayerWithRegionSteamProfileViewModel),
   mapperService.create(Region, RegionViewModel),
   mapperService.create(Rule, RuleViewModel),
@@ -119,6 +122,10 @@ const mapProfiles: MapProfile<any, any>[] = [
     .for(
       dest => dest.characterName,
       from => from.platformGameMiniGameModeCharacterCostume.characterCostume.character.name
+    )
+    .for(
+      dest => dest.inputTypeName,
+      from => from.inputType?.name
     ),
   createScoreViewModeMap(ScoreViewModel),
   createScoreViewModeMap(ScoreWithScoreChangeRequestsViewModel),

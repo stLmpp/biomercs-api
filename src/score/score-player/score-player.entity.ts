@@ -4,6 +4,7 @@ import { Score } from '../score.entity';
 import { Player } from '../../player/player.entity';
 import { PlatformGameMiniGameModeCharacterCostume } from '../../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.entity';
 import { Property } from '../../mapper/property.decorator';
+import { InputType } from '../../input-type/input-type.entity';
 
 @Entity({ orderBy: { host: 'DESC', id: 'ASC' } })
 export class ScorePlayer extends BaseEntity {
@@ -50,4 +51,13 @@ export class ScorePlayer extends BaseEntity {
   @Property()
   @Column({ length: 1000 })
   evidence!: string;
+
+  @Property()
+  @Column({ nullable: true })
+  idInputType?: number;
+
+  @Property(() => InputType)
+  @ManyToOne(() => InputType)
+  @JoinColumn()
+  inputType?: InputType;
 }

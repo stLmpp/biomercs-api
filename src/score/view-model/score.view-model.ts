@@ -16,6 +16,8 @@ export class ScorePlayerViewModel {
   @Property() bulletKills!: number;
   @Property() description?: string;
   @Property() evidence!: string;
+  @Property() idInputType?: number;
+  @Property() inputTypeName?: string;
 }
 
 export class ScoreViewModel {

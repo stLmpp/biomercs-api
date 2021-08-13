@@ -58,7 +58,9 @@ export class PlayerService {
   }
 
   async findById(idPlayer: number): Promise<Player> {
-    const player = await this.playerRepository.findOne(idPlayer, { relations: ['region', 'steamProfile'] });
+    const player = await this.playerRepository.findOne(idPlayer, {
+      relations: ['region', 'steamProfile', 'inputType'],
+    });
     if (!player) {
       throw new NotFoundException('Player not found');
     }
