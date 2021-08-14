@@ -1,5 +1,5 @@
-import * as ora from 'ora';
-import * as yargs from 'yargs';
+import ora from 'ora';
+import { parse } from 'yargs';
 import { coerceArray } from 'st-utils';
 import { spawn, SpawnOptions } from 'child_process';
 import { Options, resolveConfig } from 'prettier';
@@ -8,7 +8,7 @@ export function getSpinner(): ora.Ora {
   return ora({ spinner: 'dots' });
 }
 
-const rawArgs = yargs.parse(process.argv.slice(2));
+const rawArgs = parse(process.argv.slice(2));
 
 export function getArg<T>(argNames: string | string[]): T | undefined {
   for (const argName of coerceArray(argNames)) {

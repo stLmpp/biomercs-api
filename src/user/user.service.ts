@@ -136,7 +136,7 @@ export class UserService {
     usernameOrEmail = `%${usernameOrEmail}%`;
     return this.userRepository.paginate(
       { page, limit },
-      { where: [{ username: ILike(usernameOrEmail) }, { email: ILike(usernameOrEmail) }] }
+      { where: [{ username: ILike(usernameOrEmail) }, { email: ILike(usernameOrEmail) }], order: { username: 'ASC' } }
     );
   }
 
