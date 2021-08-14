@@ -1,25 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { UrlMetadataViewModel } from './url-metadata.view-model';
-import * as urlMetadata from 'url-metadata';
-import * as normalizeUrl from 'normalize-url';
-import { Environment } from '../environment/environment';
+import metadataScraper from 'metadata-scraper';
+import normalizeUrl from 'normalize-url';
 
 @Injectable()
 export class UrlMetadataService {
-  constructor(private environment: Environment) {}
-
   async getMetadata(url: string): Promise<UrlMetadataViewModel> {
     url = normalizeUrl(url);
     try {
-      const rawMetadata = await urlMetadata(url, { fromEmail: this.environment.get('MAIL_ADDRESS') });
+      const metaData = await metadataScraper(url, {});
       return new UrlMetadataViewModel({
-        url: rawMetadata.url ?? rawMetadata['og:url'],
-        description: rawMetadata.description ?? rawMetadata['og:description'],
-        image: rawMetadata.image ?? rawMetadata['og:image'] ?? rawMetadata['twitter:image'],
-        title: rawMetadata.title ?? rawMetadata['og:title'] ?? rawMetadata['twitter:title'],
+        url: metaData.url ?? url,
+        description: metaData.description ?? '',
+        image: metaData.image ?? '',
+        title: metaData.title ?? '',
         domain: new URL(url).hostname,
       });
-    } catch {
+    } catch (error) {
       return new UrlMetadataViewModel({
         url,
         description: 'Failed to load preview',
