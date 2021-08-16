@@ -2,8 +2,9 @@ import { Column, Entity, Index, OneToMany } from 'typeorm';
 import { BaseEntity } from '../shared/super/base-entity';
 import { PlatformGameMiniGameModeStage } from '../platform/platform-game-mini-game-mode-stage/platform-game-mini-game-mode-stage.entity';
 import { Property } from '../mapper/property.decorator';
+import { SchemaEnum } from '../environment/schema.enum';
 
-@Entity()
+@Entity({ schema: SchemaEnum.main })
 export class Stage extends BaseEntity {
   @Property()
   @Column()

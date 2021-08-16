@@ -6,8 +6,9 @@ import { User } from '../../user/user.entity';
 import { ScoreApprovalActionEnum } from './score-approval-action.enum';
 import { ScoreApprovalMotive } from '../score-approval-motive/score-approval-motive.entity';
 import { Property } from '../../mapper/property.decorator';
+import { SchemaEnum } from '../../environment/schema.enum';
 
-@Entity()
+@Entity({ schema: SchemaEnum.main })
 export class ScoreApproval extends BaseEntity {
   @Property()
   @Column()

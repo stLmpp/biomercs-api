@@ -3,8 +3,9 @@ import { BaseEntity } from '../shared/super/base-entity';
 import { Player } from '../player/player.entity';
 import { SteamProfileInterface } from './steam-profile.interface';
 import { Property } from '../mapper/property.decorator';
+import { SchemaEnum } from '../environment/schema.enum';
 
-@Entity()
+@Entity({ schema: SchemaEnum.main })
 export class SteamProfile extends BaseEntity implements SteamProfileInterface {
   @Property()
   @Column({ unique: true })

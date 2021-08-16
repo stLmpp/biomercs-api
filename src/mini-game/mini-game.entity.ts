@@ -3,8 +3,9 @@ import { BaseEntity } from '../shared/super/base-entity';
 import { GameMiniGame } from '../game/game-mini-game/game-mini-game.entity';
 import { Property } from '../mapper/property.decorator';
 import { MiniGameInterface } from './mini-game.interface';
+import { SchemaEnum } from '../environment/schema.enum';
 
-@Entity()
+@Entity({ schema: SchemaEnum.main })
 export class MiniGame extends BaseEntity implements MiniGameInterface {
   @Property()
   @Column()

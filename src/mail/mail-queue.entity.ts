@@ -4,8 +4,9 @@ import { TextEncodingEnum } from './text-encoding.enum';
 import { MailSendDto } from './mail.dto';
 import { coerceArray } from 'st-utils';
 import { Property } from '../mapper/property.decorator';
+import { SchemaEnum } from '../environment/schema.enum';
 
-@Entity()
+@Entity({ schema: SchemaEnum.main })
 export class MailQueue extends BaseEntity {
   @Property()
   @Column()

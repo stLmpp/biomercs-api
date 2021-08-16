@@ -6,8 +6,9 @@ import { Player } from '../player/player.entity';
 import { AuthConfirmation } from '../auth/auth-confirmation/auth-confirmation.entity';
 import { UserInterface } from './user.interface';
 import { Property } from '../mapper/property.decorator';
+import { SchemaEnum } from '../environment/schema.enum';
 
-@Entity()
+@Entity({ schema: SchemaEnum.main })
 export class User extends BaseEntity implements UserInterface {
   @Property()
   @Column({ unique: true, length: 100 })

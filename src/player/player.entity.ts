@@ -6,8 +6,9 @@ import { Region } from '../region/region.entity';
 import { PlayerInterface } from './player.interface';
 import { Property } from '../mapper/property.decorator';
 import { InputType } from '../input-type/input-type.entity';
+import { SchemaEnum } from '../environment/schema.enum';
 
-@Entity()
+@Entity({ schema: SchemaEnum.main })
 export class Player extends BaseEntity implements PlayerInterface {
   @Property()
   @Column({ unique: true, length: 100 })

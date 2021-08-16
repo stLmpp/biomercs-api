@@ -13,6 +13,20 @@ import { registerRequestContext } from './async-hooks';
 import { AUTH_USER_CONTEXT_TOKEN } from './auth/auth-user-context-token';
 import { Environment } from './environment/environment';
 import { SocketIoAdapter } from './environment/socket-io.adapter';
+import { getMetadataArgsStorage, NamingStrategyInterface } from 'typeorm';
+
+function checkEntitiesWithoutSchema(namingStrategy: NamingStrategyInterface): void {
+  const entitiesWithoutSchema = getMetadataArgsStorage().tables.filter(
+    table => !table.schema || table.schema === 'public'
+  );
+  if (entitiesWithoutSchema.length) {
+    throw new Error(
+      `There are entities without schema defined: \n\n${entitiesWithoutSchema
+        .map(table => namingStrategy.tableName((table.target as any).name, undefined))
+        .join('\n')}`
+    );
+  }
+}
 
 async function bootstrap(): Promise<void> {
   const app = await NestFactory.create(AppModule);
@@ -29,6 +43,7 @@ async function bootstrap(): Promise<void> {
   const environment = app.get(Environment);
 
   if (!environment.production) {
+    checkEntitiesWithoutSchema(environment.typeormNamingStrategy);
     app.enableCors();
     const options = new DocumentBuilder()
       .setTitle('Api')

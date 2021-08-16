@@ -5,8 +5,9 @@ import { ScoreWorldRecordTypeEnum } from './score-world-record-type.enum';
 import { PlatformGameMiniGameModeStage } from '../../platform/platform-game-mini-game-mode-stage/platform-game-mini-game-mode-stage.entity';
 import { ScoreWorldRecordCharacter } from './score-world-record-character.entity';
 import { Property } from '../../mapper/property.decorator';
+import { SchemaEnum } from '../../environment/schema.enum';
 
-@Entity()
+@Entity({ schema: SchemaEnum.main })
 export class ScoreWorldRecord extends BaseEntity {
   @Property()
   @Column()
