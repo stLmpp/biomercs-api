@@ -8,15 +8,15 @@ export class UrlMetadataService {
   async getMetadata(url: string): Promise<UrlMetadataViewModel> {
     url = normalizeUrl(url);
     try {
-      const metaData = await metadataScraper(url, {});
+      const metadata = await metadataScraper(url, {});
       return new UrlMetadataViewModel({
-        url: metaData.url ?? url,
-        description: metaData.description ?? '',
-        image: metaData.image ?? '',
-        title: metaData.title ?? '',
+        url: metadata.url ?? url,
+        description: metadata.description ?? '',
+        image: metadata.image ?? '',
+        title: metadata.title ?? '',
         domain: new URL(url).hostname,
       });
-    } catch (error) {
+    } catch {
       return new UrlMetadataViewModel({
         url,
         description: 'Failed to load preview',
