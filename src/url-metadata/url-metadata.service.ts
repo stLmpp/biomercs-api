@@ -8,7 +8,7 @@ export class UrlMetadataService {
   async getMetadata(url: string): Promise<UrlMetadataViewModel> {
     url = normalizeUrl(url);
     try {
-      const metadata = await metadataScraper(url, {});
+      const metadata = await metadataScraper(url);
       return new UrlMetadataViewModel({
         url: metadata.url ?? url,
         description: metadata.description ?? '',
