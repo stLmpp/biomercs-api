@@ -86,7 +86,16 @@ const mapProfiles: MapProfile<any, any>[] = [
   mapperService.create(Stage, StageViewModel),
   mapperService.create(SteamProfile, SteamProfileViewModel),
   mapperService.create(SteamProfile, SteamProfileWithPlayerViewModel),
-  mapperService.create(User, UserViewModel),
+  mapperService
+    .create(User, UserViewModel)
+    .for(
+      dest => dest.idPlayer,
+      from => from.player?.id
+    )
+    .for(
+      dest => dest.playerPersonaName,
+      from => from.player?.personaName
+    ),
   mapperService.create(CharacterCostume, CharacterCostumeViewModel),
   mapperService.create(Character, CharacterViewModel),
   mapperService.create(Character, CharacterViewModelWithCharacterCostumes),

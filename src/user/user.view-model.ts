@@ -11,4 +11,6 @@ export class UserViewModel implements UserInterface {
   @Property() rememberMe?: boolean;
   @Property() token!: string;
   @Property(() => Date) bannedDate?: Date | null;
+  @Property() idPlayer?: number;
+  @Property() playerPersonaName?: string;
 }
