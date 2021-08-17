@@ -34,6 +34,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { EnvironmentModule } from './environment/environment.module';
 import { MailerConfig } from './mail/mailer.config';
 import { InputTypeModule } from './input-type/input-type.module';
+import { NotificationModule } from './notification/notification.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { InputTypeModule } from './input-type/input-type.module';
     ScheduleModule.forRoot(),
     EnvironmentModule,
     InputTypeModule,
+    NotificationModule,
   ],
   controllers: [AppController],
   providers: [

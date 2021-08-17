@@ -70,6 +70,9 @@ import { ErrorEntity } from '../error/error.entity';
 import { ErrorViewModel } from '../error/error.view-model';
 import { format } from 'sql-formatter';
 import { isString } from 'st-utils';
+import { Notification } from '../notification/notification.entity';
+import { NotificationViewModel } from '../notification/notification.view-model';
+import { formatScore } from '../score/shared';
 
 const mapProfiles: MapProfile<any, any>[] = [
   mapperService.create(Game, GameViewModel),
@@ -198,6 +201,22 @@ const mapProfiles: MapProfile<any, any>[] = [
         return format(query, { language: 'postgresql' });
       }
     ),
+  mapperService.create(Notification, NotificationViewModel).for(
+    dest => dest.scoreName,
+    ({ score }) => {
+      if (!score) {
+        return null;
+      }
+      const platformGameMiniGameMode = score.platformGameMiniGameModeStage.platformGameMiniGameMode;
+      const platformGameMiniGame = platformGameMiniGameMode.platformGameMiniGame;
+      const platform = platformGameMiniGame.platform.shortName;
+      const gameMiniGame = platformGameMiniGame.gameMiniGame;
+      const game = gameMiniGame.game.shortName;
+      const miniGame = gameMiniGame.miniGame.name;
+      const mode = platformGameMiniGameMode.mode.name;
+      return `[${platform} ${game}] ${miniGame} - ${mode} - ${formatScore(score.score)}`;
+    }
+  ),
 ];
 
 function createScoreViewModeMap<T extends ScoreViewModel>(type: Type<T>): MapProfile<Score, T> {

@@ -22,3 +22,15 @@ export function includeScoreQueryBuilder(
   }
   return queryBuilder;
 }
+
+const formatter = new Intl.NumberFormat('pt-BR');
+
+export function formatScore(value: number): string {
+  if (value <= 0) {
+    return '0';
+  }
+  if (value < 1000) {
+    return formatter.format(value);
+  }
+  return formatter.format(Math.floor(value / 1000)) + 'k';
+}
