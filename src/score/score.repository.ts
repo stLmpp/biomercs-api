@@ -8,6 +8,7 @@ import { ScorePlayer } from './score-player/score-player.entity';
 import { ScoreSearchDto } from './score.dto';
 import { ScoreWorldRecordTypeEnum } from './score-world-record/score-world-record-type.enum';
 import { ScoreStatusEnum } from './score-status/score-status.enum';
+import { includeAllScoresRelations } from './shared';
 
 @EntityRepository(Score)
 export class ScoreRepository extends Repository<Score> {
@@ -22,7 +23,7 @@ export class ScoreRepository extends Repository<Score> {
     idMode?: number,
     idStage?: number
   ): SelectQueryBuilder<Score> {
-    const queryBuilder = this.createQueryBuilder('score')
+    const queryBuilder = includeAllScoresRelations(this.createQueryBuilder('score'))
       .innerJoinAndSelect('score.scoreStatus', 'ss')
       .innerJoinAndSelect('score.platformGameMiniGameModeStage', 'pgmms')
       .innerJoinAndSelect('pgmms.stage', 's')
