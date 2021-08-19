@@ -43,6 +43,13 @@ import { UserModule } from '../user/user.module';
   ],
   providers: [ScoreService, ScoreGateway],
   controllers: [ScoreController],
-  exports: [ScoreService, ScorePlayerModule, ScoreApprovalModule, ScoreApprovalMotiveModule, ScoreWorldRecordModule],
+  exports: [
+    ScoreService,
+    ScorePlayerModule,
+    ScoreApprovalModule,
+    ScoreApprovalMotiveModule,
+    ScoreWorldRecordModule,
+    ScoreGateway,
+  ],
 })
 export class ScoreModule {}

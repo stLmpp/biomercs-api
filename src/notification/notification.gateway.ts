@@ -5,10 +5,6 @@ import { Notification } from './notification.entity';
 import { MapProfile } from '../mapper/map-profile';
 import { NotificationViewModel } from './notification.view-model';
 
-export enum NotificationGatewayEvents {
-  main = 'main',
-}
-
 @WebSocketGateway({ namespace: '/notification' })
 export class NotificationGateway {
   constructor(
@@ -19,6 +15,6 @@ export class NotificationGateway {
   @WebSocketServer() server!: Server;
 
   sendNotification(notification: Notification): void {
-    this.server.emit(NotificationGatewayEvents.main, this.mapProfile.map(notification));
+    this.server.emit(`${notification.idUser}`, this.mapProfile.map(notification));
   }
 }

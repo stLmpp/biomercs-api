@@ -30,10 +30,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     } catch {
       throw new UnauthorizedException();
     }
-    if (!user.canLogin()) {
-      throw new UnauthorizedException();
-    }
-    if (user.password !== payload.password) {
+    if (!user.canLogin() || user.password !== payload.password) {
       throw new UnauthorizedException();
     }
     return user;
