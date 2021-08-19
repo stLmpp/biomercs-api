@@ -9,7 +9,7 @@ export class ScoreStatusService {
   constructor(private scoreStatusRepository: ScoreStatusRepository) {}
 
   async findByIds(ids: ScoreStatusEnum[]): Promise<ScoreStatus[]> {
-    return this.scoreStatusRepository.find({ where: { id: In(ids) } });
+    return this.scoreStatusRepository.find({ where: { id: In(ids) }, order: { id: 'ASC' } });
   }
 
   async findOneOrFail(idScoreStatus: ScoreStatusEnum): Promise<ScoreStatus> {

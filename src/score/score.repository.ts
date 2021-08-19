@@ -23,23 +23,7 @@ export class ScoreRepository extends Repository<Score> {
     idMode?: number,
     idStage?: number
   ): SelectQueryBuilder<Score> {
-    const queryBuilder = includeAllScoresRelations(this.createQueryBuilder('score'))
-      .innerJoinAndSelect('score.scoreStatus', 'ss')
-      .innerJoinAndSelect('score.platformGameMiniGameModeStage', 'pgmms')
-      .innerJoinAndSelect('pgmms.stage', 's')
-      .innerJoinAndSelect('pgmms.platformGameMiniGameMode', 'pgmm')
-      .innerJoinAndSelect('pgmm.mode', 'm')
-      .innerJoinAndSelect('pgmm.platformGameMiniGame', 'pgm')
-      .innerJoinAndSelect('pgm.gameMiniGame', 'gm')
-      .innerJoinAndSelect('gm.game', 'g')
-      .innerJoinAndSelect('gm.miniGame', 'mg')
-      .innerJoinAndSelect('pgm.platform', 'p')
-      .innerJoinAndSelect('score.scorePlayers', 'sp')
-      .innerJoinAndSelect('sp.platformGameMiniGameModeCharacterCostume', 'pgmmcc')
-      .innerJoinAndSelect('pgmmcc.characterCostume', 'cc')
-      .innerJoinAndSelect('cc.character', 'c')
-      .innerJoinAndSelect('sp.player', 'pl')
-      .leftJoinAndSelect('pl.inputType', 'it');
+    const queryBuilder = includeAllScoresRelations(this.createQueryBuilder('score'));
     if (idPlatform) {
       queryBuilder.andWhere('p.id = :idPlatform', { idPlatform });
     }
@@ -441,11 +425,12 @@ export class ScoreRepository extends Repository<Score> {
   }
 
   async findRejectedAndPendingScoresByIdPlayer(idPlayer: number): Promise<Score[]> {
-    return this._includeScoreWorldRecord('score', this._createQueryBuilderRelations())
-      .andWhere('score.idScoreStatus in (:...idScoreStatus)', {
-        idScoreStatus: [ScoreStatusEnum.AwaitingApproval, ScoreStatusEnum.Rejected],
-      })
-      .andWhere('score.createdByIdPlayer = :idPlayer', { idPlayer })
-      .getMany();
+    const idScores = await this.createQueryBuilder('score')
+      .select('score.id')
+      .innerJoin('score.scorePlayers', 'sp')
+      .andWhere('sp.idPlayer = :idPlayer', { idPlayer })
+      .getMany()
+      .then(scores => scores.map(score => score.id));
+    return this.findByIdsWithAllRelations(idScores);
   }
 }

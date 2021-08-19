@@ -24,4 +24,14 @@ export class NotificationRepository extends Repository<Notification> {
       true
     ).paginate(page, limit);
   }
+
+  findIdsWithAllRelations(idNotifications: number[]): Promise<Notification[]> {
+    return includeAllScoresRelations(
+      this.createQueryBuilder('notification')
+        .leftJoinAndSelect('notification.score', 'score')
+        .andWhere('notification.id in (:...idNotifications)', { idNotifications })
+        .orderBy('notification.creationDate', 'DESC'),
+      true
+    ).getMany();
+  }
 }

@@ -15,7 +15,7 @@ export class ScorePlayer extends BaseEntity {
   idScore!: number;
 
   @Property(() => Score)
-  @ManyToOne(() => Score)
+  @ManyToOne(() => Score, score => score.scorePlayers)
   @JoinColumn()
   score!: Score;
 
@@ -24,7 +24,7 @@ export class ScorePlayer extends BaseEntity {
   idPlayer!: number;
 
   @Property(() => Player)
-  @ManyToOne(() => Player)
+  @ManyToOne(() => Player, player => player.scorePlayers)
   @JoinColumn()
   player!: Player;
 

@@ -5,6 +5,7 @@ import { Property } from '../mapper/property.decorator';
 import { Score } from '../score/score.entity';
 import { User } from '../user/user.entity';
 import { NotificationInterface } from './notification.interface';
+import { NotificationType } from './notification-type/notification-type.entity';
 
 @Entity({ schema: SchemaEnum.main })
 export class Notification extends BaseEntity implements NotificationInterface {
@@ -33,4 +34,13 @@ export class Notification extends BaseEntity implements NotificationInterface {
   @ManyToOne(() => Score, { nullable: true })
   @JoinColumn()
   score?: Score | null;
+
+  @Property()
+  @Column({ nullable: true })
+  idNotificationType?: number | null;
+
+  @Property(() => NotificationType)
+  @ManyToOne(() => NotificationType, { nullable: true })
+  @JoinColumn()
+  notificationType?: NotificationType | null;
 }

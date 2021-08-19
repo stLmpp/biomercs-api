@@ -30,6 +30,10 @@ import { ScoreStatusEnum } from './score-status/score-status.enum';
 import { ScoreStatusService } from './score-status/score-status.service';
 import { ScoreTableWorldRecord, ScoreTopTableWorldRecord } from './view-model/score-table-world-record.view-model';
 import { ScoreWorldRecordTypeEnum } from './score-world-record/score-world-record-type.enum';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationTypeEnum } from '../notification/notification-type/notification-type.enum';
+import { UserService } from '../user/user.service';
+import { NotificationAddDto } from '../notification/notification.dto';
 
 @Injectable()
 export class ScoreService {
@@ -45,7 +49,9 @@ export class ScoreService {
     private scoreChangeRequestService: ScoreChangeRequestService,
     private scoreGateway: ScoreGateway,
     private mailService: MailService,
-    private scoreStatusService: ScoreStatusService
+    private scoreStatusService: ScoreStatusService,
+    private notificationService: NotificationService,
+    private userService: UserService
   ) {}
 
   private async _sendEmailScoreApproved(idScore: number): Promise<void> {
@@ -65,33 +71,15 @@ export class ScoreService {
         },
       } = score;
       await this.mailService.sendMailInfo(
-        {
-          to: playerCreated.user.email,
-          subject: 'Biomercs2 - Score approved',
-        },
+        { to: playerCreated.user.email, subject: 'Biomercs2 - Score approved' },
         {
           title: 'Score approved',
           info: [
-            {
-              title: 'Platform',
-              value: platform.name,
-            },
-            {
-              title: 'Game',
-              value: game.name,
-            },
-            {
-              title: 'Mini game',
-              value: miniGame.name,
-            },
-            {
-              title: 'Mode',
-              value: mode.name,
-            },
-            {
-              title: 'Stage',
-              value: stage.name,
-            },
+            { title: 'Platform', value: platform.name },
+            { title: 'Game', value: game.name },
+            { title: 'Mini game', value: miniGame.name },
+            { title: 'Mode', value: mode.name },
+            { title: 'Stage', value: stage.name },
             ...score.scorePlayers.reduce(
               (acc, { player, evidence, platformGameMiniGameModeCharacterCostume: { characterCostume } }, index) => [
                 ...acc,
@@ -99,10 +87,7 @@ export class ScoreService {
                   title: `Player ${index + 1}`,
                   value: `${player.personaName} (${characterCostume.character.name} ${characterCostume.name})`,
                 },
-                {
-                  title: 'Evidence',
-                  value: evidence,
-                },
+                { title: 'Evidence', value: evidence },
               ],
               [] as MailInfo[]
             ),
@@ -151,6 +136,20 @@ export class ScoreService {
       );
     }
     await this.scorePlayerService.addMany(score.id, idPlatform, idGame, idMiniGame, idMode, scorePlayers);
+    if (mode.playerQuantity > 1) {
+      const idPlayersWithoutCreator = scorePlayers
+        .filter(scorePlayer => scorePlayer.idPlayer !== createdByIdPlayer)
+        .map(scorePlayer => scorePlayer.idPlayer);
+      const idUsers = await this.userService.findIdsByPlayers(idPlayersWithoutCreator);
+      if (idUsers.length) {
+        const dtos: NotificationAddDto[] = idUsers.map(idUser => ({
+          idUser,
+          idNotificationType: NotificationTypeEnum.ScoreSubmittedManyPlayers,
+          idScore: score.id,
+        }));
+        await this.notificationService.addAndSendMany(dtos);
+      }
+    }
     this.scoreGateway.updateCountApprovals();
     return this.scoreRepository.findByIdWithAllRelations(score.id);
   }
@@ -187,6 +186,15 @@ export class ScoreService {
         this._sendEmailScoreApproved(score.id),
       ]);
     }
+    const idUsers = await this.userService.findIdsByScore(idScore);
+    if (idUsers.length) {
+      const idNotificationType: NotificationTypeEnum =
+        action === ScoreApprovalActionEnum.Approve
+          ? NotificationTypeEnum.ScoreApproved
+          : NotificationTypeEnum.ScoreRejected;
+      const dtos: NotificationAddDto[] = idUsers.map(idUser => ({ idNotificationType, idScore, idUser }));
+      await this.notificationService.addAndSendMany(dtos);
+    }
     this.scoreGateway.updateCountApprovals();
   }
 
@@ -194,6 +202,14 @@ export class ScoreService {
   async requestChanges(idScore: number, dtos: string[]): Promise<ScoreChangeRequest[]> {
     await this.scoreRepository.update(idScore, { idScoreStatus: ScoreStatusEnum.ChangesRequested });
     const scoreChangeRequests = await this.scoreChangeRequestService.addMany(idScore, dtos);
+    const idUser = await this.userService.findIdByScore(idScore);
+    if (idUser) {
+      await this.notificationService.addAndSend({
+        idNotificationType: NotificationTypeEnum.ScoreRequestedChanges,
+        idScore,
+        idUser,
+      });
+    }
     this.scoreGateway.updateCountApprovals();
     return scoreChangeRequests;
   }
