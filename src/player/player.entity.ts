@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 import { User } from '../user/user.entity';
 import { BaseEntity } from '../shared/super/base-entity';
 import { SteamProfile } from '../steam/steam-profile.entity';
@@ -7,6 +7,8 @@ import { PlayerInterface } from './player.interface';
 import { Property } from '../mapper/property.decorator';
 import { InputType } from '../input-type/input-type.entity';
 import { SchemaEnum } from '../environment/schema.enum';
+import { ScorePlayer } from '../score/score-player/score-player.entity';
+import { Score } from '../score/score.entity';
 
 @Entity({ schema: SchemaEnum.main })
 export class Player extends BaseEntity implements PlayerInterface {
@@ -65,4 +67,12 @@ export class Player extends BaseEntity implements PlayerInterface {
   @ManyToOne(() => InputType, { nullable: true })
   @JoinColumn()
   inputType?: InputType;
+
+  @Property(() => ScorePlayer)
+  @OneToMany(() => ScorePlayer, scorePlayer => scorePlayer.player)
+  scorePlayers?: ScorePlayer[];
+
+  @Property(() => Score)
+  @OneToMany(() => Score, score => score.createdByPlayer)
+  scores?: Score[];
 }

@@ -22,3 +22,40 @@ export function includeScoreQueryBuilder(
   }
   return queryBuilder;
 }
+
+export function includeAllScoresRelations<T>(
+  queryBuilder: SelectQueryBuilder<T>,
+  leftJoin = false
+): SelectQueryBuilder<T> {
+  const method: keyof Pick<SelectQueryBuilder<any>, 'innerJoinAndSelect' | 'leftJoinAndSelect'> = leftJoin
+    ? 'leftJoinAndSelect'
+    : 'innerJoinAndSelect';
+  return queryBuilder[method]('score.scoreStatus', 'ss')
+    [method]('score.platformGameMiniGameModeStage', 'pgmms')
+    [method]('pgmms.stage', 's')
+    [method]('pgmms.platformGameMiniGameMode', 'pgmm')
+    [method]('pgmm.mode', 'm')
+    [method]('pgmm.platformGameMiniGame', 'pgm')
+    [method]('pgm.gameMiniGame', 'gm')
+    [method]('gm.game', 'g')
+    [method]('gm.miniGame', 'mg')
+    [method]('pgm.platform', 'p')
+    [method]('score.scorePlayers', 'sp')
+    [method]('sp.platformGameMiniGameModeCharacterCostume', 'pgmmcc')
+    [method]('pgmmcc.characterCostume', 'cc')
+    [method]('cc.character', 'c')
+    [method]('sp.player', 'pl')
+    .leftJoinAndSelect('pl.inputType', 'it');
+}
+
+const formatter = new Intl.NumberFormat('pt-BR');
+
+export function formatScore(value: number): string {
+  if (value <= 0) {
+    return '0';
+  }
+  if (value < 1000) {
+    return formatter.format(value);
+  }
+  return formatter.format(Math.floor(value / 1000)) + 'k';
+}

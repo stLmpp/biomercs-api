@@ -148,4 +148,16 @@ export class UserService {
   async lockUser(idUser: number): Promise<void> {
     await this.userRepository.update(idUser, { lockedDate: new Date() });
   }
+
+  async findIdByScore(idScore: number): Promise<number | undefined> {
+    return this.userRepository.findIdByScore(idScore);
+  }
+
+  async findIdsByScore(idScore: number): Promise<number[]> {
+    return this.userRepository.findIdsByScore(idScore);
+  }
+
+  async findIdsByPlayers(idPlayers: number[]): Promise<number[]> {
+    return this.userRepository.findIdsByPlayers(idPlayers);
+  }
 }

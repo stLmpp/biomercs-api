@@ -37,4 +37,34 @@ export class UserRepository extends Repository<User> {
       .andWhere('user.id = :idUser', { idUser })
       .getOneOrFail();
   }
+
+  async findIdByScore(idScore: number): Promise<number | undefined> {
+    return this.createQueryBuilder('user')
+      .select('user.id')
+      .innerJoin('user.player', 'player')
+      .innerJoin('player.scores', 'score')
+      .andWhere('score.id = :idScore', { idScore })
+      .getOne()
+      .then(user => user?.id);
+  }
+
+  async findIdsByScore(idScore: number): Promise<number[]> {
+    const users = await this.createQueryBuilder('user')
+      .select('user.id')
+      .innerJoin('user.player', 'player')
+      .innerJoin('player.scorePlayers', 'scorePlayer')
+      .innerJoin('scorePlayer.score', 'score')
+      .andWhere('score.id = :idScore', { idScore })
+      .getMany();
+    return users.map(user => user.id);
+  }
+
+  async findIdsByPlayers(idPlayers: number[]): Promise<number[]> {
+    const users = await this.createQueryBuilder('user')
+      .select('user.id')
+      .innerJoin('user.player', 'player')
+      .andWhere('player.id in (:...idPlayers)', { idPlayers })
+      .getMany();
+    return users.map(user => user.id);
+  }
 }
