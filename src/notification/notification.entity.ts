@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne } from 'typeorm';
 import { SchemaEnum } from '../environment/schema.enum';
 import { BaseEntity } from '../shared/super/base-entity';
 import { Property } from '../mapper/property.decorator';
@@ -47,4 +47,8 @@ export class Notification extends BaseEntity implements NotificationInterface {
   @ManyToOne(() => NotificationType, { nullable: true })
   @JoinColumn()
   notificationType?: NotificationType | null;
+
+  @Property()
+  @DeleteDateColumn()
+  deletedDate?: Date | null;
 }

@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Put, Query } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Put, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { NotificationService } from './notification.service';
@@ -61,5 +61,15 @@ export class NotificationController {
   @Put(`:${Params.idNotification}/unread`)
   async unread(@Param(Params.idNotification) idNotification: number): Promise<void> {
     await this.notificationService.unread(idNotification);
+  }
+
+  @Delete('all')
+  async deleteAll(@AuthUser() user: User): Promise<void> {
+    await this.notificationService.deleteAll(user.id);
+  }
+
+  @Delete(`:${Params.idNotification}`)
+  async delete(@Param(Params.idNotification) idNotifications: number): Promise<void> {
+    await this.notificationService.delete(idNotifications);
   }
 }

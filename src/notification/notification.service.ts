@@ -9,6 +9,7 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { ScoreService } from '../score/score.service';
 import { fromScoreToName } from '../score/shared';
 import { Score } from '../score/score.entity';
+import { IsNull } from 'typeorm';
 
 @Injectable()
 export class NotificationService {
@@ -124,5 +125,13 @@ export class NotificationService {
   async findNotificationsAndSendUpdate(idScore: number): Promise<void> {
     const notifications = await this.notificationRepository.find({ where: { idScore }, relations: ['score'] });
     this.notificationGateway.sendNotifications(notifications);
+  }
+
+  async delete(idNotification: number): Promise<void> {
+    await this.notificationRepository.softDelete(idNotification);
+  }
+
+  async deleteAll(idUser: number): Promise<void> {
+    await this.notificationRepository.softDelete({ idUser, deletedDate: IsNull() });
   }
 }
