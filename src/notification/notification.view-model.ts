@@ -6,6 +6,7 @@ export class NotificationViewModel implements NotificationInterface {
   @Property() content!: string;
   @Property() idUser!: number;
   @Property() read!: boolean;
+  @Property() seen!: boolean;
   @Property() idScore?: number | null;
-  @Property() scoreName?: string | null;
+  @Property() idNotificationType?: number;
 }

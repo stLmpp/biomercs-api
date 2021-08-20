@@ -50,7 +50,7 @@ export class ScoreService {
     private scoreGateway: ScoreGateway,
     private mailService: MailService,
     private scoreStatusService: ScoreStatusService,
-    private notificationService: NotificationService,
+    @Inject(forwardRef(() => NotificationService)) private notificationService: NotificationService,
     private userService: UserService
   ) {}
 

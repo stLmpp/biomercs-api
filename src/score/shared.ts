@@ -59,3 +59,18 @@ export function formatScore(value: number): string {
   }
   return formatter.format(Math.floor(value / 1000)) + 'k';
 }
+
+export function fromScoreToName(score: Score | null | undefined): string | null {
+  if (!score) {
+    return null;
+  }
+  const platformGameMiniGameMode = score.platformGameMiniGameModeStage.platformGameMiniGameMode;
+  const platformGameMiniGame = platformGameMiniGameMode.platformGameMiniGame;
+  const platform = platformGameMiniGame.platform.shortName;
+  const gameMiniGame = platformGameMiniGame.gameMiniGame;
+  const game = gameMiniGame.game.shortName;
+  const miniGame = gameMiniGame.miniGame.name;
+  const mode = platformGameMiniGameMode.mode.name;
+  const stage = score.platformGameMiniGameModeStage.stage.shortName;
+  return `[${platform} ${game}] ${miniGame} - ${stage}   - ${mode} - ${formatScore(score.score)}`;
+}

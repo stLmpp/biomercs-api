@@ -27,6 +27,10 @@ export class Notification extends BaseEntity implements NotificationInterface {
   read!: boolean;
 
   @Property()
+  @Column({ default: false })
+  seen!: boolean;
+
+  @Property()
   @Column({ nullable: true })
   idScore?: number | null;
 

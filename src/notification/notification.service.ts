@@ -1,17 +1,21 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable } from '@nestjs/common';
 import { NotificationRepository } from './notification.repository';
 import { Notification } from './notification.entity';
 import { NotificationAddDto } from './notification.dto';
 import { NotificationGateway } from './notification.gateway';
 import { NotificationTypeService } from './notification-type/notification-type.service';
 import { NotificationType } from './notification-type/notification-type.entity';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { ScoreService } from '../score/score.service';
+import { fromScoreToName } from '../score/shared';
 
 @Injectable()
 export class NotificationService {
   constructor(
     private notificationRepository: NotificationRepository,
     private notificationGateway: NotificationGateway,
-    private notificationTypeService: NotificationTypeService
+    private notificationTypeService: NotificationTypeService,
+    @Inject(forwardRef(() => ScoreService)) private scoreService: ScoreService
   ) {}
 
   async addAndSend(dto: NotificationAddDto): Promise<void> {
@@ -22,8 +26,12 @@ export class NotificationService {
       const notificationType = await this.notificationTypeService.findById(dto.idNotificationType);
       dto.content = notificationType.content;
     }
+    if (dto.idScore) {
+      const score = await this.scoreService.findByIdWithAllRelations(dto.idScore);
+      dto.content = `${dto.content}\n${fromScoreToName(score)}`;
+    }
     const { id } = await this.notificationRepository.save(dto);
-    const notification = await this.notificationRepository.findOneWithAllRelations(id);
+    const notification = await this.notificationRepository.findOneOrFail(id);
     this.notificationGateway.sendNotification(notification);
   }
 
@@ -54,21 +62,40 @@ export class NotificationService {
     const idNotifications = await this.notificationRepository
       .save(newDtos)
       .then(notifications => notifications.map(notification => notification.id));
-    const notifications = await this.notificationRepository.findIdsWithAllRelations(idNotifications);
+    const notifications = await this.notificationRepository.findByIds(idNotifications);
     for (const notification of notifications) {
       this.notificationGateway.sendNotification(notification);
     }
   }
 
-  async read(idNotification: number): Promise<void> {
+  async read(idNotification: number): Promise<number> {
     await this.notificationRepository.update(idNotification, { read: true });
+    const { idUser } = await this.notificationRepository.findOneOrFail(idNotification, { select: ['idUser'] });
+    return this.unseenCount(idUser);
   }
 
-  async readAll(idUser: number): Promise<void> {
+  async readAll(idUser: number): Promise<number> {
     await this.notificationRepository.update({ read: false, idUser }, { read: true });
+    return this.unseenCount(idUser);
   }
 
-  async get(idUser: number, page: number, limit: number): Promise<Notification[]> {
-    return this.notificationRepository.findPaginated(idUser, page, limit).then(pagination => pagination.items);
+  async get(idUser: number, page: number, limit: number): Promise<Pagination<Notification>> {
+    return this.notificationRepository.paginate({ page, limit }, { where: { idUser }, order: { id: 'DESC' } });
+  }
+
+  async unreadCount(idUser: number): Promise<number> {
+    return this.notificationRepository.count({ where: { idUser, read: false } });
+  }
+
+  async unseenCount(idUser: number): Promise<number> {
+    return this.notificationRepository.count({ where: { idUser, seen: false } });
+  }
+
+  async seenAll(idUser: number): Promise<void> {
+    await this.notificationRepository.update({ seen: false, idUser }, { seen: true });
+  }
+
+  async unread(idNotification: number): Promise<void> {
+    await this.notificationRepository.update(idNotification, { read: false });
   }
 }

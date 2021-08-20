@@ -38,7 +38,7 @@ import { UserModule } from '../user/user.module';
     MailModule,
     ScoreStatusModule,
     EnvironmentModule,
-    NotificationModule,
+    forwardRef(() => NotificationModule),
     UserModule,
   ],
   providers: [ScoreService, ScoreGateway],

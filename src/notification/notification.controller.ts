@@ -9,6 +9,8 @@ import { User } from '../user/user.entity';
 import { InjectMapProfile } from '../mapper/inject-map-profile';
 import { NotificationViewModel } from './notification.view-model';
 import { MapProfile } from '../mapper/map-profile';
+import { Pagination } from 'nestjs-typeorm-paginate';
+import { ApiPagination } from '../shared/decorator/api-pagination';
 
 @ApiAuth()
 @ApiTags('Notification')
@@ -20,22 +22,44 @@ export class NotificationController {
     private mapProfile: MapProfile<Notification, NotificationViewModel>
   ) {}
 
+  @ApiPagination(NotificationViewModel)
   @Get()
   async get(
     @AuthUser() user: User,
     @Query(Params.page) page: number,
     @Query(Params.limit) limit: number
-  ): Promise<NotificationViewModel[]> {
-    return this.mapProfile.mapPromise(this.notificationService.get(user.id, page, limit));
+  ): Promise<Pagination<NotificationViewModel>> {
+    const { meta, items } = await this.notificationService.get(user.id, page, limit);
+    return { meta, items: this.mapProfile.map(items) };
+  }
+
+  @Get('unread-count')
+  async unreadCount(@AuthUser() user: User): Promise<number> {
+    return this.notificationService.unreadCount(user.id);
+  }
+
+  @Get('unseen-count')
+  async unseenCount(@AuthUser() user: User): Promise<number> {
+    return this.notificationService.unseenCount(user.id);
   }
 
   @Put('read-all')
-  async readAll(@AuthUser() user: User): Promise<void> {
-    await this.notificationService.readAll(user.id);
+  async readAll(@AuthUser() user: User): Promise<number> {
+    return this.notificationService.readAll(user.id);
+  }
+
+  @Put('seen-all')
+  async seenAll(@AuthUser() user: User): Promise<void> {
+    return this.notificationService.seenAll(user.id);
   }
 
   @Put(`:${Params.idNotification}/read`)
-  async read(@Param(Params.idNotification) idNotification: number): Promise<void> {
-    await this.notificationService.read(idNotification);
+  async read(@Param(Params.idNotification) idNotification: number): Promise<number> {
+    return this.notificationService.read(idNotification);
+  }
+
+  @Put(`:${Params.idNotification}/unread`)
+  async unread(@Param(Params.idNotification) idNotification: number): Promise<void> {
+    await this.notificationService.unread(idNotification);
   }
 }
