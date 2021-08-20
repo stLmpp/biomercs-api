@@ -242,6 +242,10 @@ export class ScoreService {
     return this.scoreRepository.findByIdWithAllRelations(idScore);
   }
 
+  async findByIdsWithAllRelations(idScores: number[]): Promise<Score[]> {
+    return this.scoreRepository.findByIdsWithAllRelations(idScores);
+  }
+
   async findLeaderboards(
     idPlatform: number,
     idGame: number,
@@ -386,6 +390,10 @@ export class ScoreService {
 
   async findScoresWithChangeRequests(idPlayer: number, page: number, limit: number): Promise<Pagination<Score>> {
     return this.scoreRepository.findScoresWithChangeRequests(idPlayer, page, limit);
+  }
+
+  async findScoreWithChangeRequests(idScore: number): Promise<Score> {
+    return this.scoreRepository.findScoreWithChangeRequests(idScore);
   }
 
   async findApprovalAdminCount(): Promise<number> {

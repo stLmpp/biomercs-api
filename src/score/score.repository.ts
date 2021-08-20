@@ -296,26 +296,19 @@ export class ScoreRepository extends Repository<Score> {
   }
 
   async findScoresWithChangeRequests(idPlayer: number, page: number, limit: number): Promise<Pagination<Score>> {
-    let pagination = await this.createQueryBuilder('score')
-      .innerJoin('score.scorePlayers', 'sp')
-      .innerJoin('score.scoreChangeRequests', 'scr')
+    return this._createQueryBuilderRelations()
+      .innerJoinAndSelect('score.scoreChangeRequests', 'scr')
       .andWhere('scr.dateFulfilled is null')
       .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.ChangesRequested })
-      .andWhere('sp.idPlayer = :idPlayer', { idPlayer })
-      .select('score.id')
+      .andWhere('score.createdByIdPlayer = :idPlayer', { idPlayer })
       .paginate(page, limit);
-    // There's no need to do the next query if there isn't any score
-    if (pagination.items.length) {
-      pagination = {
-        ...pagination,
-        items: await this._createQueryBuilderRelations()
-          .innerJoinAndSelect('score.scoreChangeRequests', 'scr')
-          .andWhere('scr.dateFulfilled is null')
-          .andWhere('score.id in (:...ids)', { ids: pagination.items.map(score => score.id) })
-          .getMany(),
-      };
-    }
-    return pagination;
+  }
+
+  async findScoreWithChangeRequests(idScore: number): Promise<Score> {
+    return this._createQueryBuilderRelations()
+      .innerJoinAndSelect('score.scoreChangeRequests', 'scr')
+      .andWhere('score.id = :idScore', { idScore })
+      .getOneOrFail();
   }
 
   async findApprovalAdminCount(): Promise<number> {

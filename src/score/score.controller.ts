@@ -226,4 +226,13 @@ export class ScoreController {
   async findByIdMapped(@Param(Params.idScore) idScore: number): Promise<ScoreViewModel> {
     return this.mapProfile.mapPromise(this.scoreService.findByIdWithAllRelations(idScore));
   }
+
+  @Get(`:${Params.idScore}/with-change-requests`)
+  async findByIdWithChangeRequests(
+    @Param(Params.idScore) idScore: number
+  ): Promise<ScoreWithScoreChangeRequestsViewModel> {
+    return this.mapProfileScoreWithScoreChangeRequests.mapPromise(
+      this.scoreService.findScoreWithChangeRequests(idScore)
+    );
+  }
 }

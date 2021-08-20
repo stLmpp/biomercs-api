@@ -8,6 +8,7 @@ import { NotificationType } from './notification-type/notification-type.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ScoreService } from '../score/score.service';
 import { fromScoreToName } from '../score/shared';
+import { Score } from '../score/score.entity';
 
 @Injectable()
 export class NotificationService {
@@ -39,12 +40,25 @@ export class NotificationService {
     if (dtos.some(dto => !dto.content && !dto.idNotificationType)) {
       throw new BadRequestException('content or idNotificationType is required');
     }
-    const dtosWithIdNotificationType = dtos.filter(dto => dto.idNotificationType);
+    const dtosWithIdScore: (NotificationAddDto & { idScore: number })[] = [];
+    const dtosWithIdNotificationType: (NotificationAddDto & { idNotificationType: number })[] = [];
+    for (const dto of dtos) {
+      if (dto.idScore) {
+        dtosWithIdScore.push({ ...dto, idScore: dto.idScore });
+      }
+      if (dto.idNotificationType) {
+        dtosWithIdNotificationType.push({ ...dto, idNotificationType: dto.idNotificationType });
+      }
+    }
     let notificationTypes: NotificationType[] = [];
     if (dtosWithIdNotificationType.length) {
       notificationTypes = await this.notificationTypeService.findByIds(
-        dtosWithIdNotificationType.map(dto => dto.idNotificationType!)
+        dtosWithIdNotificationType.map(dto => dto.idNotificationType)
       );
+    }
+    let scores: Score[] = [];
+    if (dtosWithIdScore.length) {
+      scores = await this.scoreService.findByIdsWithAllRelations(dtosWithIdScore.map(dto => dto.idScore));
     }
     const newDtos = dtos
       .map(dto => {
@@ -56,13 +70,16 @@ export class NotificationService {
             dto.content = notificationType.content;
           }
         }
+        if (dto.idScore) {
+          const score = scores.find(_score => _score.id === dto.idScore);
+          if (score) {
+            dto.content = `${dto.content}\n${fromScoreToName(score)}`;
+          }
+        }
         return dto;
       })
       .filter(dto => dto.idNotificationType || dto.content);
-    const idNotifications = await this.notificationRepository
-      .save(newDtos)
-      .then(notifications => notifications.map(notification => notification.id));
-    const notifications = await this.notificationRepository.findByIds(idNotifications);
+    const notifications = await this.notificationRepository.save(newDtos);
     for (const notification of notifications) {
       this.notificationGateway.sendNotification(notification);
     }
