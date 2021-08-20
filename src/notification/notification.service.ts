@@ -32,7 +32,7 @@ export class NotificationService {
       dto.content = `${dto.content}\n${fromScoreToName(score)}`;
     }
     const { id } = await this.notificationRepository.save(dto);
-    const notification = await this.notificationRepository.findOneOrFail(id);
+    const notification = await this.notificationRepository.findOneOrFail(id, { relations: ['score'] });
     this.notificationGateway.sendNotification(notification);
   }
 
@@ -79,7 +79,9 @@ export class NotificationService {
         return dto;
       })
       .filter(dto => dto.idNotificationType || dto.content);
-    const notifications = await this.notificationRepository.save(newDtos);
+    const notificationsSaved = await this.notificationRepository.save(newDtos);
+    const idNotifications = notificationsSaved.map(notification => notification.id);
+    const notifications = await this.notificationRepository.findByIds(idNotifications, { relations: ['score'] });
     for (const notification of notifications) {
       this.notificationGateway.sendNotification(notification);
     }
@@ -97,7 +99,10 @@ export class NotificationService {
   }
 
   async get(idUser: number, page: number, limit: number): Promise<Pagination<Notification>> {
-    return this.notificationRepository.paginate({ page, limit }, { where: { idUser }, order: { id: 'DESC' } });
+    return this.notificationRepository.paginate(
+      { page, limit },
+      { where: { idUser }, order: { id: 'DESC' }, relations: ['score'] }
+    );
   }
 
   async unreadCount(idUser: number): Promise<number> {
@@ -114,5 +119,10 @@ export class NotificationService {
 
   async unread(idNotification: number): Promise<void> {
     await this.notificationRepository.update(idNotification, { read: false });
+  }
+
+  async findNotificationsAndSendUpdate(idScore: number): Promise<void> {
+    const notifications = await this.notificationRepository.find({ where: { idScore }, relations: ['score'] });
+    this.notificationGateway.sendNotifications(notifications);
   }
 }

@@ -200,7 +200,10 @@ const mapProfiles: MapProfile<any, any>[] = [
         return format(query, { language: 'postgresql' });
       }
     ),
-  mapperService.create(Notification, NotificationViewModel),
+  mapperService.create(Notification, NotificationViewModel).for(
+    dest => dest.idScoreStatus,
+    from => from.score?.idScoreStatus ?? null
+  ),
 ];
 
 function createScoreViewModeMap<T extends ScoreViewModel>(type: Type<T>): MapProfile<Score, T> {

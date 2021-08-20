@@ -4,6 +4,7 @@ import { InjectMapProfile } from '../mapper/inject-map-profile';
 import { Notification } from './notification.entity';
 import { MapProfile } from '../mapper/map-profile';
 import { NotificationViewModel } from './notification.view-model';
+import { groupBy } from 'st-utils';
 
 @WebSocketGateway({ namespace: '/notification' })
 export class NotificationGateway {
@@ -15,6 +16,14 @@ export class NotificationGateway {
   @WebSocketServer() server!: Server;
 
   sendNotification(notification: Notification): void {
-    this.server.emit(`${notification.idUser}`, this.mapProfile.map(notification));
+    this.server.emit(`${notification.idUser}`, [this.mapProfile.map(notification)]);
+  }
+
+  sendNotifications(notifications: Notification[]): void {
+    const notificationsMapped = this.mapProfile.map(notifications);
+    const notificationGroupedByUser = groupBy(notificationsMapped, 'idUser', 'map');
+    for (const [idUser, userNotifications] of notificationGroupedByUser) {
+      this.server.emit(`${idUser}`, userNotifications);
+    }
   }
 }

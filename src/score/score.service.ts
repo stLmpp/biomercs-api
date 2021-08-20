@@ -230,6 +230,7 @@ export class ScoreService {
     }
     await this.scoreRepository.update(idScore, updateScore);
     this.scoreGateway.updateCountApprovals();
+    await this.notificationService.findNotificationsAndSendUpdate(idScore);
     return hasAnyRequestChanges;
   }
 
