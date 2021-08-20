@@ -307,6 +307,7 @@ export class ScoreRepository extends Repository<Score> {
   async findScoreWithChangeRequests(idScore: number): Promise<Score> {
     return this._createQueryBuilderRelations()
       .innerJoinAndSelect('score.scoreChangeRequests', 'scr')
+      .andWhere('scr.dateFulfilled is null')
       .andWhere('score.id = :idScore', { idScore })
       .getOneOrFail();
   }
