@@ -45,7 +45,8 @@ export function includeAllScoresRelations<T>(
     [method]('pgmmcc.characterCostume', 'cc')
     [method]('cc.character', 'c')
     [method]('sp.player', 'pl')
-    .leftJoinAndSelect('pl.inputType', 'it');
+    .leftJoinAndSelect('sp.platformInputType', 'pit')
+    .leftJoinAndSelect('pit.inputType', 'it');
 }
 
 const formatter = new Intl.NumberFormat('pt-BR');
