@@ -60,13 +60,13 @@ export class Player extends BaseEntity implements PlayerInterface {
   lastUpdatedPersonaNameDate?: Date;
 
   @Property()
-  @Column({ nullable: true })
-  idInputType?: number;
+  @Column({ type: 'int', nullable: true })
+  idInputType?: number | null;
 
   @Property(() => InputType)
-  @ManyToOne(() => InputType, { nullable: true })
+  @ManyToOne(() => InputType, inputType => inputType.players, { nullable: true })
   @JoinColumn()
-  inputType?: InputType;
+  inputType?: InputType | null;
 
   @Property(() => ScorePlayer)
   @OneToMany(() => ScorePlayer, scorePlayer => scorePlayer.player)

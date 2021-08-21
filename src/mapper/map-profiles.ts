@@ -70,6 +70,8 @@ import { ErrorEntity } from '../error/error.entity';
 import { ErrorViewModel } from '../error/error.view-model';
 import { format } from 'sql-formatter';
 import { isString } from 'st-utils';
+import { InputType } from '../input-type/input-type.entity';
+import { InputTypeViewModel } from '../input-type/input-type.view-model';
 import { Notification } from '../notification/notification.entity';
 import { NotificationViewModel } from '../notification/notification.view-model';
 
@@ -136,7 +138,11 @@ const mapProfiles: MapProfile<any, any>[] = [
     )
     .for(
       dest => dest.inputTypeName,
-      from => from.inputType?.name
+      from => from.platformInputType?.inputType?.name
+    )
+    .for(
+      dest => dest.idInputType,
+      from => from.platformInputType?.idInputType
     ),
   createScoreViewModeMap(ScoreViewModel),
   createScoreViewModeMap(ScoreWithScoreChangeRequestsViewModel),
@@ -200,6 +206,7 @@ const mapProfiles: MapProfile<any, any>[] = [
         return format(query, { language: 'postgresql' });
       }
     ),
+  mapperService.create(InputType, InputTypeViewModel),
   mapperService.create(Notification, NotificationViewModel).for(
     dest => dest.idScoreStatus,
     from => from.score?.idScoreStatus ?? null
