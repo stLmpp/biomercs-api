@@ -38,7 +38,8 @@ export class ScoreRepository extends Repository<Score> {
       .innerJoinAndSelect('pgmmcc.characterCostume', 'cc')
       .innerJoinAndSelect('cc.character', 'c')
       .innerJoinAndSelect('sp.player', 'pl')
-      .leftJoinAndSelect('pl.inputType', 'it');
+      .leftJoinAndSelect('sp.platformInputType', 'pit')
+      .leftJoinAndSelect('pit.inputType', 'it');
     if (idPlatform) {
       queryBuilder.andWhere('p.id = :idPlatform', { idPlatform });
     }

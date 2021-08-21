@@ -4,8 +4,8 @@ import { Score } from '../score.entity';
 import { Player } from '../../player/player.entity';
 import { PlatformGameMiniGameModeCharacterCostume } from '../../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.entity';
 import { Property } from '../../mapper/property.decorator';
-import { InputType } from '../../input-type/input-type.entity';
 import { SchemaEnum } from '../../environment/schema.enum';
+import { PlatformInputType } from '../../platform/platform-input-type/platform-input-type.entity';
 
 @Entity({ schema: SchemaEnum.main, orderBy: { host: 'DESC', id: 'ASC' } })
 export class ScorePlayer extends BaseEntity {
@@ -54,11 +54,11 @@ export class ScorePlayer extends BaseEntity {
   evidence!: string;
 
   @Property()
-  @Column({ nullable: true })
-  idInputType?: number;
+  @Column({ type: 'int', nullable: true })
+  idPlatformInputType?: number | null;
 
-  @Property(() => InputType)
-  @ManyToOne(() => InputType, { nullable: true })
+  @Property(() => PlatformInputType)
+  @ManyToOne(() => PlatformInputType)
   @JoinColumn()
-  inputType?: InputType;
+  platformInputType?: PlatformInputType | null;
 }
