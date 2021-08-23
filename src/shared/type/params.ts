@@ -48,6 +48,7 @@ export enum Params {
   score = 'score',
   usernameOrEmail = 'usernameOrEmail',
   key = 'key',
+  ruleType = 'ruleType',
 }
 
 export enum HeaderParams {

@@ -3,6 +3,7 @@ import { RuleRepository } from './rule.repository';
 import { RuleAddDto, RuleUpsertDto } from './rule.dto';
 import { Rule } from './rule.entity';
 import { arrayRemoveMutate } from 'st-utils';
+import { RuleTypeEnum } from './rule-type.enum';
 
 @Injectable()
 export class RuleService {
@@ -24,5 +25,9 @@ export class RuleService {
 
   async findAll(): Promise<Rule[]> {
     return await this.ruleRepository.find();
+  }
+
+  async findByType(type: RuleTypeEnum): Promise<Rule[]> {
+    return this.ruleRepository.find({ where: { type } });
   }
 }

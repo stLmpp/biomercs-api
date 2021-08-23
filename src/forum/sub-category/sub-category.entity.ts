@@ -5,6 +5,7 @@ import { SubCategoryInterface } from './sub-category.interface';
 import { Property } from '../../mapper/property.decorator';
 import { Category } from '../category/category.entity';
 import { SubCategoryModerator } from '../sub-category-moderator/sub-category-moderator.entity';
+import { Topic } from '../topic/topic.entity';
 
 @Entity({ schema: SchemaEnum.forum })
 export class SubCategory extends BaseEntity implements SubCategoryInterface {
@@ -28,4 +29,8 @@ export class SubCategory extends BaseEntity implements SubCategoryInterface {
   @Property(() => SubCategoryModerator)
   @OneToMany(() => SubCategoryModerator, subCategoryModerator => subCategoryModerator.subCategory)
   subCategoryModerators?: SubCategoryModerator[];
+
+  @Property(() => Topic)
+  @OneToMany(() => Topic, topic => topic.subCategory)
+  topics?: Topic[];
 }

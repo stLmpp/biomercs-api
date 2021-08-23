@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { RuleService } from './rule.service';
 import { RuleViewModel } from './rule.view-model';
@@ -9,6 +9,8 @@ import { RuleUpsertRemoveInvalidPipe } from './rule-upsert-remove-invalid.pipe';
 import { InjectMapProfile } from '../mapper/inject-map-profile';
 import { Rule } from './rule.entity';
 import { MapProfile } from '../mapper/map-profile';
+import { Params } from '../shared/type/params';
+import { RuleTypeEnum } from './rule-type.enum';
 
 @ApiTags('Rule')
 @Controller('rule')
@@ -36,5 +38,11 @@ export class RuleController {
   @Get()
   async findAll(): Promise<RuleViewModel[]> {
     return this.mapProfile.mapPromise(this.ruleService.findAll());
+  }
+
+  @ApiParam({ name: Params.type, enum: RuleTypeEnum })
+  @Get(`:${Params.type}`)
+  async findByType(@Param(Params.type) type: RuleTypeEnum): Promise<RuleViewModel[]> {
+    return this.mapProfile.mapPromise(this.ruleService.findByType(type));
   }
 }
