@@ -69,11 +69,17 @@ import { SteamPlayerLinkedSocket, SteamPlayerLinkedSocketViewModel } from '../st
 import { ErrorEntity } from '../error/error.entity';
 import { ErrorViewModel } from '../error/error.view-model';
 import { format } from 'sql-formatter';
-import { isString } from 'st-utils';
+import { isNotNil, isString } from 'st-utils';
 import { InputType } from '../input-type/input-type.entity';
 import { InputTypeViewModel } from '../input-type/input-type.view-model';
 import { Notification } from '../notification/notification.entity';
 import { NotificationViewModel } from '../notification/notification.view-model';
+import { Category } from '../forum/category/category.entity';
+import { CategoryViewModel } from '../forum/category/category.view-model';
+import { SubCategory } from '../forum/sub-category/sub-category.entity';
+import { SubCategoryViewModel } from '../forum/sub-category/sub-category.view-model';
+import { Moderator } from '../forum/moderator/moderator.entity';
+import { ModeratorViewModel } from '../forum/moderator/moderator.view-model';
 
 const mapProfiles: MapProfile<any, any>[] = [
   mapperService.create(Game, GameViewModel),
@@ -211,6 +217,17 @@ const mapProfiles: MapProfile<any, any>[] = [
     dest => dest.idScoreStatus,
     from => from.score?.idScoreStatus ?? null
   ),
+  mapperService.create(Category, CategoryViewModel),
+  mapperService.create(SubCategory, SubCategoryViewModel).for(
+    dest => dest.moderators,
+    from =>
+      mapperService.map(
+        Moderator,
+        ModeratorViewModel,
+        from.subCategoryModerators?.map(subCategoryModerator => subCategoryModerator.moderator).filter(isNotNil) ?? []
+      )
+  ),
+  mapperService.create(Moderator, ModeratorViewModel),
 ];
 
 function createScoreViewModeMap<T extends ScoreViewModel>(type: Type<T>): MapProfile<Score, T> {
