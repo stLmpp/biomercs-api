@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Put } from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../../auth/api-auth.decorator';
 import { ApiAdmin } from '../../auth/api-admin.decorator';
@@ -40,6 +40,7 @@ export class CategoryController {
     return this.categoryService.upsert(dtos, player.id);
   }
 
+  @ApiAdmin()
   @Patch(`:${Params.idCategory}`)
   async update(
     @Param(Params.idCategory) idCategory: number,
@@ -47,6 +48,13 @@ export class CategoryController {
     @AuthUser(AuthPlayerPipe) player: Player
   ): Promise<CategoryViewModel> {
     return this.mapProfile.mapPromise(this.categoryService.update(idCategory, dto, player.id));
+  }
+
+  @ApiAdmin()
+  @ApiBody({ type: Number, isArray: true })
+  @Put('order')
+  async updateOrder(@Body() idCategories: number[]): Promise<void> {
+    await this.categoryService.updateOrder(idCategories);
   }
 
   @Get()

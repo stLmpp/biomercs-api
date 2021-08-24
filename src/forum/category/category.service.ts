@@ -63,7 +63,10 @@ export class CategoryService {
   }
 
   async add(dto: CategoryAddDto): Promise<Category> {
-    return this.categoryRepository.save(dto);
+    const lastOrder = await this.categoryRepository
+      .findOne({ order: { order: 'DESC' }, select: ['order'] })
+      .then(category => category?.order ?? 0);
+    return this.categoryRepository.save({ ...dto, order: lastOrder + 1 });
   }
 
   async update(
@@ -80,6 +83,11 @@ export class CategoryService {
     }
     await Promise.all(promises);
     return this.findById(idCategory, idPlayer);
+  }
+
+  async updateOrder(idCategories: number[]): Promise<void> {
+    const dtos: Partial<Category>[] = idCategories.map((id, index) => ({ id, order: index + 1 }));
+    await this.categoryRepository.save(dtos);
   }
 
   async findAll(idPlayer: number): Promise<CategoryWithSubCategoriesViewModel[]> {
