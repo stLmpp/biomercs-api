@@ -53,8 +53,8 @@ export class CategoryController {
   @ApiAdmin()
   @ApiBody({ type: Number, isArray: true })
   @Put('order')
-  async updateOrder(@Body() idCategories: number[]): Promise<void> {
-    await this.categoryService.updateOrder(idCategories);
+  async updateOrder(@Body() idCategories: number[]): Promise<CategoryViewModel[]> {
+    return this.mapProfile.mapPromise(this.categoryService.updateOrder(idCategories));
   }
 
   @Get()

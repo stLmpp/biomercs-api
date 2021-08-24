@@ -85,9 +85,10 @@ export class CategoryService {
     return this.findById(idCategory, idPlayer);
   }
 
-  async updateOrder(idCategories: number[]): Promise<void> {
+  async updateOrder(idCategories: number[]): Promise<Category[]> {
     const dtos: Partial<Category>[] = idCategories.map((id, index) => ({ id, order: index + 1 }));
     await this.categoryRepository.save(dtos);
+    return this.categoryRepository.findByIds(idCategories, { withDeleted: true });
   }
 
   async findAll(idPlayer: number): Promise<CategoryWithSubCategoriesViewModel[]> {
