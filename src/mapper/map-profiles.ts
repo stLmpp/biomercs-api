@@ -77,7 +77,11 @@ import { NotificationViewModel } from '../notification/notification.view-model';
 import { Category } from '../forum/category/category.entity';
 import { CategoryViewModel, CategoryWithSubCategoriesViewModel } from '../forum/category/category.view-model';
 import { SubCategory } from '../forum/sub-category/sub-category.entity';
-import { SubCategoryViewModel, SubCategoryWithTopicsViewModel } from '../forum/sub-category/sub-category.view-model';
+import {
+  SubCategoryWithInfoViewModel,
+  SubCategoryWithModeratorsViewModel,
+  SubCategoryWithTopicsViewModel,
+} from '../forum/sub-category/sub-category.view-model';
 import { Moderator } from '../forum/moderator/moderator.entity';
 import { ModeratorViewModel } from '../forum/moderator/moderator.view-model';
 import { Topic } from '../forum/topic/topic.entity';
@@ -220,7 +224,7 @@ const mapProfiles: MapProfile<any, any>[] = [
     from => from.score?.idScoreStatus ?? null
   ),
   mapperService.create(Category, CategoryWithSubCategoriesViewModel),
-  mapperService.create(SubCategory, SubCategoryViewModel).for(
+  mapperService.create(SubCategory, SubCategoryWithModeratorsViewModel).for(
     dest => dest.moderators,
     from =>
       mapperService.map(
@@ -229,6 +233,7 @@ const mapProfiles: MapProfile<any, any>[] = [
         from.subCategoryModerators?.map(subCategoryModerator => subCategoryModerator.moderator).filter(isNotNil) ?? []
       )
   ),
+  mapperService.create(SubCategory, SubCategoryWithInfoViewModel),
   mapperService.create(Moderator, ModeratorViewModel).for(
     dest => dest.playerPersonaName,
     from => from.player?.personaName ?? ''

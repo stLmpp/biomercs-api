@@ -7,7 +7,7 @@ import { SubCategoryTransferAddDto } from './sub-category-transfer.dto';
 export class SubCategoryTransferService {
   constructor(private subCategoryTransferRepository: SubCategoryTransferRepository) {}
 
-  async addMany(dtos: SubCategoryTransferAddDto[]): Promise<SubCategoryTransfer[]> {
-    return this.subCategoryTransferRepository.save(dtos);
+  async add(dto: SubCategoryTransferAddDto): Promise<SubCategoryTransfer> {
+    return this.subCategoryTransferRepository.save(dto);
   }
 }

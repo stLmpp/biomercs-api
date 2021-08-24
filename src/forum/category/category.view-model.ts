@@ -1,6 +1,6 @@
 import { CategoryInterface } from './category.interface';
 import { Property } from '../../mapper/property.decorator';
-import { SubCategoryViewModel } from '../sub-category/sub-category.view-model';
+import { SubCategoryWithModeratorsViewModel } from '../sub-category/sub-category.view-model';
 
 export class CategoryViewModel implements CategoryInterface {
   @Property() id!: number;
@@ -10,5 +10,5 @@ export class CategoryViewModel implements CategoryInterface {
 }
 
 export class CategoryWithSubCategoriesViewModel extends CategoryViewModel {
-  @Property(() => SubCategoryViewModel) subCategories!: SubCategoryViewModel[];
+  @Property(() => SubCategoryWithModeratorsViewModel) subCategories!: SubCategoryWithModeratorsViewModel[];
 }

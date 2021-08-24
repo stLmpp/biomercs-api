@@ -3,7 +3,16 @@ import { Property } from '../../mapper/property.decorator';
 import { ModeratorViewModel } from '../moderator/moderator.view-model';
 import { TopicViewModel } from '../topic/topic.view-model';
 
+export class SubCategoryViewModel {
+  @Property() id!: number;
+  @Property() name!: string;
+  @Property() description!: string;
+  @Property() idCategory!: number;
+  @Property() order!: number;
+}
+
 export class SubCategoryInfoViewModel {
+  @Property() id!: number;
   @Property() playerPersonaNameLastPost?: string;
   @Property() idPlayerLastPost?: number;
   @Property() topicNameLastPost?: string;
@@ -15,15 +24,17 @@ export class SubCategoryInfoViewModel {
   @Property() isModerator!: boolean;
 }
 
-export class SubCategoryViewModel extends SubCategoryInfoViewModel implements SubCategoryInterface {
-  @Property() id!: number;
+export class SubCategoryWithInfoViewModel extends SubCategoryInfoViewModel implements SubCategoryInterface {
   @Property() name!: string;
   @Property() description!: string;
   @Property() idCategory!: number;
   @Property() order!: number;
+}
+
+export class SubCategoryWithModeratorsViewModel extends SubCategoryWithInfoViewModel {
   @Property(() => ModeratorViewModel) moderators!: ModeratorViewModel[];
 }
 
-export class SubCategoryWithTopicsViewModel extends SubCategoryViewModel {
+export class SubCategoryWithTopicsViewModel extends SubCategoryWithInfoViewModel {
   @Property(() => TopicViewModel) topics!: TopicViewModel[];
 }

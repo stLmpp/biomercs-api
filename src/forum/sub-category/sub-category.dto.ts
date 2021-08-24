@@ -1,13 +1,7 @@
 import { IsDefined, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 import { IsNumber } from '../../validation/is-number';
-import { IsBoolean } from '../../validation/is-boolean';
-import { OmitType } from '@nestjs/swagger';
 
-export class SubCategoryUpsertDto {
-  @IsOptional()
-  @IsNumber()
-  id?: number;
-
+export class SubCategoryAddDto {
   @IsDefined()
   @IsString()
   @IsNotEmpty()
@@ -17,32 +11,28 @@ export class SubCategoryUpsertDto {
   @IsDefined()
   @IsString()
   @IsNotEmpty()
-  @MaxLength(250)
+  @MaxLength(1000)
   description!: string;
-
-  @IsOptional()
-  @IsNumber()
-  idCategory?: number;
-
-  @IsDefined()
-  @IsBoolean()
-  deleted!: boolean;
-
-  @IsDefined()
-  @IsBoolean()
-  restored!: boolean;
-}
-
-export class SubCategoryUpsertWithCategoryDto extends OmitType<SubCategoryUpsertDto, 'idCategory'>(
-  SubCategoryUpsertDto,
-  ['idCategory']
-) {
-  constructor(partial?: Partial<SubCategoryUpsertWithCategoryDto>) {
-    super();
-    Object.assign(this, partial);
-  }
 
   @IsDefined()
   @IsNumber()
   idCategory!: number;
+}
+
+export class SubCategoryUpdateDto {
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  name?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(1000)
+  description?: string;
+
+  @IsOptional()
+  @IsNumber()
+  idCategory?: number;
 }
