@@ -5,7 +5,7 @@ import { CategoryInterface } from './category.interface';
 import { Property } from '../../mapper/property.decorator';
 import { SubCategory } from '../sub-category/sub-category.entity';
 
-@Entity({ schema: SchemaEnum.forum })
+@Entity({ schema: SchemaEnum.forum, orderBy: { order: 'ASC' } })
 export class Category extends BaseEntity implements CategoryInterface {
   @Property()
   @Column({ length: 100 })
@@ -18,4 +18,8 @@ export class Category extends BaseEntity implements CategoryInterface {
   @Property()
   @DeleteDateColumn({ type: 'timestamp', nullable: true })
   deletedDate?: Date | null;
+
+  @Property()
+  @Column()
+  order!: number;
 }

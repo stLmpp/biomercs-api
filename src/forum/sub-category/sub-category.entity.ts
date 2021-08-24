@@ -7,7 +7,7 @@ import { Category } from '../category/category.entity';
 import { SubCategoryModerator } from '../sub-category-moderator/sub-category-moderator.entity';
 import { Topic } from '../topic/topic.entity';
 
-@Entity({ schema: SchemaEnum.forum })
+@Entity({ schema: SchemaEnum.forum, orderBy: { order: 'ASC' } })
 export class SubCategory extends BaseEntity implements SubCategoryInterface {
   @Property()
   @Column({ length: 100 })
@@ -37,4 +37,8 @@ export class SubCategory extends BaseEntity implements SubCategoryInterface {
   @Property()
   @DeleteDateColumn({ type: 'timestamp', nullable: true })
   deletedDate?: Date | null;
+
+  @Property()
+  @Column()
+  order!: number;
 }
