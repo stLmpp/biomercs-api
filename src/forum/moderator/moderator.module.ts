@@ -8,5 +8,6 @@ import { ModeratorRepository } from './moderator.repository';
   imports: [TypeOrmModule.forFeature([ModeratorRepository])],
   providers: [ModeratorService],
   controllers: [ModeratorController],
+  exports: [ModeratorService],
 })
 export class ModeratorModule {}

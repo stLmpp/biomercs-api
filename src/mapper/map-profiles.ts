@@ -229,7 +229,10 @@ const mapProfiles: MapProfile<any, any>[] = [
         from.subCategoryModerators?.map(subCategoryModerator => subCategoryModerator.moderator).filter(isNotNil) ?? []
       )
   ),
-  mapperService.create(Moderator, ModeratorViewModel),
+  mapperService.create(Moderator, ModeratorViewModel).for(
+    dest => dest.playerPersonaName,
+    from => from.player?.personaName ?? ''
+  ),
   mapperService.create(Topic, TopicViewModel),
   mapperService.create(SubCategory, SubCategoryWithTopicsViewModel),
 ];

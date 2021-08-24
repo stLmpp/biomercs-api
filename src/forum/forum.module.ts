@@ -8,6 +8,7 @@ import { TopicModule } from './topic/topic.module';
 import { TopicTransferModule } from './topic-transfer/topic-transfer.module';
 import { PostModule } from './post/post.module';
 import { TopicPlayerLastReadModule } from './topic-player-last-read/topic-player-last-read.module';
+import { SubCategoryTransferModule } from './sub-category-transfer/sub-category-transfer.module';
 
 const routes: Routes = [
   {
@@ -60,6 +61,7 @@ const routes: Routes = [
     TopicTransferModule,
     PostModule,
     TopicPlayerLastReadModule,
+    SubCategoryTransferModule,
   ],
 })
 export class ForumModule {}

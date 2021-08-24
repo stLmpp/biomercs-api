@@ -1,4 +1,4 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { SchemaEnum } from '../../environment/schema.enum';
 import { BaseEntity } from '../../shared/super/base-entity';
 import { SubCategoryInterface } from './sub-category.interface';
@@ -33,4 +33,8 @@ export class SubCategory extends BaseEntity implements SubCategoryInterface {
   @Property(() => Topic)
   @OneToMany(() => Topic, topic => topic.subCategory)
   topics?: Topic[];
+
+  @Property()
+  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  deletedDate?: Date | null;
 }

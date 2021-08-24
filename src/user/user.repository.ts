@@ -38,6 +38,15 @@ export class UserRepository extends Repository<User> {
       .getOneOrFail();
   }
 
+  async findOwnerWithPasswordAndSalt(): Promise<User> {
+    return this.createQueryBuilder('user')
+      .leftJoinAndSelect('user.player', 'p')
+      .addSelect('user.password')
+      .addSelect('user.salt')
+      .andWhere('user.owner = :owner', { owner: true })
+      .getOneOrFail();
+  }
+
   async findIdByScore(idScore: number): Promise<number | undefined> {
     return this.createQueryBuilder('user')
       .select('user.id')

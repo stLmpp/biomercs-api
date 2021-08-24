@@ -3,11 +3,7 @@ import { Property } from '../../mapper/property.decorator';
 import { ModeratorViewModel } from '../moderator/moderator.view-model';
 import { TopicViewModel } from '../topic/topic.view-model';
 
-export class SubCategoryViewModel implements SubCategoryInterface {
-  @Property() id!: number;
-  @Property() name!: string;
-  @Property() description!: string;
-  @Property() idCategory!: number;
+export class SubCategoryInfoViewModel {
   @Property() playerPersonaNameLastPost?: string;
   @Property() idPlayerLastPost?: number;
   @Property() topicNameLastPost?: string;
@@ -16,6 +12,13 @@ export class SubCategoryViewModel implements SubCategoryInterface {
   @Property() topicCount!: number;
   @Property() postCount!: number;
   @Property() hasNewPosts!: boolean;
+}
+
+export class SubCategoryViewModel extends SubCategoryInfoViewModel implements SubCategoryInterface {
+  @Property() id!: number;
+  @Property() name!: string;
+  @Property() description!: string;
+  @Property() idCategory!: number;
   @Property(() => ModeratorViewModel) moderators!: ModeratorViewModel[];
 }
 

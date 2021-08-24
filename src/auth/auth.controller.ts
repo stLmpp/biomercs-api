@@ -170,4 +170,9 @@ export class AuthController {
     const payload = this.authService.validateChangePassword(key);
     return payload?.idUser === user.id;
   }
+
+  @Get(`dev/get-token`)
+  async devGetToken(): Promise<string> {
+    return this.authService.devGetToken();
+  }
 }

@@ -160,4 +160,8 @@ export class UserService {
   async findIdsByPlayers(idPlayers: number[]): Promise<number[]> {
     return this.userRepository.findIdsByPlayers(idPlayers);
   }
+
+  async findOwnerWithPasswordAndSalt(): Promise<User> {
+    return this.userRepository.findOwnerWithPasswordAndSalt();
+  }
 }

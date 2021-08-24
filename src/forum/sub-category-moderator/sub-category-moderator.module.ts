@@ -8,5 +8,6 @@ import { SubCategoryModeratorRepository } from './sub-category-moderator.reposit
   imports: [TypeOrmModule.forFeature([SubCategoryModeratorRepository])],
   providers: [SubCategoryModeratorService],
   controllers: [SubCategoryModeratorController],
+  exports: [SubCategoryModeratorService],
 })
 export class SubCategoryModeratorModule {}

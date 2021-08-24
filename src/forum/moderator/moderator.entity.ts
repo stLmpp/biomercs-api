@@ -8,7 +8,7 @@ import { ModeratorInterface } from './moderator.interface';
 @Entity({ schema: SchemaEnum.forum })
 export class Moderator extends BaseEntity implements ModeratorInterface {
   @Property()
-  @Column()
+  @Column({ unique: true })
   idPlayer!: number;
 
   @Property(() => Player)

@@ -1,10 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
 import { SchemaEnum } from '../../environment/schema.enum';
 import { BaseEntity } from '../../shared/super/base-entity';
 import { Property } from '../../mapper/property.decorator';
 import { Moderator } from '../moderator/moderator.entity';
 import { SubCategory } from '../sub-category/sub-category.entity';
 
+@Unique(['idModerator', 'idSubCategory'])
 @Entity({ schema: SchemaEnum.forum })
 export class SubCategoryModerator extends BaseEntity {
   @Property()
