@@ -106,6 +106,6 @@ export class CategoryService {
 
   async findById(idCategory: number, idPlayer: number): Promise<Category> {
     const isAdmin = await this.userService.isAdminByPlayer(idPlayer);
-    return this.categoryRepository.findOneOrFail({ withDeleted: isAdmin });
+    return this.categoryRepository.findOneOrFail(idCategory, { withDeleted: isAdmin });
   }
 }
