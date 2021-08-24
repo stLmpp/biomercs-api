@@ -6,6 +6,7 @@ export class CategoryViewModel implements CategoryInterface {
   @Property() id!: number;
   @Property() name!: string;
   @Property() deletedDate?: Date;
+  @Property() order!: number;
 }
 
 export class CategoryWithSubCategoriesViewModel extends CategoryViewModel {

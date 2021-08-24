@@ -20,6 +20,7 @@ export class SubCategoryViewModel extends SubCategoryInfoViewModel implements Su
   @Property() name!: string;
   @Property() description!: string;
   @Property() idCategory!: number;
+  @Property() order!: number;
   @Property(() => ModeratorViewModel) moderators!: ModeratorViewModel[];
 }
 
