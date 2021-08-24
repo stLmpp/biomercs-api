@@ -1,5 +1,6 @@
 import { IsDefined, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator';
 import { IsNumber } from '../../validation/is-number';
+import { IsBoolean } from '../../validation/is-boolean';
 
 export class SubCategoryAddDto {
   @IsDefined()
@@ -35,4 +36,12 @@ export class SubCategoryUpdateDto {
   @IsOptional()
   @IsNumber()
   idCategory?: number;
+
+  @IsDefined()
+  @IsBoolean()
+  deleted!: boolean;
+
+  @IsDefined()
+  @IsBoolean()
+  restored!: boolean;
 }

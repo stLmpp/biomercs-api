@@ -35,8 +35,14 @@ export class SubCategoryService {
         );
       }
     }
+    if (dto.deleted) {
+      promises.push(this.subCategoryRepository.softDelete(idSubCategory));
+    }
+    if (dto.restored) {
+      promises.push(this.subCategoryRepository.restore(idSubCategory));
+    }
     await Promise.all(promises);
-    return Object.assign(subCategory, dto);
+    return this.subCategoryRepository.findOneOrFail(idSubCategory);
   }
 
   async add(dto: SubCategoryAddDto): Promise<SubCategory> {
