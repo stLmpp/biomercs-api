@@ -3,4 +3,5 @@ export interface SubCategoryInterface {
   name: string;
   description: string;
   idCategory: number;
+  order: number;
 }
