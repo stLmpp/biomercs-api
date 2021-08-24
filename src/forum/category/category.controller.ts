@@ -3,7 +3,7 @@ import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../../auth/api-auth.decorator';
 import { ApiAdmin } from '../../auth/api-admin.decorator';
 import { CategoryViewModel, CategoryWithSubCategoriesViewModel } from './category.view-model';
-import { CategoryUpsertDto } from './category.dto';
+import { CategoryAddDto, CategoryUpsertDto } from './category.dto';
 import { CategoryService } from './category.service';
 import { AuthPlayerPipe } from '../../auth/auth-player.decorator';
 import { Player } from '../../player/player.entity';
@@ -22,6 +22,12 @@ export class CategoryController {
     @InjectMapProfile(Category, CategoryWithSubCategoriesViewModel)
     private mapProfile: MapProfile<Category, CategoryWithSubCategoriesViewModel>
   ) {}
+
+  @ApiAdmin()
+  @Post()
+  async add(@Body() dto: CategoryAddDto): Promise<CategoryViewModel> {
+    return this.mapProfile.mapPromise(this.categoryService.add(dto));
+  }
 
   @ApiAdmin()
   @ApiBody({ type: CategoryUpsertDto, isArray: true })

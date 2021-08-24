@@ -4,6 +4,14 @@ import { SubCategoryUpsertDto } from '../sub-category/sub-category.dto';
 import { Type } from 'class-transformer';
 import { IsBoolean } from '../../validation/is-boolean';
 
+export class CategoryAddDto {
+  @IsDefined()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  name!: string;
+}
+
 export class CategoryUpsertDto {
   @IsOptional()
   @IsNumber()

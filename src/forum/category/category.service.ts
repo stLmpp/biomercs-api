@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CategoryRepository } from './category.repository';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
-import { CategoryUpsertDto } from './category.dto';
+import { CategoryAddDto, CategoryUpsertDto } from './category.dto';
 import { Category } from './category.entity';
 import { filterDeleted } from '../../util/filter-deleted';
 import { filterRestored } from '../../util/filter-restored';
@@ -59,6 +59,10 @@ export class CategoryService {
     idCategories.push(...dtoUpdated.map(dto => dto.id));
     await this.subCategoryService.upsert([...subCategoriesDtoAdded, ...subCategoriesDtoUpdated]);
     return this.findAll(idPlayer);
+  }
+
+  async add(dto: CategoryAddDto): Promise<Category> {
+    return this.categoryRepository.save(dto);
   }
 
   async findAll(idPlayer: number): Promise<CategoryWithSubCategoriesViewModel[]> {
