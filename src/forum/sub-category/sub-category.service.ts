@@ -11,6 +11,7 @@ import { SubCategoryInfoViewModel } from './sub-category.view-model';
 import { PostService } from '../post/post.service';
 import { isBefore } from 'date-fns';
 import { TopicService } from '../topic/topic.service';
+import { SubCategoryModeratorService } from '../sub-category-moderator/sub-category-moderator.service';
 
 @Injectable()
 export class SubCategoryService {
@@ -18,7 +19,8 @@ export class SubCategoryService {
     private subCategoryRepository: SubCategoryRepository,
     private subCategoryTransferService: SubCategoryTransferService,
     private postService: PostService,
-    private topicService: TopicService
+    private topicService: TopicService,
+    private subCategoryModeratorService: SubCategoryModeratorService
   ) {}
 
   async upsert(dtos: SubCategoryUpsertWithCategoryDto[]): Promise<SubCategory[]> {
@@ -65,13 +67,15 @@ export class SubCategoryService {
 
   async findSubCategoryInfo(idSubCategory: number, idPlayer: number): Promise<SubCategoryInfoViewModel> {
     const subCategoryInfo = new SubCategoryInfoViewModel();
-    const [lastPost, postCount, topicCount] = await Promise.all([
+    const [lastPost, postCount, topicCount, isModerator] = await Promise.all([
       this.postService.findLastPostSubCategory(idSubCategory, idPlayer),
       this.postService.countSubCategory(idSubCategory),
       this.topicService.countSubCategory(idSubCategory),
+      this.subCategoryModeratorService.isModeratorByPlayerSubCategory(idSubCategory, idPlayer),
     ]);
     subCategoryInfo.postCount = postCount;
     subCategoryInfo.topicCount = topicCount;
+    subCategoryInfo.isModerator = isModerator;
     if (lastPost) {
       subCategoryInfo.lastPostDate = lastPost.creationDate;
       subCategoryInfo.idPlayerLastPost = lastPost.idPlayer;

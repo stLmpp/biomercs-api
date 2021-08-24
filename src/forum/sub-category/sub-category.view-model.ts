@@ -12,6 +12,7 @@ export class SubCategoryInfoViewModel {
   @Property() topicCount!: number;
   @Property() postCount!: number;
   @Property() hasNewPosts!: boolean;
+  @Property() isModerator!: boolean;
 }
 
 export class SubCategoryViewModel extends SubCategoryInfoViewModel implements SubCategoryInterface {
