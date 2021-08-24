@@ -12,6 +12,22 @@ export class CategoryAddDto {
   name!: string;
 }
 
+export class CategoryUpdateDto {
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(100)
+  name?: string;
+
+  @IsDefined()
+  @IsBoolean()
+  deleted!: boolean;
+
+  @IsDefined()
+  @IsBoolean()
+  restored!: boolean;
+}
+
 export class CategoryUpsertDto {
   @IsOptional()
   @IsNumber()

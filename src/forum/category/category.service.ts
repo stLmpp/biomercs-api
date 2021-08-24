@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CategoryRepository } from './category.repository';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
-import { CategoryAddDto, CategoryUpsertDto } from './category.dto';
+import { CategoryAddDto, CategoryUpdateDto, CategoryUpsertDto } from './category.dto';
 import { Category } from './category.entity';
 import { filterDeleted } from '../../util/filter-deleted';
 import { filterRestored } from '../../util/filter-restored';
@@ -12,6 +12,7 @@ import { CategoryWithSubCategoriesViewModel } from './category.view-model';
 import { InjectMapProfile } from '../../mapper/inject-map-profile';
 import { MapProfile } from '../../mapper/map-profile';
 import { UserService } from '../../user/user.service';
+import { UpdateResult } from 'typeorm';
 
 @Injectable()
 export class CategoryService {
@@ -63,6 +64,22 @@ export class CategoryService {
 
   async add(dto: CategoryAddDto): Promise<Category> {
     return this.categoryRepository.save(dto);
+  }
+
+  async update(
+    idCategory: number,
+    { deleted, restored, ...dto }: CategoryUpdateDto,
+    idPlayer: number
+  ): Promise<Category> {
+    const promises: Promise<UpdateResult>[] = [this.categoryRepository.update(idCategory, dto)];
+    if (deleted) {
+      promises.push(this.categoryRepository.softDelete(idCategory));
+    }
+    if (restored) {
+      promises.push(this.categoryRepository.restore(idCategory));
+    }
+    await Promise.all(promises);
+    return this.findById(idCategory, idPlayer);
   }
 
   async findAll(idPlayer: number): Promise<CategoryWithSubCategoriesViewModel[]> {
