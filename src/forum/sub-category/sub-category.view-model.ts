@@ -9,6 +9,7 @@ export class SubCategoryViewModel {
   @Property() description!: string;
   @Property() idCategory!: number;
   @Property() order!: number;
+  @Property() deletedDate?: Date | null;
 }
 
 export class SubCategoryInfoViewModel {
@@ -29,6 +30,7 @@ export class SubCategoryWithInfoViewModel extends SubCategoryInfoViewModel imple
   @Property() description!: string;
   @Property() idCategory!: number;
   @Property() order!: number;
+  @Property() deletedDate?: Date | null;
 }
 
 export class SubCategoryWithModeratorsViewModel extends SubCategoryWithInfoViewModel {
