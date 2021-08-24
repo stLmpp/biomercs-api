@@ -164,4 +164,8 @@ export class UserService {
   async findOwnerWithPasswordAndSalt(): Promise<User> {
     return this.userRepository.findOwnerWithPasswordAndSalt();
   }
+
+  async isAdminByPlayer(idPlayer: number): Promise<boolean> {
+    return this.userRepository.isAdminByPlayer(idPlayer);
+  }
 }

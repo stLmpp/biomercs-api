@@ -75,7 +75,7 @@ import { InputTypeViewModel } from '../input-type/input-type.view-model';
 import { Notification } from '../notification/notification.entity';
 import { NotificationViewModel } from '../notification/notification.view-model';
 import { Category } from '../forum/category/category.entity';
-import { CategoryViewModel } from '../forum/category/category.view-model';
+import { CategoryViewModel, CategoryWithSubCategoriesViewModel } from '../forum/category/category.view-model';
 import { SubCategory } from '../forum/sub-category/sub-category.entity';
 import { SubCategoryViewModel, SubCategoryWithTopicsViewModel } from '../forum/sub-category/sub-category.view-model';
 import { Moderator } from '../forum/moderator/moderator.entity';
@@ -219,7 +219,7 @@ const mapProfiles: MapProfile<any, any>[] = [
     dest => dest.idScoreStatus,
     from => from.score?.idScoreStatus ?? null
   ),
-  mapperService.create(Category, CategoryViewModel),
+  mapperService.create(Category, CategoryWithSubCategoriesViewModel),
   mapperService.create(SubCategory, SubCategoryViewModel).for(
     dest => dest.moderators,
     from =>
@@ -235,6 +235,7 @@ const mapProfiles: MapProfile<any, any>[] = [
   ),
   mapperService.create(Topic, TopicViewModel),
   mapperService.create(SubCategory, SubCategoryWithTopicsViewModel),
+  mapperService.create(Category, CategoryViewModel),
 ];
 
 function createScoreViewModeMap<T extends ScoreViewModel>(type: Type<T>): MapProfile<Score, T> {

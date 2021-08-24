@@ -76,4 +76,13 @@ export class UserRepository extends Repository<User> {
       .getMany();
     return users.map(user => user.id);
   }
+
+  async isAdminByPlayer(idPlayer: number): Promise<boolean> {
+    return this.createQueryBuilder('u')
+      .select('u.admin')
+      .innerJoin('u.player', 'p')
+      .andWhere('p.id = :idPlayer', { idPlayer })
+      .getOneOrFail()
+      .then(user => user.admin);
+  }
 }

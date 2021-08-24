@@ -8,20 +8,23 @@ import { filterRestored } from '../../util/filter-restored';
 import { filterId } from '../../util/filter-id';
 import { SubCategoryUpsertWithCategoryDto } from '../sub-category/sub-category.dto';
 import { SubCategoryService } from '../sub-category/sub-category.service';
-import { CategoryViewModel } from './category.view-model';
+import { CategoryWithSubCategoriesViewModel } from './category.view-model';
 import { InjectMapProfile } from '../../mapper/inject-map-profile';
 import { MapProfile } from '../../mapper/map-profile';
+import { UserService } from '../../user/user.service';
 
 @Injectable()
 export class CategoryService {
   constructor(
     private categoryRepository: CategoryRepository,
     private subCategoryService: SubCategoryService,
-    @InjectMapProfile(Category, CategoryViewModel) private mapProfile: MapProfile<Category, CategoryViewModel>
+    @InjectMapProfile(Category, CategoryWithSubCategoriesViewModel)
+    private mapProfile: MapProfile<Category, CategoryWithSubCategoriesViewModel>,
+    private userService: UserService
   ) {}
 
   @Transactional()
-  async upsert(dtos: CategoryUpsertDto[], idPlayer: number): Promise<CategoryViewModel[]> {
+  async upsert(dtos: CategoryUpsertDto[], idPlayer: number): Promise<CategoryWithSubCategoriesViewModel[]> {
     const deleted = filterDeleted(dtos);
     if (deleted.length) {
       await this.categoryRepository.softDelete(deleted.map(dto => dto.id));
@@ -58,7 +61,8 @@ export class CategoryService {
     return this.findAll(idPlayer);
   }
 
-  async findAll(idPlayer: number): Promise<CategoryViewModel[]> {
+  async findAll(idPlayer: number): Promise<CategoryWithSubCategoriesViewModel[]> {
+    const isAdmin = await this.userService.isAdminByPlayer(idPlayer);
     const categories = this.mapProfile.map(
       await this.categoryRepository.find({
         relations: [
@@ -67,6 +71,7 @@ export class CategoryService {
           'subCategories.subCategoryModerators.moderator',
           'subCategories.subCategoryModerators.moderator.player',
         ],
+        withDeleted: isAdmin,
       })
     );
     for (const category of categories) {
@@ -76,5 +81,10 @@ export class CategoryService {
       }
     }
     return categories;
+  }
+
+  async findById(idCategory: number, idPlayer: number): Promise<Category> {
+    const isAdmin = await this.userService.isAdminByPlayer(idPlayer);
+    return this.categoryRepository.findOneOrFail({ withDeleted: isAdmin });
   }
 }

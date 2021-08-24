@@ -7,6 +7,7 @@ import { SubCategoryModule } from '../sub-category/sub-category.module';
 import { MapperModule } from '../../mapper/mapper.module';
 import { EnvironmentModule } from '../../environment/environment.module';
 import { PlayerModule } from '../../player/player.module';
+import { UserModule } from '../../user/user.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { PlayerModule } from '../../player/player.module';
     MapperModule,
     EnvironmentModule,
     PlayerModule,
+    UserModule,
   ],
   providers: [CategoryService],
   controllers: [CategoryController],

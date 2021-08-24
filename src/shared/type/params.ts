@@ -22,6 +22,7 @@ export enum Params {
   idCharacterCostumes = 'idCharacterCostumes',
   idPlayersSelected = 'idPlayersSelected',
   idNotification = 'idNotification',
+  idCategory = 'idCategory',
 
   // OTHERS
   steamid = 'steamid',
