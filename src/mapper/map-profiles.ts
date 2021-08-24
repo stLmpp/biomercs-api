@@ -78,6 +78,7 @@ import { Category } from '../forum/category/category.entity';
 import { CategoryViewModel, CategoryWithSubCategoriesViewModel } from '../forum/category/category.view-model';
 import { SubCategory } from '../forum/sub-category/sub-category.entity';
 import {
+  SubCategoryViewModel,
   SubCategoryWithInfoViewModel,
   SubCategoryWithModeratorsViewModel,
   SubCategoryWithTopicsViewModel,
@@ -233,6 +234,7 @@ const mapProfiles: MapProfile<any, any>[] = [
         from.subCategoryModerators?.map(subCategoryModerator => subCategoryModerator.moderator).filter(isNotNil) ?? []
       )
   ),
+  mapperService.create(SubCategory, SubCategoryViewModel),
   mapperService.create(SubCategory, SubCategoryWithInfoViewModel),
   mapperService.create(Moderator, ModeratorViewModel).for(
     dest => dest.playerPersonaName,

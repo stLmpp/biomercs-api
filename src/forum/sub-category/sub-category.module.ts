@@ -7,6 +7,8 @@ import { SubCategoryTransferModule } from '../sub-category-transfer/sub-category
 import { PostModule } from '../post/post.module';
 import { TopicModule } from '../topic/topic.module';
 import { SubCategoryModeratorModule } from '../sub-category-moderator/sub-category-moderator.module';
+import { EnvironmentModule } from '../../environment/environment.module';
+import { MapperModule } from '../../mapper/mapper.module';
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { SubCategoryModeratorModule } from '../sub-category-moderator/sub-catego
     PostModule,
     TopicModule,
     SubCategoryModeratorModule,
+    EnvironmentModule,
+    MapperModule,
   ],
   providers: [SubCategoryService],
   controllers: [SubCategoryController],
