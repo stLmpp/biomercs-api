@@ -6,3 +6,7 @@ export class ModeratorViewModel implements ModeratorInterface {
   @Property() idPlayer!: number;
   @Property() playerPersonaName!: string;
 }
+
+export class ModeratorViewModelWithInfo extends ModeratorViewModel {
+  @Property() deleteAllowed!: boolean;
+}

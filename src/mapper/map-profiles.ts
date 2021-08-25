@@ -84,7 +84,7 @@ import {
   SubCategoryWithTopicsViewModel,
 } from '../forum/sub-category/sub-category.view-model';
 import { Moderator } from '../forum/moderator/moderator.entity';
-import { ModeratorViewModel } from '../forum/moderator/moderator.view-model';
+import { ModeratorViewModel, ModeratorViewModelWithInfo } from '../forum/moderator/moderator.view-model';
 import { Topic } from '../forum/topic/topic.entity';
 import { TopicViewModel } from '../forum/topic/topic.view-model';
 
@@ -240,6 +240,16 @@ const mapProfiles: MapProfile<any, any>[] = [
     dest => dest.playerPersonaName,
     from => from.player?.personaName ?? ''
   ),
+  mapperService
+    .create(Moderator, ModeratorViewModelWithInfo)
+    .for(
+      dest => dest.playerPersonaName,
+      from => from.player?.personaName ?? ''
+    )
+    .for(
+      dest => dest.deleteAllowed,
+      from => !from.subCategoryModerators?.length
+    ),
   mapperService.create(Topic, TopicViewModel),
   mapperService.create(SubCategory, SubCategoryWithTopicsViewModel),
   mapperService.create(Category, CategoryViewModel),

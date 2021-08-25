@@ -10,7 +10,7 @@ export class ModeratorService {
     return this.moderatorRepository.save({ idPlayer });
   }
 
-  async remove(idPlayer: number): Promise<void> {
+  async delete(idPlayer: number): Promise<void> {
     await this.moderatorRepository.delete(idPlayer);
   }
 
@@ -18,7 +18,11 @@ export class ModeratorService {
     return this.moderatorRepository.save(idPlayers.map(idPlayer => ({ idPlayer })));
   }
 
-  async removeMany(idPlayers: number[]): Promise<void> {
+  async deleteMany(idPlayers: number[]): Promise<void> {
     await this.moderatorRepository.delete(idPlayers);
+  }
+
+  async findAll(): Promise<Moderator[]> {
+    return this.moderatorRepository.find({ relations: ['subCategoryModerators'], order: { id: 'ASC' } });
   }
 }
