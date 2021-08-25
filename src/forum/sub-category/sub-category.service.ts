@@ -21,7 +21,7 @@ export class SubCategoryService {
   ) {}
 
   @Transactional()
-  async update(idSubCategory: number, dto: SubCategoryUpdateDto): Promise<SubCategory> {
+  async update(idSubCategory: number, { deleted, restored, ...dto }: SubCategoryUpdateDto): Promise<SubCategory> {
     const subCategory = await this.subCategoryRepository.findOneOrFail(idSubCategory);
     const promises: Promise<any>[] = [this.subCategoryRepository.update(idSubCategory, dto)];
     if (dto.idCategory) {
@@ -35,10 +35,10 @@ export class SubCategoryService {
         );
       }
     }
-    if (dto.deleted) {
+    if (deleted) {
       promises.push(this.subCategoryRepository.softDelete(idSubCategory));
     }
-    if (dto.restored) {
+    if (restored) {
       promises.push(this.subCategoryRepository.restore(idSubCategory));
     }
     await Promise.all(promises);

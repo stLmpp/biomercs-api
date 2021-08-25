@@ -7,6 +7,7 @@ import { SubCategory } from '../sub-category/sub-category.entity';
 import { Score } from '../../score/score.entity';
 import { PostEntity } from '../post/post.entity';
 import { TopicPlayerLastRead } from '../topic-player-last-read/topic-player-last-read.entity';
+import { Player } from '../../player/player.entity';
 
 @Entity({ schema: SchemaEnum.forum })
 export class Topic extends BaseEntity implements TopicInterface {
@@ -51,4 +52,13 @@ export class Topic extends BaseEntity implements TopicInterface {
   @Property(() => TopicPlayerLastRead)
   @OneToMany(() => TopicPlayerLastRead, topicPlayerLastRead => topicPlayerLastRead.topic)
   topicPlayerLastReads?: TopicPlayerLastRead[];
+
+  @Property()
+  @Column()
+  idPlayer!: number;
+
+  @Property(() => Player)
+  @ManyToOne(() => Player)
+  @JoinColumn()
+  player?: Player;
 }

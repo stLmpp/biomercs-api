@@ -7,6 +7,7 @@ export class TopicViewModel implements TopicInterface {
   @Property() name!: string;
   @Property() idSubCategory!: number;
   @Property() idScore?: number | null;
+  @Property() idPlayer!: number;
   @Property() views!: number;
   @Property() pinned!: boolean;
   @Property() lockedDate?: Date | null;
