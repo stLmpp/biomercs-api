@@ -20,6 +20,6 @@ export class ModeratorService {
   }
 
   async findAll(): Promise<Moderator[]> {
-    return this.moderatorRepository.find({ relations: ['subCategoryModerators'], order: { id: 'ASC' } });
+    return this.moderatorRepository.find({ relations: ['subCategoryModerators', 'player'], order: { id: 'ASC' } });
   }
 }
