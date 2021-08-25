@@ -9,6 +9,7 @@ import { MapProfile } from '../../mapper/map-profile';
 import { UserService } from '../../user/user.service';
 import { UpdateResult } from 'typeorm';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
+import { orderBy } from 'st-utils';
 
 @Injectable()
 export class CategoryService {
@@ -64,9 +65,11 @@ export class CategoryService {
       })
     );
     for (const category of categories) {
+      category.subCategories = orderBy(category.subCategories, 'order');
       for (const subCategory of category.subCategories) {
         const subCategoryInfo = await this.subCategoryService.findSubCategoryInfo(subCategory.id, idPlayer);
         Object.assign(subCategory, subCategoryInfo);
+        subCategory.isModerator = subCategory.isModerator || isAdmin;
       }
     }
     return categories;

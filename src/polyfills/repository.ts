@@ -17,11 +17,11 @@ declare module 'typeorm/repository/Repository' {
   }
 }
 
-Repository.prototype.exists = async function (where: any) {
+Repository.prototype.exists = async function (where, options?: FindOneOptions) {
   if (isNumber(where) || isString(where)) {
-    return !!(await this.findOne(where, { select: ['id'] }));
+    return !!(await this.findOne(where, { ...options, select: ['id'] }));
   } else {
-    return !!(await this.findOne({ select: ['id'], where }));
+    return !!(await this.findOne({ ...options, select: ['id'], where }));
   }
 };
 
