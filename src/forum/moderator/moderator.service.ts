@@ -1,25 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { ModeratorRepository } from './moderator.repository';
 import { Moderator } from './moderator.entity';
+import { ModeratorAddAndDeleteDto } from './moderator.dto';
 
 @Injectable()
 export class ModeratorService {
   constructor(private moderatorRepository: ModeratorRepository) {}
 
-  async add(idPlayer: number): Promise<Moderator> {
-    return this.moderatorRepository.save({ idPlayer });
-  }
-
-  async delete(idPlayer: number): Promise<void> {
-    await this.moderatorRepository.delete(idPlayer);
-  }
-
-  async addMany(idPlayers: number[]): Promise<Moderator[]> {
-    return this.moderatorRepository.save(idPlayers.map(idPlayer => ({ idPlayer })));
-  }
-
-  async deleteMany(idPlayers: number[]): Promise<void> {
-    await this.moderatorRepository.delete(idPlayers);
+  async addAndDelete(dto: ModeratorAddAndDeleteDto): Promise<Moderator[]> {
+    const promises: Promise<any>[] = [];
+    if (dto.add.length) {
+      promises.push(this.moderatorRepository.save(dto.add.map(idPlayer => ({ idPlayer }))));
+    }
+    if (dto.delete.length) {
+      promises.push(this.moderatorRepository.delete(dto.delete));
+    }
+    await Promise.all(promises);
+    return this.findAll();
   }
 
   async findAll(): Promise<Moderator[]> {
