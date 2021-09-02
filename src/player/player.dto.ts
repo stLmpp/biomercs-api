@@ -62,7 +62,10 @@ export interface PlayerSearchDto {
   personaName: string;
   idUser: number;
   isAdmin: boolean;
+  idPlayersSelected: number[];
+}
+
+export interface PlayerSearchPaginatedDto extends PlayerSearchDto {
   page: number;
   limit: number;
-  idPlayersSelected: number[];
 }

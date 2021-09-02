@@ -1,7 +1,7 @@
 import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PlayerRepository } from './player.repository';
 import { Player } from './player.entity';
-import { PlayerAddDto, PlayerSearchDto, PlayerUpdateDto } from './player.dto';
+import { PlayerAddDto, PlayerSearchDto, PlayerSearchPaginatedDto, PlayerUpdateDto } from './player.dto';
 import { SteamService } from '../steam/steam.service';
 import { RegionService } from '../region/region.service';
 import { NotOrNull } from '../util/find-operator';
@@ -108,14 +108,14 @@ export class PlayerService {
     return this.playerRepository.findOneOrFail({ select: ['id'], where: { idUser } }).then(player => player.id);
   }
 
-  async findBySearch({
+  async findBySearchPaginated({
     personaName,
     page,
     limit,
     isAdmin,
     idUser,
     idPlayersSelected,
-  }: PlayerSearchDto): Promise<Pagination<Player>> {
+  }: PlayerSearchPaginatedDto): Promise<Pagination<Player>> {
     const where: FindConditions<Player> = { personaName: ILike(`%${personaName}%`) };
     if (!isAdmin) {
       where.idUser = NotOrNull(idUser);
@@ -123,7 +123,18 @@ export class PlayerService {
     if (idPlayersSelected.length) {
       where.id = Not(In(idPlayersSelected));
     }
-    return this.playerRepository.paginate({ page, limit }, { where });
+    return this.playerRepository.paginate({ page, limit }, { where, order: { personaName: 'ASC' } });
+  }
+
+  async findBySearch({ personaName, isAdmin, idUser, idPlayersSelected }: PlayerSearchDto): Promise<Player[]> {
+    const where: FindConditions<Player> = { personaName: ILike(`%${personaName}%`) };
+    if (!isAdmin) {
+      where.idUser = NotOrNull(idUser);
+    }
+    if (idPlayersSelected.length) {
+      where.id = Not(In(idPlayersSelected));
+    }
+    return this.playerRepository.find({ where, order: { personaName: 'ASC' }, take: 150 });
   }
 
   async personaNameExists(personaName: string): Promise<boolean> {

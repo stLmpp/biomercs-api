@@ -68,15 +68,18 @@ export class PlayerController {
   }
 
   @ApiPagination(PlayerViewModel)
-  @Get('search')
-  async findBySearch(
+  @Get('search-paginated')
+  async findBySearchPaginated(
     @Query(Params.personaName) personaName: string,
     @AuthUser() user: User,
     @Query(Params.page) page: number,
     @Query(Params.limit) limit: number,
     @Query(Params.idPlayersSelected, new ParseArrayPipe({ items: Number, optional: true })) idPlayersSelected?: number[]
   ): Promise<Pagination<PlayerViewModel>> {
-    const { items, meta } = await this.playerService.findBySearch({
+    if (!personaName || personaName.length < 3) {
+      return { items: [], meta: { itemsPerPage: 0, currentPage: 0, totalItems: 0, totalPages: 0, itemCount: 0 } };
+    }
+    const { items, meta } = await this.playerService.findBySearchPaginated({
       page,
       limit,
       personaName,
@@ -86,6 +89,25 @@ export class PlayerController {
     });
     const players = this.mapProfile.map(items);
     return new Pagination(players, meta);
+  }
+
+  @Get('search')
+  async findBySearch(
+    @AuthUser() user: User,
+    @Query(Params.personaName) personaName: string,
+    @Query(Params.idPlayersSelected, new ParseArrayPipe({ items: Number, optional: true })) idPlayersSelected?: number[]
+  ): Promise<PlayerViewModel[]> {
+    if (!personaName || personaName.length < 3) {
+      return [];
+    }
+    return this.mapProfile.map(
+      await this.playerService.findBySearch({
+        personaName,
+        idPlayersSelected: idPlayersSelected ?? [],
+        isAdmin: user.admin,
+        idUser: user.id,
+      })
+    );
   }
 
   @Get('exists')
