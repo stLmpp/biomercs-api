@@ -10,7 +10,7 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { PlayerService } from './player.service';
 import { Params } from '../shared/type/params';
@@ -67,6 +67,7 @@ export class PlayerController {
     return this.mapProfile.mapPromise(this.playerService.findByIdUserOrFail(user.id));
   }
 
+  @ApiQuery({ name: Params.idPlayersSelected, required: false })
   @ApiPagination(PlayerViewModel)
   @Get('search-paginated')
   async findBySearchPaginated(
@@ -91,6 +92,7 @@ export class PlayerController {
     return new Pagination(players, meta);
   }
 
+  @ApiQuery({ name: Params.idPlayersSelected, required: false })
   @Get('search')
   async findBySearch(
     @AuthUser() user: User,
