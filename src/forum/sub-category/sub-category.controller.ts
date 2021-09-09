@@ -13,6 +13,7 @@ import { Moderator } from '../moderator/moderator.entity';
 import { ModeratorViewModel } from '../moderator/moderator.view-model';
 import { SubCategoryModeratorService } from '../sub-category-moderator/sub-category-moderator.service';
 import { SubCategoryModeratorAddAndDeleteDto } from '../sub-category-moderator/sub-category-moderator.dto';
+import { ModeratorService } from '../moderator/moderator.service';
 
 @ApiAuth()
 @ApiTags('Sub category')
@@ -24,7 +25,8 @@ export class SubCategoryController {
     private mapProfile: MapProfile<SubCategory, SubCategoryViewModel>,
     private subCategoryModeratorService: SubCategoryModeratorService,
     @InjectMapProfile(Moderator, ModeratorViewModel)
-    private mapProfileModerator: MapProfile<Moderator, ModeratorViewModel>
+    private mapProfileModerator: MapProfile<Moderator, ModeratorViewModel>,
+    private moderatorService: ModeratorService
   ) {}
 
   @ApiAdmin()
@@ -61,5 +63,10 @@ export class SubCategoryController {
   @Get(`:${Params.idSubCategory}`)
   async findById(@Param(Params.idSubCategory) idSubCategory: number): Promise<SubCategoryViewModel> {
     return this.mapProfile.map(await this.subCategoryService.findById(idSubCategory));
+  }
+
+  @Get(`:${Params.idSubCategory}/moderators`)
+  async findModerators(@Param(Params.idSubCategory) idSubCategory: number): Promise<ModeratorViewModel[]> {
+    return this.mapProfileModerator.map(await this.moderatorService.findBySubCategory(idSubCategory));
   }
 }

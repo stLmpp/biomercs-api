@@ -9,6 +9,7 @@ import { TopicModule } from '../topic/topic.module';
 import { SubCategoryModeratorModule } from '../sub-category-moderator/sub-category-moderator.module';
 import { EnvironmentModule } from '../../environment/environment.module';
 import { MapperModule } from '../../mapper/mapper.module';
+import { ModeratorModule } from '../moderator/moderator.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { MapperModule } from '../../mapper/mapper.module';
     SubCategoryModeratorModule,
     EnvironmentModule,
     MapperModule,
+    ModeratorModule,
   ],
   providers: [SubCategoryService],
   controllers: [SubCategoryController],
