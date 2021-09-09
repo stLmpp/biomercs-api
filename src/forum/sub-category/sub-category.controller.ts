@@ -9,6 +9,10 @@ import { Params } from '../../shared/type/params';
 import { InjectMapProfile } from '../../mapper/inject-map-profile';
 import { SubCategory } from './sub-category.entity';
 import { MapProfile } from '../../mapper/map-profile';
+import { Moderator } from '../moderator/moderator.entity';
+import { ModeratorViewModel } from '../moderator/moderator.view-model';
+import { SubCategoryModeratorService } from '../sub-category-moderator/sub-category-moderator.service';
+import { SubCategoryModeratorAddAndDeleteDto } from '../sub-category-moderator/sub-category-moderator.dto';
 
 @ApiAuth()
 @ApiTags('Sub category')
@@ -17,7 +21,10 @@ export class SubCategoryController {
   constructor(
     private subCategoryService: SubCategoryService,
     @InjectMapProfile(SubCategory, SubCategoryViewModel)
-    private mapProfile: MapProfile<SubCategory, SubCategoryViewModel>
+    private mapProfile: MapProfile<SubCategory, SubCategoryViewModel>,
+    private subCategoryModeratorService: SubCategoryModeratorService,
+    @InjectMapProfile(Moderator, ModeratorViewModel)
+    private mapProfileModerator: MapProfile<Moderator, ModeratorViewModel>
   ) {}
 
   @ApiAdmin()
@@ -40,6 +47,15 @@ export class SubCategoryController {
   @Put('order')
   async updateOrder(@Body() idSubCategories: number[]): Promise<SubCategoryViewModel[]> {
     return this.mapProfile.map(await this.subCategoryService.updateOrder(idSubCategories));
+  }
+
+  @ApiAdmin()
+  @Put(`:${Params.idSubCategory}/moderators/add-and-delete`)
+  async addAndDeleteModerators(
+    @Param(Params.idSubCategory) idSubCategory: number,
+    @Body() dto: SubCategoryModeratorAddAndDeleteDto
+  ): Promise<ModeratorViewModel[]> {
+    return this.mapProfileModerator.map(await this.subCategoryModeratorService.addAndDelete(idSubCategory, dto));
   }
 
   @Get(`:${Params.idSubCategory}`)

@@ -10,4 +10,13 @@ export class ModeratorRepository extends Repository<Moderator> {
       .orderBy('p.personaName', 'ASC')
       .getMany();
   }
+
+  async findBySubCategory(idSubCategory: number): Promise<Moderator[]> {
+    return this.createQueryBuilder('m')
+      .leftJoinAndSelect('m.subCategoryModerators', 'sbm')
+      .innerJoinAndSelect('m.player', 'p')
+      .orderBy('p.personaName', 'ASC')
+      .andWhere('sbm.idSubCategory = :idSubCategory', { idSubCategory })
+      .getMany();
+  }
 }

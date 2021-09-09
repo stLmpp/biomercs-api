@@ -22,4 +22,8 @@ export class ModeratorService {
   async findAll(): Promise<Moderator[]> {
     return this.moderatorRepository.findAll();
   }
+
+  async findBySubCategory(idSubCategory: number): Promise<Moderator[]> {
+    return this.moderatorRepository.findBySubCategory(idSubCategory);
+  }
 }
