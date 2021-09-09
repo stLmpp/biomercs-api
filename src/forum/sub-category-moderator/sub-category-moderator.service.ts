@@ -1,15 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { SubCategoryModeratorRepository } from './sub-category-moderator.repository';
-import { Moderator } from '../moderator/moderator.entity';
 import { SubCategoryModeratorAddAndDeleteDto } from './sub-category-moderator.dto';
-import { ModeratorService } from '../moderator/moderator.service';
+import { SubCategoryModerator } from './sub-category-moderator.entity';
 
 @Injectable()
 export class SubCategoryModeratorService {
-  constructor(
-    private subCategoryModeratorRepository: SubCategoryModeratorRepository,
-    private moderatorService: ModeratorService
-  ) {}
+  constructor(private subCategoryModeratorRepository: SubCategoryModeratorRepository) {}
 
   async isModeratorByPlayerSubCategory(idSubCategory: number, idPlayer: number): Promise<boolean> {
     return this.subCategoryModeratorRepository.exists(
@@ -18,7 +14,7 @@ export class SubCategoryModeratorService {
     );
   }
 
-  async addAndDelete(idSubCategory: number, dto: SubCategoryModeratorAddAndDeleteDto): Promise<Moderator[]> {
+  async addAndDelete(idSubCategory: number, dto: SubCategoryModeratorAddAndDeleteDto): Promise<SubCategoryModerator[]> {
     const promises: Promise<any>[] = [];
     if (dto.add.length) {
       promises.push(
@@ -29,6 +25,13 @@ export class SubCategoryModeratorService {
       promises.push(this.subCategoryModeratorRepository.delete(dto.delete));
     }
     await Promise.all(promises);
-    return this.moderatorService.findBySubCategory(idSubCategory);
+    return this.findBySubCategory(idSubCategory);
+  }
+
+  async findBySubCategory(idSubCategory: number): Promise<SubCategoryModerator[]> {
+    return this.subCategoryModeratorRepository.find({
+      where: { idSubCategory },
+      relations: ['moderator', 'moderator.player'],
+    });
   }
 }

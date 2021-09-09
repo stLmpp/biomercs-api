@@ -11,12 +11,15 @@ export class ModeratorRepository extends Repository<Moderator> {
       .getMany();
   }
 
-  async findBySubCategory(idSubCategory: number): Promise<Moderator[]> {
-    return this.createQueryBuilder('m')
-      .leftJoinAndSelect('m.subCategoryModerators', 'sbm')
+  async search(term: string, idModeratorsSelected: number[]): Promise<Moderator[]> {
+    const queryBuilder = this.createQueryBuilder('m')
       .innerJoinAndSelect('m.player', 'p')
+      .andWhere('p.personaName ilike :term', { term: `%${term}%` })
       .orderBy('p.personaName', 'ASC')
-      .andWhere('sbm.idSubCategory = :idSubCategory', { idSubCategory })
-      .getMany();
+      .take(150);
+    if (idModeratorsSelected.length) {
+      queryBuilder.andWhere('m.id not in (:...idModeratorsSelected)', { idModeratorsSelected });
+    }
+    return queryBuilder.getMany();
   }
 }

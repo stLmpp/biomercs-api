@@ -92,7 +92,7 @@ export class PlayerController {
     return new Pagination(players, meta);
   }
 
-  @ApiQuery({ name: Params.idPlayersSelected, required: false })
+  @ApiQuery({ name: Params.idPlayersSelected, required: false, isArray: true, type: Number })
   @Get('search')
   async findBySearch(
     @AuthUser() user: User,

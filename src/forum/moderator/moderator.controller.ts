@@ -1,5 +1,5 @@
-import { Body, Controller, Get, Put } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, ParseArrayPipe, Put, Query } from '@nestjs/common';
+import { ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../../auth/api-auth.decorator';
 import { ModeratorService } from './moderator.service';
 import { InjectMapProfile } from '../../mapper/inject-map-profile';
@@ -8,6 +8,7 @@ import { ModeratorViewModel, ModeratorViewModelWithInfo } from './moderator.view
 import { MapProfile } from '../../mapper/map-profile';
 import { ApiAdmin } from '../../auth/api-admin.decorator';
 import { ModeratorAddAndDeleteDto } from './moderator.dto';
+import { Params } from '../../shared/type/params';
 
 @ApiAuth()
 @ApiTags('Moderator')
@@ -25,6 +26,17 @@ export class ModeratorController {
   @Get()
   async findAll(): Promise<ModeratorViewModelWithInfo[]> {
     return this.mapProfileWithInfo.map(await this.moderatorService.findAll());
+  }
+
+  @ApiQuery({ name: Params.idModeratorsSelected, required: false, isArray: true, type: Number })
+  @ApiAdmin()
+  @Get('search')
+  async search(
+    @Query(Params.term) term: string,
+    @Query(Params.idModeratorsSelected, new ParseArrayPipe({ items: Number, optional: true }))
+    idModeratorsSelected?: number[]
+  ): Promise<ModeratorViewModel[]> {
+    return this.mapProfile.map(await this.moderatorService.search(term, idModeratorsSelected ?? []));
   }
 
   @ApiAdmin()

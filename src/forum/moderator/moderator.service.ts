@@ -23,7 +23,7 @@ export class ModeratorService {
     return this.moderatorRepository.findAll();
   }
 
-  async findBySubCategory(idSubCategory: number): Promise<Moderator[]> {
-    return this.moderatorRepository.findBySubCategory(idSubCategory);
+  async search(term: string, idModeratorsSelected: number[]): Promise<Moderator[]> {
+    return this.moderatorRepository.search(term, idModeratorsSelected);
   }
 }
