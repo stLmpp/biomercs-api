@@ -10,4 +10,8 @@ export class SubCategoryTransferService {
   async add(dto: SubCategoryTransferAddDto): Promise<SubCategoryTransfer> {
     return this.subCategoryTransferRepository.save(dto);
   }
+
+  async addMany(dtos: SubCategoryTransferAddDto[]): Promise<SubCategoryTransfer[]> {
+    return this.subCategoryTransferRepository.save(dtos);
+  }
 }

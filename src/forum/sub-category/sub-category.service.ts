@@ -6,9 +6,10 @@ import { isBefore } from 'date-fns';
 import { TopicService } from '../topic/topic.service';
 import { SubCategoryModeratorService } from '../sub-category-moderator/sub-category-moderator.service';
 import { SubCategory } from './sub-category.entity';
-import { SubCategoryAddDto, SubCategoryUpdateDto } from './sub-category.dto';
+import { SubCategoryAddDto, SubCategoryOrderDto, SubCategoryUpdateDto } from './sub-category.dto';
 import { SubCategoryTransferService } from '../sub-category-transfer/sub-category-transfer.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
+import { SubCategoryTransferAddDto } from '../sub-category-transfer/sub-category-transfer.dto';
 
 @Injectable()
 export class SubCategoryService {
@@ -52,10 +53,28 @@ export class SubCategoryService {
     return this.subCategoryRepository.save({ ...dto, order: lastOrder + 1 });
   }
 
-  async updateOrder(idSubCategories: number[]): Promise<SubCategory[]> {
-    const dtos: Partial<SubCategory>[] = idSubCategories.map((id, index) => ({ id, order: index + 1 }));
-    await this.subCategoryRepository.save(dtos);
-    return this.subCategoryRepository.findByIds(idSubCategories);
+  async updateOrder(dtos: SubCategoryOrderDto[]): Promise<SubCategory[]> {
+    const subCategories = await this.subCategoryRepository.findByIds(
+      dtos.filter(dto => dto.idCategory).map(dto => dto.id)
+    );
+    const subCategoryTransferAddDtos: SubCategoryTransferAddDto[] = [];
+    for (const subCategory of subCategories) {
+      const dto = dtos.find(_dto => _dto.id === subCategory.id);
+      if (!dto || dto.idCategory === subCategory.idCategory) {
+        continue;
+      }
+      subCategoryTransferAddDtos.push({
+        idSubCategory: subCategory.id,
+        idCategoryFrom: subCategory.idCategory,
+        idCategoryTo: dto.idCategory!,
+      });
+    }
+    const promises: Promise<any>[] = [this.subCategoryRepository.save(dtos)];
+    if (subCategoryTransferAddDtos.length) {
+      promises.push(this.subCategoryTransferService.addMany(subCategoryTransferAddDtos));
+    }
+    await Promise.all(promises);
+    return this.subCategoryRepository.findByIds(dtos.map(dto => dto.id));
   }
 
   async findById(idSubCategory: number): Promise<SubCategory> {

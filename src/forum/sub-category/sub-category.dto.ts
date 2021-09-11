@@ -45,3 +45,17 @@ export class SubCategoryUpdateDto {
   @IsBoolean()
   restored!: boolean;
 }
+
+export class SubCategoryOrderDto {
+  @IsDefined()
+  @IsNumber()
+  id!: number;
+
+  @IsDefined()
+  @IsNumber()
+  order!: number;
+
+  @IsOptional()
+  @IsNumber()
+  idCategory?: number;
+}
