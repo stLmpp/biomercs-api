@@ -46,13 +46,7 @@ export class SubCategoryService {
     return this.subCategoryRepository.findOneOrFail(idSubCategory);
   }
 
-  async add(dto: SubCategoryAddDto): Promise<SubCategory> {
-    const lastOrder = await this.subCategoryRepository
-      .findOne({ order: { order: 'DESC' }, select: ['order'] })
-      .then(subCategory => subCategory?.order ?? 0);
-    return this.subCategoryRepository.save({ ...dto, order: lastOrder + 1 });
-  }
-
+  @Transactional()
   async updateOrder(dtos: SubCategoryOrderDto[]): Promise<SubCategory[]> {
     const subCategories = await this.subCategoryRepository.findByIds(
       dtos.filter(dto => dto.idCategory).map(dto => dto.id)
@@ -75,6 +69,13 @@ export class SubCategoryService {
     }
     await Promise.all(promises);
     return this.subCategoryRepository.findByIds(dtos.map(dto => dto.id));
+  }
+
+  async add(dto: SubCategoryAddDto): Promise<SubCategory> {
+    const lastOrder = await this.subCategoryRepository
+      .findOne({ order: { order: 'DESC' }, select: ['order'] })
+      .then(subCategory => subCategory?.order ?? 0);
+    return this.subCategoryRepository.save({ ...dto, order: lastOrder + 1 });
   }
 
   async findById(idSubCategory: number): Promise<SubCategory> {

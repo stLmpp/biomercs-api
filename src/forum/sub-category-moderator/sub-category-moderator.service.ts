@@ -2,18 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { SubCategoryModeratorRepository } from './sub-category-moderator.repository';
 import { SubCategoryModeratorAddAndDeleteDto } from './sub-category-moderator.dto';
 import { SubCategoryModerator } from './sub-category-moderator.entity';
+import { Transactional } from 'typeorm-transactional-cls-hooked';
 
 @Injectable()
 export class SubCategoryModeratorService {
   constructor(private subCategoryModeratorRepository: SubCategoryModeratorRepository) {}
 
-  async isModeratorByPlayerSubCategory(idSubCategory: number, idPlayer: number): Promise<boolean> {
-    return this.subCategoryModeratorRepository.exists(
-      { idSubCategory, moderator: { idPlayer } },
-      { relations: ['moderator'] }
-    );
-  }
-
+  @Transactional()
   async addAndDelete(idSubCategory: number, dto: SubCategoryModeratorAddAndDeleteDto): Promise<SubCategoryModerator[]> {
     const promises: Promise<any>[] = [];
     if (dto.add.length) {
@@ -26,6 +21,13 @@ export class SubCategoryModeratorService {
     }
     await Promise.all(promises);
     return this.findBySubCategory(idSubCategory);
+  }
+
+  async isModeratorByPlayerSubCategory(idSubCategory: number, idPlayer: number): Promise<boolean> {
+    return this.subCategoryModeratorRepository.exists(
+      { idSubCategory, moderator: { idPlayer } },
+      { relations: ['moderator'] }
+    );
   }
 
   async findBySubCategory(idSubCategory: number): Promise<SubCategoryModerator[]> {

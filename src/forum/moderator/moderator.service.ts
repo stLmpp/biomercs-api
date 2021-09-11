@@ -2,11 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { ModeratorRepository } from './moderator.repository';
 import { Moderator } from './moderator.entity';
 import { ModeratorAddAndDeleteDto } from './moderator.dto';
+import { Transactional } from 'typeorm-transactional-cls-hooked';
 
 @Injectable()
 export class ModeratorService {
   constructor(private moderatorRepository: ModeratorRepository) {}
 
+  @Transactional()
   async addAndDelete(dto: ModeratorAddAndDeleteDto): Promise<Moderator[]> {
     const promises: Promise<any>[] = [];
     if (dto.add.length) {
