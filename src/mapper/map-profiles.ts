@@ -80,8 +80,8 @@ import { SubCategory } from '../forum/sub-category/sub-category.entity';
 import {
   SubCategoryViewModel,
   SubCategoryWithInfoViewModel,
-  SubCategoryWithModeratorsViewModel,
-  SubCategoryWithTopicsViewModel,
+  SubCategoryWithInfoModeratorsViewModel,
+  SubCategoryWithInfoModeratorsTopicsViewModel,
 } from '../forum/sub-category/sub-category.view-model';
 import { Moderator } from '../forum/moderator/moderator.entity';
 import { ModeratorViewModel, ModeratorViewModelWithInfo } from '../forum/moderator/moderator.view-model';
@@ -227,7 +227,7 @@ const mapProfiles: MapProfile<any, any>[] = [
     from => from.score?.idScoreStatus ?? null
   ),
   mapperService.create(Category, CategoryWithSubCategoriesViewModel),
-  mapperService.create(SubCategory, SubCategoryWithModeratorsViewModel).for(
+  mapperService.create(SubCategory, SubCategoryWithInfoModeratorsViewModel).for(
     dest => dest.moderators,
     from =>
       mapperService.map(
@@ -253,7 +253,15 @@ const mapProfiles: MapProfile<any, any>[] = [
       from => !from.subCategoryModerators?.length
     ),
   mapperService.create(Topic, TopicViewModel),
-  mapperService.create(SubCategory, SubCategoryWithTopicsViewModel),
+  mapperService.create(SubCategory, SubCategoryWithInfoModeratorsTopicsViewModel).for(
+    dest => dest.moderators,
+    from =>
+      mapperService.map(
+        Moderator,
+        ModeratorViewModel,
+        from.subCategoryModerators?.map(subCategoryModerator => subCategoryModerator.moderator).filter(isNotNil) ?? []
+      )
+  ),
   mapperService.create(Category, CategoryViewModel),
   mapperService
     .create(SubCategoryModerator, SubCategoryModeratorViewModel)

@@ -23,13 +23,6 @@ export class SubCategoryModeratorService {
     return this.findBySubCategory(idSubCategory);
   }
 
-  async isModeratorByPlayerSubCategory(idSubCategory: number, idPlayer: number): Promise<boolean> {
-    return this.subCategoryModeratorRepository.exists(
-      { idSubCategory, moderator: { idPlayer } },
-      { relations: ['moderator'] }
-    );
-  }
-
   async findBySubCategory(idSubCategory: number): Promise<SubCategoryModerator[]> {
     return this.subCategoryModeratorRepository.find({
       where: { idSubCategory },

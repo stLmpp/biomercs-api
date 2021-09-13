@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { TopicRepository } from './topic.repository';
+import { TopicViewModel } from './topic.view-model';
 
 @Injectable()
 export class TopicService {
   constructor(private topicRepository: TopicRepository) {}
 
-  async countSubCategory(idSubCategory: number): Promise<number> {
-    return this.topicRepository.count({ where: { idSubCategory } });
+  async findBySubCategory(idSubCategory: number, idPlayer: number): Promise<TopicViewModel[]> {
+    return this.topicRepository.findBySubCategory(idSubCategory, idPlayer);
   }
 }

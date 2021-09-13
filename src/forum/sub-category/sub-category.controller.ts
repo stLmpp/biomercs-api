@@ -2,13 +2,16 @@ import { Body, Controller, Get, Param, Patch, Post, Put } from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../../auth/api-auth.decorator';
 import { ApiAdmin } from '../../auth/api-admin.decorator';
-import { SubCategoryViewModel } from './sub-category.view-model';
+import { SubCategoryViewModel, SubCategoryWithInfoModeratorsTopicsViewModel } from './sub-category.view-model';
 import { SubCategoryAddDto, SubCategoryOrderDto, SubCategoryUpdateDto } from './sub-category.dto';
 import { SubCategoryService } from './sub-category.service';
 import { Params } from '../../shared/type/params';
 import { InjectMapProfile } from '../../mapper/inject-map-profile';
 import { SubCategory } from './sub-category.entity';
 import { MapProfile } from '../../mapper/map-profile';
+import { AuthUser } from '../../auth/auth-user.decorator';
+import { AuthPlayerPipe } from '../../auth/auth-player.decorator';
+import { Player } from '../../player/player.entity';
 
 @ApiAuth()
 @ApiTags('Sub category')
@@ -45,5 +48,13 @@ export class SubCategoryController {
   @Get(`:${Params.idSubCategory}`)
   async findById(@Param(Params.idSubCategory) idSubCategory: number): Promise<SubCategoryViewModel> {
     return this.mapProfile.map(await this.subCategoryService.findById(idSubCategory));
+  }
+
+  @Get(`:${Params.idSubCategory}/with/info/moderators/topics`)
+  async findByIdWithTopics(
+    @AuthUser(AuthPlayerPipe) player: Player,
+    @Param(Params.idSubCategory) idSubCategory: number
+  ): Promise<SubCategoryWithInfoModeratorsTopicsViewModel> {
+    return this.subCategoryService.findByIdWithTopics(idSubCategory, player.id);
   }
 }

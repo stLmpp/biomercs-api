@@ -53,21 +53,24 @@ export class CategoryService {
 
   async findAll(idPlayer: number): Promise<CategoryWithSubCategoriesViewModel[]> {
     const isAdmin = await this.userService.isAdminByPlayer(idPlayer);
-    const categories = this.mapProfile.map(
-      await this.categoryRepository.find({
-        relations: [
-          'subCategories',
-          'subCategories.subCategoryModerators',
-          'subCategories.subCategoryModerators.moderator',
-          'subCategories.subCategoryModerators.moderator.player',
-        ],
-        withDeleted: isAdmin,
-      })
-    );
+    const [categories, subCategoriesInfo] = await Promise.all([
+      this.categoryRepository
+        .find({
+          relations: [
+            'subCategories',
+            'subCategories.subCategoryModerators',
+            'subCategories.subCategoryModerators.moderator',
+            'subCategories.subCategoryModerators.moderator.player',
+          ],
+          withDeleted: isAdmin,
+        })
+        .then(_categories => this.mapProfile.map(_categories)),
+      this.subCategoryService.findAllWithInfo(idPlayer, isAdmin),
+    ]);
     for (const category of categories) {
       category.subCategories = orderBy(category.subCategories, 'order');
       for (const subCategory of category.subCategories) {
-        const subCategoryInfo = await this.subCategoryService.findSubCategoryInfo(subCategory.id, idPlayer);
+        const subCategoryInfo = subCategoriesInfo.find(_subCategoryInfo => _subCategoryInfo.id === subCategory.id);
         Object.assign(subCategory, subCategoryInfo);
         subCategory.isModerator = subCategory.isModerator || isAdmin;
       }

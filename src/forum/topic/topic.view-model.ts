@@ -11,7 +11,8 @@ export class TopicViewModel implements TopicInterface {
   @Property() views!: number;
   @Property() pinned!: boolean;
   @Property() lockedDate?: Date | null;
-  @Property() personaNameLastPost!: string;
+  @Property() idPlayerLastPost!: number;
+  @Property() playerPersonaNameLastPost!: string;
   @Property() lastPostDate!: Date;
   @Property() repliesCount!: number;
   @Property() hasNewPosts!: boolean;

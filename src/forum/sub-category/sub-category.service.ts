@@ -1,24 +1,29 @@
 import { Injectable } from '@nestjs/common';
 import { SubCategoryRepository } from './sub-category.repository';
-import { SubCategoryInfoViewModel } from './sub-category.view-model';
-import { PostService } from '../post/post.service';
-import { isBefore } from 'date-fns';
-import { TopicService } from '../topic/topic.service';
-import { SubCategoryModeratorService } from '../sub-category-moderator/sub-category-moderator.service';
+import { SubCategoryWithInfoModeratorsTopicsViewModel, SubCategoryWithInfoViewModel } from './sub-category.view-model';
 import { SubCategory } from './sub-category.entity';
 import { SubCategoryAddDto, SubCategoryOrderDto, SubCategoryUpdateDto } from './sub-category.dto';
 import { SubCategoryTransferService } from '../sub-category-transfer/sub-category-transfer.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { SubCategoryTransferAddDto } from '../sub-category-transfer/sub-category-transfer.dto';
+import { ModeratorService } from '../moderator/moderator.service';
+import { InjectMapProfile } from '../../mapper/inject-map-profile';
+import { Moderator } from '../moderator/moderator.entity';
+import { ModeratorViewModel } from '../moderator/moderator.view-model';
+import { MapProfile } from '../../mapper/map-profile';
+import { UserService } from '../../user/user.service';
+import { TopicService } from '../topic/topic.service';
 
 @Injectable()
 export class SubCategoryService {
   constructor(
     private subCategoryRepository: SubCategoryRepository,
-    private postService: PostService,
-    private topicService: TopicService,
-    private subCategoryModeratorService: SubCategoryModeratorService,
-    private subCategoryTransferService: SubCategoryTransferService
+    private subCategoryTransferService: SubCategoryTransferService,
+    private moderatorService: ModeratorService,
+    @InjectMapProfile(Moderator, ModeratorViewModel)
+    private mapProfileModerator: MapProfile<Moderator, ModeratorViewModel>,
+    private userService: UserService,
+    private topicService: TopicService
   ) {}
 
   @Transactional()
@@ -43,7 +48,7 @@ export class SubCategoryService {
       promises.push(this.subCategoryRepository.restore(idSubCategory));
     }
     await Promise.all(promises);
-    return this.subCategoryRepository.findOneOrFail(idSubCategory);
+    return this.subCategoryRepository.findOneOrFail(idSubCategory, { withDeleted: true });
   }
 
   @Transactional()
@@ -82,28 +87,25 @@ export class SubCategoryService {
     return this.subCategoryRepository.findOneOrFail(idSubCategory);
   }
 
-  async findSubCategoryInfo(idSubCategory: number, idPlayer: number): Promise<SubCategoryInfoViewModel> {
-    const subCategoryInfo = new SubCategoryInfoViewModel();
-    const [lastPost, postCount, topicCount, isModerator] = await Promise.all([
-      this.postService.findLastPostSubCategory(idSubCategory, idPlayer),
-      this.postService.countSubCategory(idSubCategory),
-      this.topicService.countSubCategory(idSubCategory),
-      this.subCategoryModeratorService.isModeratorByPlayerSubCategory(idSubCategory, idPlayer),
+  async findAllWithInfo(idPlayer: number, withDeleted?: boolean): Promise<SubCategoryWithInfoViewModel[]> {
+    return this.subCategoryRepository.findAllWithInfo(idPlayer, withDeleted);
+  }
+
+  async findByIdWithTopics(
+    idSubCategory: number,
+    idPlayer: number
+  ): Promise<SubCategoryWithInfoModeratorsTopicsViewModel> {
+    const isAdmin = await this.userService.isAdminByPlayer(idPlayer);
+    const [subCategoryWithInfo, topics, moderators] = await Promise.all([
+      this.subCategoryRepository.findByIdWithInfo(idSubCategory, idPlayer, isAdmin),
+      this.topicService.findBySubCategory(idSubCategory, idPlayer),
+      this.moderatorService.findBySubCategory(idSubCategory),
     ]);
-    subCategoryInfo.id = idSubCategory;
-    subCategoryInfo.postCount = postCount;
-    subCategoryInfo.topicCount = topicCount;
-    subCategoryInfo.isModerator = isModerator;
-    if (lastPost) {
-      subCategoryInfo.lastPostDate = lastPost.creationDate;
-      subCategoryInfo.idPlayerLastPost = lastPost.idPlayer;
-      subCategoryInfo.playerPersonaNameLastPost = lastPost.player?.personaName;
-      subCategoryInfo.idTopicLastPost = lastPost.idTopic;
-      subCategoryInfo.topicNameLastPost = lastPost.topic?.name;
-      const topicPlayerLastRead = lastPost.topic?.topicPlayerLastReads?.[0];
-      subCategoryInfo.hasNewPosts =
-        !!topicPlayerLastRead && isBefore(topicPlayerLastRead.readDate, lastPost.creationDate);
-    }
-    return subCategoryInfo;
+    const moderatorsViewModel = this.mapProfileModerator.map(moderators);
+    return new SubCategoryWithInfoModeratorsTopicsViewModel({
+      ...subCategoryWithInfo,
+      topics,
+      moderators: moderatorsViewModel,
+    });
   }
 }

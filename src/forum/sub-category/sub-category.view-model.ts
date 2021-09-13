@@ -33,10 +33,15 @@ export class SubCategoryWithInfoViewModel extends SubCategoryInfoViewModel imple
   @Property() deletedDate?: Date | null;
 }
 
-export class SubCategoryWithModeratorsViewModel extends SubCategoryWithInfoViewModel {
+export class SubCategoryWithInfoModeratorsViewModel extends SubCategoryWithInfoViewModel {
   @Property(() => ModeratorViewModel) moderators!: ModeratorViewModel[];
 }
 
-export class SubCategoryWithTopicsViewModel extends SubCategoryWithInfoViewModel {
+export class SubCategoryWithInfoModeratorsTopicsViewModel extends SubCategoryWithInfoModeratorsViewModel {
+  constructor(partial?: Partial<SubCategoryWithInfoModeratorsTopicsViewModel>) {
+    super();
+    Object.assign(this, partial);
+  }
+
   @Property(() => TopicViewModel) topics!: TopicViewModel[];
 }

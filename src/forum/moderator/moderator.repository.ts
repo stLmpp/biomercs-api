@@ -22,4 +22,12 @@ export class ModeratorRepository extends Repository<Moderator> {
     }
     return queryBuilder.getMany();
   }
+
+  async findBySubCategory(idSubCategory: number): Promise<Moderator[]> {
+    return this.createQueryBuilder('moderator')
+      .innerJoin('moderator.subCategoryModerators', 'sub_category_moderator')
+      .innerJoinAndSelect('moderator.player', 'player')
+      .andWhere('sub_category_moderator.idSubCategory = :idSubCategory', { idSubCategory })
+      .getMany();
+  }
 }

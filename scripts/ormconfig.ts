@@ -24,7 +24,7 @@ export async function generateOrmConfig(): Promise<void> {
     ...typeormConfig,
     synchronize: false,
     namingStrategy: 'new NamingStrategy()',
-    entities: [pathResolve(process.cwd() + `/dist/**/*.entity.js`)],
+    entities: [pathResolve(process.cwd() + '/dist/**/*.entity.js'), pathResolve(process.cwd() + '/dist/**/*.view.js')],
   }).replace(`"new NamingStrategy()"`, 'new NamingStrategy()');
 
   let file = `const { NamingStrategy } = require('./dist/src/environment/naming.strategy'); module.exports = ${dbOptions};`;

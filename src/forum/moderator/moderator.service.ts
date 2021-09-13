@@ -28,4 +28,8 @@ export class ModeratorService {
   async search(term: string, idModeratorsSelected: number[]): Promise<Moderator[]> {
     return this.moderatorRepository.search(term, idModeratorsSelected);
   }
+
+  async findBySubCategory(idSubCategory: number): Promise<Moderator[]> {
+    return this.moderatorRepository.findBySubCategory(idSubCategory);
+  }
 }

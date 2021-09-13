@@ -1,10 +1,11 @@
 import { BaseEntity } from '../../shared/super/base-entity';
 import { Property } from '../../mapper/property.decorator';
-import { Column, Entity, JoinColumn, ManyToOne } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, Unique } from 'typeorm';
 import { Player } from '../../player/player.entity';
 import { Topic } from '../topic/topic.entity';
 import { SchemaEnum } from '../../environment/schema.enum';
 
+@Unique(['idPlayer', 'idTopic'])
 @Entity({ schema: SchemaEnum.forum })
 export class TopicPlayerLastRead extends BaseEntity {
   @Property()
