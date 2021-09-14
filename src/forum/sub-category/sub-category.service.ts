@@ -91,14 +91,16 @@ export class SubCategoryService {
     return this.subCategoryRepository.findAllWithInfo(idPlayer, withDeleted);
   }
 
-  async findByIdWithTopics(
+  async findByIdWithTopicsPaginated(
     idSubCategory: number,
-    idPlayer: number
+    idPlayer: number,
+    page: number,
+    limit: number
   ): Promise<SubCategoryWithInfoModeratorsTopicsViewModel> {
     const isAdmin = await this.userService.isAdminByPlayer(idPlayer);
     const [subCategoryWithInfo, topics, moderators] = await Promise.all([
       this.subCategoryRepository.findByIdWithInfo(idSubCategory, idPlayer, isAdmin),
-      this.topicService.findBySubCategory(idSubCategory, idPlayer),
+      this.topicService.findBySubCategoryPaginated(idSubCategory, idPlayer, page, limit),
       this.moderatorService.findBySubCategory(idSubCategory),
     ]);
     const moderatorsViewModel = this.mapProfileModerator.map(moderators);

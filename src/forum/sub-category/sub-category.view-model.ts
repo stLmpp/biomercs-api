@@ -1,7 +1,7 @@
 import { SubCategoryInterface } from './sub-category.interface';
 import { Property } from '../../mapper/property.decorator';
 import { ModeratorViewModel } from '../moderator/moderator.view-model';
-import { TopicViewModel } from '../topic/topic.view-model';
+import { TopicViewModelPaginated } from '../topic/topic.view-model';
 
 export class SubCategoryViewModel {
   @Property() id!: number;
@@ -43,5 +43,5 @@ export class SubCategoryWithInfoModeratorsTopicsViewModel extends SubCategoryWit
     Object.assign(this, partial);
   }
 
-  @Property(() => TopicViewModel) topics!: TopicViewModel[];
+  @Property(() => TopicViewModelPaginated) topics!: TopicViewModelPaginated;
 }

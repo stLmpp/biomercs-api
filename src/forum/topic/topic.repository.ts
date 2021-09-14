@@ -1,6 +1,6 @@
 import { EntityRepository, Repository } from 'typeorm';
 import { Topic } from './topic.entity';
-import { TopicViewModel } from './topic.view-model';
+import { TopicViewModel, TopicViewModelPaginated } from './topic.view-model';
 import { PostEntity } from '../post/post.entity';
 import { TopicPlayerLastRead } from '../topic-player-last-read/topic-player-last-read.entity';
 import { plainToClass } from 'class-transformer';
@@ -20,7 +20,12 @@ function mapFromTopicRawToTopicViewModel(topicRaw: TopicRaw): TopicViewModel {
 
 @EntityRepository(Topic)
 export class TopicRepository extends Repository<Topic> {
-  async findBySubCategory(idSubCategory: number, idPlayer: number): Promise<TopicViewModel[]> {
+  async findBySubCategoryPaginated(
+    idSubCategory: number,
+    idPlayer: number,
+    page: number,
+    limit: number
+  ): Promise<TopicViewModelPaginated> {
     const queryBuilder = this.createQueryBuilder('topic')
       .select('topic.id', 'id')
       .addSelect('topic.name', 'name')
@@ -68,7 +73,7 @@ export class TopicRepository extends Repository<Topic> {
       )
       .addOrderBy('last_post.creationDate', 'DESC')
       .addOrderBy('topic.id', 'ASC');
-    const topicsRaw: TopicRaw[] = await queryBuilder.getRawMany();
-    return topicsRaw.map(mapFromTopicRawToTopicViewModel);
+    const paginated = await queryBuilder.paginateRaw<TopicRaw>(page, limit);
+    return new TopicViewModelPaginated(paginated.items.map(mapFromTopicRawToTopicViewModel), paginated.meta);
   }
 }

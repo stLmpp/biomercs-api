@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Patch, Post, Put } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Put, Query } from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../../auth/api-auth.decorator';
 import { ApiAdmin } from '../../auth/api-admin.decorator';
@@ -53,8 +53,10 @@ export class SubCategoryController {
   @Get(`:${Params.idSubCategory}/with/info/moderators/topics`)
   async findByIdWithTopics(
     @AuthUser(AuthPlayerPipe) player: Player,
-    @Param(Params.idSubCategory) idSubCategory: number
+    @Param(Params.idSubCategory) idSubCategory: number,
+    @Query(Params.page) page: number,
+    @Query(Params.limit) limit: number
   ): Promise<SubCategoryWithInfoModeratorsTopicsViewModel> {
-    return this.subCategoryService.findByIdWithTopics(idSubCategory, player.id);
+    return this.subCategoryService.findByIdWithTopicsPaginated(idSubCategory, player.id, page, limit);
   }
 }
