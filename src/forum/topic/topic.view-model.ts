@@ -41,8 +41,10 @@ export class TopicRecentViewModel {
   @Property() name!: string;
   @Property() idPost!: number;
   @Property() postName!: string;
+  @Property() postDate!: Date;
   @Property() idCategory!: number;
   @Property() idSubCategory!: number;
+  @Property() nameSubCategory!: string;
   @Property() idPlayer!: number;
   @Property() playerPersonaName!: string;
 }

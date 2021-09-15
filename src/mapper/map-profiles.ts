@@ -294,6 +294,14 @@ const mapProfiles: MapProfile<any, any>[] = [
     .for(
       dest => dest.postName,
       from => from.posts?.[0]?.name ?? ''
+    )
+    .for(
+      dest => dest.nameSubCategory,
+      from => from.subCategory?.name ?? ''
+    )
+    .for(
+      dest => dest.postDate,
+      from => from.posts?.[0]?.creationDate ?? new Date()
     ),
 ];
 
