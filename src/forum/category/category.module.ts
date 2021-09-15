@@ -8,6 +8,7 @@ import { MapperModule } from '../../mapper/mapper.module';
 import { EnvironmentModule } from '../../environment/environment.module';
 import { PlayerModule } from '../../player/player.module';
 import { UserModule } from '../../user/user.module';
+import { TopicModule } from '../topic/topic.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { UserModule } from '../../user/user.module';
     EnvironmentModule,
     PlayerModule,
     UserModule,
+    TopicModule,
   ],
   providers: [CategoryService],
   controllers: [CategoryController],

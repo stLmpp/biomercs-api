@@ -3,13 +3,16 @@ import { CategoryRepository } from './category.repository';
 import { CategoryAddDto, CategoryUpdateDto } from './category.dto';
 import { Category } from './category.entity';
 import { SubCategoryService } from '../sub-category/sub-category.service';
-import { CategoryWithSubCategoriesViewModel } from './category.view-model';
+import { CategoriesWithRecentTopicsViewModel, CategoryWithSubCategoriesViewModel } from './category.view-model';
 import { InjectMapProfile } from '../../mapper/inject-map-profile';
 import { MapProfile } from '../../mapper/map-profile';
 import { UserService } from '../../user/user.service';
 import { UpdateResult } from 'typeorm';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { orderBy } from 'st-utils';
+import { TopicService } from '../topic/topic.service';
+import { Topic } from '../topic/topic.entity';
+import { TopicRecentViewModel } from '../topic/topic.view-model';
 
 @Injectable()
 export class CategoryService {
@@ -18,7 +21,10 @@ export class CategoryService {
     private subCategoryService: SubCategoryService,
     @InjectMapProfile(Category, CategoryWithSubCategoriesViewModel)
     private mapProfile: MapProfile<Category, CategoryWithSubCategoriesViewModel>,
-    private userService: UserService
+    private userService: UserService,
+    private topicService: TopicService,
+    @InjectMapProfile(Topic, TopicRecentViewModel)
+    private mapProfileTopicRecent: MapProfile<Topic, TopicRecentViewModel>
   ) {}
 
   @Transactional()
@@ -81,5 +87,11 @@ export class CategoryService {
   async findById(idCategory: number, idPlayer: number): Promise<Category> {
     const isAdmin = await this.userService.isAdminByPlayer(idPlayer);
     return this.categoryRepository.findOneOrFail(idCategory, { withDeleted: isAdmin });
+  }
+
+  async findAllWithRecentTopics(idPlayer: number): Promise<CategoriesWithRecentTopicsViewModel> {
+    const [categories, topics] = await Promise.all([this.findAll(idPlayer), this.topicService.findRecentTopics(3)]);
+    const recentTopics = this.mapProfileTopicRecent.map(topics);
+    return new CategoriesWithRecentTopicsViewModel(categories, recentTopics);
   }
 }

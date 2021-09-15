@@ -86,7 +86,7 @@ import {
 import { Moderator } from '../forum/moderator/moderator.entity';
 import { ModeratorViewModel, ModeratorViewModelWithInfo } from '../forum/moderator/moderator.view-model';
 import { Topic } from '../forum/topic/topic.entity';
-import { TopicViewModel } from '../forum/topic/topic.view-model';
+import { TopicRecentViewModel, TopicViewModel } from '../forum/topic/topic.view-model';
 import { SubCategoryModeratorViewModel } from '../forum/sub-category-moderator/sub-category-moderator.view-model';
 import { SubCategoryModerator } from '../forum/sub-category-moderator/sub-category-moderator.entity';
 
@@ -272,6 +272,28 @@ const mapProfiles: MapProfile<any, any>[] = [
     .for(
       dest => dest.playerPersonaName,
       from => from.moderator?.player?.personaName ?? ''
+    ),
+  mapperService
+    .create(Topic, TopicRecentViewModel)
+    .for(
+      dest => dest.idCategory,
+      from => from.subCategory?.idCategory ?? -1
+    )
+    .for(
+      dest => dest.playerPersonaName,
+      from => from.posts?.[0]?.player?.personaName ?? ''
+    )
+    .for(
+      dest => dest.idPlayer,
+      from => from.posts?.[0]?.idPlayer ?? -1
+    )
+    .for(
+      dest => dest.idPost,
+      from => from.posts?.[0]?.id ?? -1
+    )
+    .for(
+      dest => dest.postName,
+      from => from.posts?.[0]?.name ?? ''
     ),
 ];
 

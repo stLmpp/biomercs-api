@@ -9,6 +9,10 @@ import { SchemaEnum } from '../../environment/schema.enum';
 @Entity({ schema: SchemaEnum.forum })
 export class PostEntity extends BaseEntity implements PostInterface {
   @Property()
+  @Column({ length: 500 })
+  name!: string;
+
+  @Property()
   @Column({ length: 10_000 })
   post!: string;
 

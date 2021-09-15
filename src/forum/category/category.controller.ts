@@ -2,7 +2,11 @@ import { Body, Controller, Get, Param, Patch, Post, Put } from '@nestjs/common';
 import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../../auth/api-auth.decorator';
 import { ApiAdmin } from '../../auth/api-admin.decorator';
-import { CategoryViewModel, CategoryWithSubCategoriesViewModel } from './category.view-model';
+import {
+  CategoryViewModel,
+  CategoriesWithRecentTopicsViewModel,
+  CategoryWithSubCategoriesViewModel,
+} from './category.view-model';
 import { CategoryAddDto, CategoryUpdateDto } from './category.dto';
 import { CategoryService } from './category.service';
 import { AuthPlayerPipe } from '../../auth/auth-player.decorator';
@@ -50,6 +54,13 @@ export class CategoryController {
   @Get()
   async findAll(@AuthUser(AuthPlayerPipe) player: Player): Promise<CategoryWithSubCategoriesViewModel[]> {
     return this.categoryService.findAll(player.id);
+  }
+
+  @Get('with/recent-topics')
+  async findAllWithRecentTopics(
+    @AuthUser(AuthPlayerPipe) player: Player
+  ): Promise<CategoriesWithRecentTopicsViewModel> {
+    return this.categoryService.findAllWithRecentTopics(player.id);
   }
 
   @Get(`:${Params.idCategory}`)

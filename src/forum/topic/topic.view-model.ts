@@ -17,6 +17,8 @@ export class TopicViewModel implements TopicInterface {
   @Property() playerPersonaNameLastPost!: string;
   @Property() lastPostDate!: Date;
   @Property() repliesCount!: number;
+  @Property() idLastPost!: number;
+  @Property() nameLastPost!: string;
   @Property() hasNewPosts!: boolean;
 }
 
@@ -32,4 +34,15 @@ export class TopicViewModelPaginated implements Pagination<TopicViewModel> {
 
   @Property(() => TopicViewModel) items!: TopicViewModel[];
   @Property(() => PaginationMeta) meta!: PaginationMeta;
+}
+
+export class TopicRecentViewModel {
+  @Property() id!: number;
+  @Property() name!: string;
+  @Property() idPost!: number;
+  @Property() postName!: string;
+  @Property() idCategory!: number;
+  @Property() idSubCategory!: number;
+  @Property() idPlayer!: number;
+  @Property() playerPersonaName!: string;
 }

@@ -38,6 +38,8 @@ export class TopicRepository extends Repository<Topic> {
       .addSelect('player_last_post.id', 'idPlayerLastPost')
       .addSelect('player_last_post.personaName', 'playerPersonaNameLastPost')
       .addSelect('last_post.creationDate', 'lastPostDate')
+      .addSelect('last_post.id', 'idLastPost')
+      .addSelect('last_post.name', 'nameLastPost')
       .addSelect(
         subQuery =>
           subQuery
@@ -75,5 +77,26 @@ export class TopicRepository extends Repository<Topic> {
       .addOrderBy('topic.id', 'ASC');
     const paginated = await queryBuilder.paginateRaw<TopicRaw>(page, limit);
     return new TopicViewModelPaginated(paginated.items.map(mapFromTopicRawToTopicViewModel), paginated.meta);
+  }
+
+  async findRecentTopics(limit: number): Promise<Topic[]> {
+    return this.createQueryBuilder('topic')
+      .innerJoinAndSelect('topic.posts', 'last_post')
+      .innerJoinAndSelect('topic.subCategory', 'sub_category')
+      .innerJoinAndSelect('last_post.player', 'player_last_post')
+      .andWhere(
+        subQuery =>
+          `last_post.id = (${subQuery
+            .subQuery()
+            .addSelect('post_join.id')
+            .from(PostEntity, 'post_join')
+            .andWhere('post_join.idTopic = topic.id')
+            .orderBy('post_join.id', 'DESC')
+            .limit(1)
+            .getQuery()})`
+      )
+      .limit(limit)
+      .addOrderBy('last_post.creationDate', 'DESC')
+      .getMany();
   }
 }
