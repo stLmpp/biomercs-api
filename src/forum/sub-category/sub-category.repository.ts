@@ -44,6 +44,8 @@ export class SubCategoryRepository extends Repository<SubCategory> {
       .addSelect('last_topic.id', 'idTopicLastPost')
       .addSelect('last_topic.name', 'topicNameLastPost')
       .addSelect('last_post.creationDate', 'lastPostDate')
+      .addSelect('last_post.id', 'idLastPost')
+      .addSelect('last_post.name', 'nameLastPost')
       .addSelect(
         subQuery =>
           subQuery
@@ -104,7 +106,7 @@ export class SubCategoryRepository extends Repository<SubCategory> {
             .from(PostEntity, 'post_join')
             .addSelect('post_join.id')
             .andWhere('post_join.idTopic = last_topic.id')
-            .orderBy('last_post.creationDate', 'DESC')
+            .orderBy('post_join.creationDate', 'DESC')
             .limit(1)
             .getQuery()}) or last_post.id is null)`
       )

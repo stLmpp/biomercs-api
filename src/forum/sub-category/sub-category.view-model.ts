@@ -3,7 +3,7 @@ import { Property } from '../../mapper/property.decorator';
 import { ModeratorViewModel } from '../moderator/moderator.view-model';
 import { TopicViewModelPaginated } from '../topic/topic.view-model';
 
-export class SubCategoryViewModel {
+export class SubCategoryViewModel implements SubCategoryInterface {
   @Property() id!: number;
   @Property() name!: string;
   @Property() description!: string;
@@ -12,8 +12,7 @@ export class SubCategoryViewModel {
   @Property() deletedDate?: Date | null;
 }
 
-export class SubCategoryInfoViewModel {
-  @Property() id!: number;
+export class SubCategoryWithInfoViewModel extends SubCategoryViewModel {
   @Property() playerPersonaNameLastPost?: string;
   @Property() idPlayerLastPost?: number;
   @Property() topicNameLastPost?: string;
@@ -23,14 +22,8 @@ export class SubCategoryInfoViewModel {
   @Property() postCount!: number;
   @Property() hasNewPosts!: boolean;
   @Property() isModerator!: boolean;
-}
-
-export class SubCategoryWithInfoViewModel extends SubCategoryInfoViewModel implements SubCategoryInterface {
-  @Property() name!: string;
-  @Property() description!: string;
-  @Property() idCategory!: number;
-  @Property() order!: number;
-  @Property() deletedDate?: Date | null;
+  @Property() idLastPost?: number;
+  @Property() lastPostName?: string;
 }
 
 export class SubCategoryWithInfoModeratorsViewModel extends SubCategoryWithInfoViewModel {
