@@ -25,6 +25,7 @@ export enum Params {
   idCategory = 'idCategory',
   idSubCategory = 'idSubCategory',
   idModeratorsSelected = 'idModeratorsSelected',
+  idTopic = 'idTopic',
 
   // OTHERS
   steamid = 'steamid',

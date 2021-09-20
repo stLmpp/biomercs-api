@@ -1,4 +1,4 @@
-import { EntityRepository, Repository } from 'typeorm';
+import { EntityRepository, Repository, UpdateResult } from 'typeorm';
 import { Topic } from './topic.entity';
 import { TopicViewModel, TopicViewModelPaginated } from './topic.view-model';
 import { PostEntity } from '../post/post.entity';
@@ -32,6 +32,7 @@ export class TopicRepository extends Repository<Topic> {
       .addSelect('topic.idSubCategory', 'idSubCategory')
       .addSelect('topic.idScore', 'idScore')
       .addSelect('topic.idPlayer', 'idPlayer')
+      .addSelect('player.personaName', 'playerPersonaName')
       .addSelect('topic.views', 'views')
       .addSelect('topic.pinned', 'pinned')
       .addSelect('topic.lockedDate', 'lockedDate')
@@ -40,6 +41,7 @@ export class TopicRepository extends Repository<Topic> {
       .addSelect('last_post.creationDate', 'lastPostDate')
       .addSelect('last_post.id', 'idLastPost')
       .addSelect('last_post.name', 'nameLastPost')
+      .addSelect('topic.creationDate', 'creationDate')
       .addSelect(
         subQuery =>
           subQuery
@@ -61,6 +63,7 @@ export class TopicRepository extends Repository<Topic> {
       )
       .innerJoin('topic.posts', 'last_post')
       .innerJoin('last_post.player', 'player_last_post')
+      .innerJoin('topic.player', 'player')
       .andWhere('topic.idSubCategory = :idSubCategory', { idSubCategory })
       .andWhere(
         subQuery =>
@@ -73,6 +76,7 @@ export class TopicRepository extends Repository<Topic> {
             .limit(1)
             .getQuery()})`
       )
+      .addOrderBy('topic.pinned', 'DESC')
       .addOrderBy('last_post.creationDate', 'DESC')
       .addOrderBy('topic.id', 'ASC');
     const paginated = await queryBuilder.paginateRaw<TopicRaw>(page, limit);
@@ -98,5 +102,12 @@ export class TopicRepository extends Repository<Topic> {
       .limit(limit)
       .addOrderBy('last_post.creationDate', 'DESC')
       .getMany();
+  }
+
+  async increaseView(idTopic: number, views: number): Promise<UpdateResult> {
+    return this.createQueryBuilder()
+      .update()
+      .set({ views: () => `views + ${views}` })
+      .execute();
   }
 }

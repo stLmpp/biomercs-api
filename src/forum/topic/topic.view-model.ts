@@ -10,6 +10,7 @@ export class TopicViewModel implements TopicInterface {
   @Property() idSubCategory!: number;
   @Property() idScore?: number | null;
   @Property() idPlayer!: number;
+  @Property() playerPersonaName!: string;
   @Property() views!: number;
   @Property() pinned!: boolean;
   @Property() lockedDate?: Date | null;
@@ -20,6 +21,7 @@ export class TopicViewModel implements TopicInterface {
   @Property() idLastPost!: number;
   @Property() nameLastPost!: string;
   @Property() hasNewPosts!: boolean;
+  @Property() creationDate!: Date;
 }
 
 export class TopicWithPostsViewModel extends TopicViewModel {
