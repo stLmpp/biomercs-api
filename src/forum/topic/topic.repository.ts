@@ -108,6 +108,7 @@ export class TopicRepository extends Repository<Topic> {
     return this.createQueryBuilder()
       .update()
       .set({ views: () => `views + ${views}` })
+      .where({ id: idTopic })
       .execute();
   }
 }
