@@ -1,9 +1,10 @@
-import { EntityRepository, Repository, UpdateResult } from 'typeorm';
+import { EntityRepository, Repository, SelectQueryBuilder, UpdateResult } from 'typeorm';
 import { Topic } from './topic.entity';
 import { TopicViewModel, TopicViewModelPaginated } from './topic.view-model';
 import { PostEntity } from '../post/post.entity';
 import { TopicPlayerLastRead } from '../topic-player-last-read/topic-player-last-read.entity';
 import { plainToClass } from 'class-transformer';
+import { NotFoundException } from '@nestjs/common';
 
 type TopicRaw = Omit<TopicViewModel, 'repliesCount' | 'hasNewPosts'> & {
   repliesCount: string;
@@ -20,13 +21,8 @@ function mapFromTopicRawToTopicViewModel(topicRaw: TopicRaw): TopicViewModel {
 
 @EntityRepository(Topic)
 export class TopicRepository extends Repository<Topic> {
-  async findBySubCategoryPaginated(
-    idSubCategory: number,
-    idPlayer: number,
-    page: number,
-    limit: number
-  ): Promise<TopicViewModelPaginated> {
-    const queryBuilder = this.createQueryBuilder('topic')
+  private _createQueryBuilderWithInfo(idPlayer: number): SelectQueryBuilder<Topic> {
+    return this.createQueryBuilder('topic')
       .select('topic.id', 'id')
       .addSelect('topic.name', 'name')
       .addSelect('topic.idSubCategory', 'idSubCategory')
@@ -64,7 +60,6 @@ export class TopicRepository extends Repository<Topic> {
       .innerJoin('topic.posts', 'last_post')
       .innerJoin('last_post.player', 'player_last_post')
       .innerJoin('topic.player', 'player')
-      .andWhere('topic.idSubCategory = :idSubCategory', { idSubCategory })
       .andWhere(
         subQuery =>
           `last_post.id = (${subQuery
@@ -75,7 +70,17 @@ export class TopicRepository extends Repository<Topic> {
             .orderBy('post_join.id', 'DESC')
             .limit(1)
             .getQuery()})`
-      )
+      );
+  }
+
+  async findBySubCategoryPaginated(
+    idSubCategory: number,
+    idPlayer: number,
+    page: number,
+    limit: number
+  ): Promise<TopicViewModelPaginated> {
+    const queryBuilder = this._createQueryBuilderWithInfo(idPlayer)
+      .andWhere('topic.idSubCategory = :idSubCategory', { idSubCategory })
       .addOrderBy('topic.pinned', 'DESC')
       .addOrderBy('last_post.creationDate', 'DESC')
       .addOrderBy('topic.id', 'ASC');
@@ -102,6 +107,15 @@ export class TopicRepository extends Repository<Topic> {
       .limit(limit)
       .addOrderBy('last_post.creationDate', 'DESC')
       .getMany();
+  }
+
+  async findById(idTopic: number, idPlayer: number): Promise<TopicViewModel> {
+    const queryBuilder = this._createQueryBuilderWithInfo(idPlayer).andWhere('topic.id = :idTopic', { idTopic });
+    const raw: TopicRaw | undefined = await queryBuilder.getRawOne();
+    if (!raw) {
+      throw new NotFoundException(`Topic with id "${idTopic}" not found`);
+    }
+    return mapFromTopicRawToTopicViewModel(raw);
   }
 
   async increaseView(idTopic: number, views: number): Promise<UpdateResult> {

@@ -1,6 +1,6 @@
 import { TopicInterface } from './topic.interface';
 import { Property } from '../../mapper/property.decorator';
-import { PostViewModel } from '../post/post.view-model';
+import { PostViewModelPagination } from '../post/post.view-model';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { PaginationMeta } from '../../shared/view-model/pagination.view-model';
 
@@ -25,7 +25,7 @@ export class TopicViewModel implements TopicInterface {
 }
 
 export class TopicWithPostsViewModel extends TopicViewModel {
-  @Property(() => PostViewModel) posts!: PostViewModel[];
+  @Property(() => PostViewModelPagination) posts!: PostViewModelPagination;
 }
 
 export class TopicViewModelPaginated implements Pagination<TopicViewModel> {

@@ -89,6 +89,8 @@ import { Topic } from '../forum/topic/topic.entity';
 import { TopicRecentViewModel, TopicViewModel } from '../forum/topic/topic.view-model';
 import { SubCategoryModeratorViewModel } from '../forum/sub-category-moderator/sub-category-moderator.view-model';
 import { SubCategoryModerator } from '../forum/sub-category-moderator/sub-category-moderator.entity';
+import { PostEntity } from '../forum/post/post.entity';
+import { PostViewModel } from '../forum/post/post.view-model';
 
 const mapProfiles: MapProfile<any, any>[] = [
   mapperService.create(Game, GameViewModel),
@@ -303,6 +305,7 @@ const mapProfiles: MapProfile<any, any>[] = [
       dest => dest.postDate,
       from => from.posts?.[0]?.creationDate ?? new Date()
     ),
+  mapperService.create(PostEntity, PostViewModel),
 ];
 
 function createScoreViewModeMap<T extends ScoreViewModel>(type: Type<T>): MapProfile<Score, T> {
