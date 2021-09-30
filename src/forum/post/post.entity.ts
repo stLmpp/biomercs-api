@@ -13,8 +13,8 @@ export class PostEntity extends BaseEntity implements PostInterface {
   name!: string;
 
   @Property()
-  @Column({ length: 10_000 })
-  post!: string;
+  @Column({ type: 'json' })
+  post!: object;
 
   @Property()
   @Column()

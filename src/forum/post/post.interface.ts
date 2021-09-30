@@ -1,6 +1,6 @@
 export interface PostInterface {
   id: number;
-  post: string;
+  post: object;
   idTopic: number;
   idPlayer: number;
   deletedDate?: Date | null;

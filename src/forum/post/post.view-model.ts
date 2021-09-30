@@ -6,7 +6,7 @@ import { PaginationMeta } from '../../shared/view-model/pagination.view-model';
 export class PostViewModel implements PostInterface {
   @Property() id!: number;
   @Property() name!: string;
-  @Property() post!: string;
+  @Property() post!: object;
   @Property() idTopic!: number;
   @Property() idPlayer!: number;
   @Property() deletedDate?: Date | null;
