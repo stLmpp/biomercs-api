@@ -10,6 +10,13 @@ export class PostViewModel implements PostInterface {
   @Property() idTopic!: number;
   @Property() idPlayer!: number;
   @Property() deletedDate?: Date | null;
+  @Property() personaNamePlayer!: string;
+  @Property() postCount!: number;
+  @Property() idRegionPlayer!: number;
+  @Property() nameRegionPlayer!: string;
+  @Property() shortNameRegionPlayer!: string;
+  @Property() editAllowed!: boolean;
+  @Property() deleteAllowed!: boolean;
 }
 
 export class PostViewModelPagination implements Pagination<PostViewModel> {

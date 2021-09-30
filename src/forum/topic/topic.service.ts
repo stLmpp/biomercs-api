@@ -5,18 +5,10 @@ import { Topic } from './topic.entity';
 import { Cron } from '@nestjs/schedule';
 import { UpdateResult } from 'typeorm';
 import { PostService } from '../post/post.service';
-import { InjectMapProfile } from '../../mapper/inject-map-profile';
-import { PostEntity } from '../post/post.entity';
-import { PostViewModel, PostViewModelPagination } from '../post/post.view-model';
-import { MapProfile } from '../../mapper/map-profile';
 
 @Injectable()
 export class TopicService {
-  constructor(
-    private topicRepository: TopicRepository,
-    private postService: PostService,
-    @InjectMapProfile(PostEntity, PostViewModel) private mapProfilePost: MapProfile<PostEntity, PostViewModel>
-  ) {}
+  constructor(private topicRepository: TopicRepository, private postService: PostService) {}
 
   private readonly _increaseViewsMap = new Map<number, number>();
 
@@ -57,13 +49,13 @@ export class TopicService {
     page: number,
     limit: number
   ): Promise<TopicWithPostsViewModel> {
-    const [topic, postsPaginated] = await Promise.all([
+    const [topic, posts] = await Promise.all([
       this.topicRepository.findById(idTopic, idPlayer),
-      this.postService.findByTopicPaginated(idTopic, page, limit),
+      this.postService.findByTopicPaginated(idTopic, idPlayer, page, limit),
     ]);
     const topicWithPostsViewModel = new TopicWithPostsViewModel();
     Object.assign(topicWithPostsViewModel, topic);
-    topicWithPostsViewModel.posts = new PostViewModelPagination(postsPaginated.items, postsPaginated.meta);
+    topicWithPostsViewModel.posts = posts;
     return topicWithPostsViewModel;
   }
 }
