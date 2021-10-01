@@ -5,10 +5,12 @@ import { PostEntity } from '../post/post.entity';
 import { TopicPlayerLastRead } from '../topic-player-last-read/topic-player-last-read.entity';
 import { plainToClass } from 'class-transformer';
 import { NotFoundException } from '@nestjs/common';
+import { SubCategoryModerator } from '../sub-category-moderator/sub-category-moderator.entity';
 
-type TopicRaw = Omit<TopicViewModel, 'repliesCount' | 'hasNewPosts'> & {
+type TopicRaw = Omit<TopicViewModel, 'repliesCount' | 'hasNewPosts' | 'isModerator'> & {
   repliesCount: string;
   hasNewPosts: boolean | null;
+  isModerator: number | null;
 };
 
 function mapFromTopicRawToTopicViewModel(topicRaw: TopicRaw): TopicViewModel {
@@ -16,6 +18,7 @@ function mapFromTopicRawToTopicViewModel(topicRaw: TopicRaw): TopicViewModel {
     ...topicRaw,
     repliesCount: +topicRaw.repliesCount,
     hasNewPosts: !!topicRaw.hasNewPosts,
+    isModerator: !!topicRaw.isModerator,
   });
 }
 
@@ -56,6 +59,17 @@ export class TopicRepository extends Repository<Topic> {
             .andWhere('last_read.idTopic = topic.id')
             .andWhere('last_read.idPlayer = :idPlayer', { idPlayer }),
         'hasNewPosts'
+      )
+      .addSelect(
+        subQuery =>
+          subQuery
+            .subQuery()
+            .select('sub_category_moderator.id')
+            .from(SubCategoryModerator, 'sub_category_moderator')
+            .innerJoin('sub_category_moderator.moderator', 'moderator')
+            .andWhere('sub_category_moderator.idSubCategory = topic.idSubCategory')
+            .andWhere('moderator.idPlayer = :idPlayer', { idPlayer }),
+        'isModerator'
       )
       .innerJoin('topic.posts', 'last_post')
       .innerJoin('last_post.player', 'player_last_post')

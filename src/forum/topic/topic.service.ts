@@ -55,6 +55,10 @@ export class TopicService {
     ]);
     const topicWithPostsViewModel = new TopicWithPostsViewModel();
     Object.assign(topicWithPostsViewModel, topic);
+    for (const post of posts.items) {
+      post.editAllowed = post.editAllowed || topicWithPostsViewModel.isModerator;
+      post.deleteAllowed = post.deleteAllowed || topicWithPostsViewModel.isModerator;
+    }
     topicWithPostsViewModel.posts = posts;
     return topicWithPostsViewModel;
   }
