@@ -40,7 +40,6 @@ async function copyFrontEndDistToBackEndDist(): Promise<void> {
 
 async function copyConfigToDist(): Promise<void> {
   spinner.start('Copying config to dist');
-  await copy(resolve(process.cwd() + '/config'), resolve(pathBackEndDist + '/config'));
   await copy(resolve(process.cwd() + '/mail'), resolve(pathBackEndDist + '/mail'));
   await copy(resolve(process.cwd() + '/Procfile'), resolve(pathBackEndDist + '/Procfile'));
   spinner.stopAndPersist({ symbol: '✔', text: 'Copy config completed' });

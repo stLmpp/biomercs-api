@@ -3,6 +3,8 @@ import { parse } from 'yargs';
 import { coerceArray } from 'st-utils';
 import { spawn, SpawnOptions } from 'child_process';
 import { Options, resolveConfig } from 'prettier';
+import { config } from 'dotenv';
+import { resolve } from 'path';
 
 export function getSpinner(): ora.Ora {
   return ora({ spinner: 'dots' });
@@ -48,4 +50,9 @@ export async function resolvePrettierrc(): Promise<Options> {
   const prettierrc = await resolveConfig(process.cwd());
   spinner.stopAndPersist({ symbol: '✔', text: 'Prettier config resolved' });
   return { ...prettierrc, parser: 'babel' };
+}
+
+export function setDefaultVariables(): void {
+  config({ path: resolve(process.cwd() + '/.env-default') });
+  config({ path: resolve(process.cwd() + '/.env-dev') });
 }

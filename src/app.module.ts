@@ -25,7 +25,7 @@ import { MapperModule } from './mapper/mapper.module';
 import { UrlMetadataModule } from './url-metadata/url-metadata.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ContactModule } from './contact/contact.module';
-import { RateLimiterInterceptor, RateLimiterModule } from 'nestjs-rate-limiter';
+import { RateLimiterGuard, RateLimiterModule } from 'nestjs-rate-limiter';
 import { RuleModule } from './rule/rule.module';
 import { MailModule } from './mail/mail.module';
 import { ErrorModule } from './error/error.module';
@@ -75,7 +75,7 @@ import { ForumModule } from './forum/forum.module';
     AppService,
     { provide: APP_FILTER, useClass: HandleErrorFilter },
     AuthSubscriber,
-    { provide: APP_INTERCEPTOR, useClass: RateLimiterInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: RateLimiterGuard },
     { provide: APP_INTERCEPTOR, useClass: ErrorInterceptor },
   ],
 })

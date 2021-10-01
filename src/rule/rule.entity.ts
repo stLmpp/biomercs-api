@@ -16,6 +16,6 @@ export class Rule extends BaseEntity implements RuleInterface {
   order!: number;
 
   @Property()
-  @Column({ type: 'enum', enum: RuleTypeEnum, default: RuleTypeEnum.Main })
+  @Column({ type: 'enum', enum: RuleTypeEnum })
   type!: RuleTypeEnum;
 }

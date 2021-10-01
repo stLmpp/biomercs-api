@@ -29,7 +29,7 @@ module.exports = class forum1629737697480 {
       `CREATE TABLE "forum"."topic_transfer" ("creationDate" TIMESTAMP NOT NULL DEFAULT now(), "lastUpdatedDate" TIMESTAMP DEFAULT now(), "createdBy" integer NOT NULL, "lastUpdatedBy" integer, "id" SERIAL NOT NULL, "idTopic" integer NOT NULL, "idSubCategoryFrom" integer NOT NULL, "idSubCategoryTo" integer NOT NULL, CONSTRAINT "PK_08ca654fa6c06e5e4eee8594ce5" PRIMARY KEY ("id"))`
     );
     await queryRunner.query(`CREATE TYPE "main"."rule_type_enum" AS ENUM('Main', 'Forum')`);
-    await queryRunner.query(`ALTER TABLE "main"."rule" ADD "type" "main"."rule_type_enum" NOT NULL DEFAULT 'Main'`);
+    await queryRunner.query(`ALTER TABLE "main"."rule" ADD "type" "main"."rule_type_enum" NOT NULL`);
     await queryRunner.query(
       `ALTER TABLE "forum"."moderator" ADD CONSTRAINT "FK_52f2ae25814fe2dd38d194b0840" FOREIGN KEY ("idPlayer") REFERENCES "main"."player"("id") ON DELETE NO ACTION ON UPDATE NO ACTION`
     );

@@ -3,23 +3,30 @@ import { groupBy } from 'st-utils';
 
 export const PROPERTY_METADATA_KEY = '__PROPERTY_METADATA_KEY__';
 
-export interface PropertyMetadata<T extends Record<any, any> = Record<any, any>, K extends keyof T = keyof T> {
+export interface PropertyMetadataOptions {
+  possibleUndefined: boolean;
+  isArray: boolean;
+}
+
+export interface PropertyMetadata<T extends Record<any, any> = Record<any, any>, K extends keyof T = keyof T>
+  extends PropertyMetadataOptions {
   propertyKey: K;
   type: any;
   typeFn?: () => Type;
-  possibleUndefined: boolean;
 }
 
 const propertiesMetadataCache = new Map<any, PropertyMetadata[]>();
 
-export function Property(typeFn?: () => Type, possibleUndefined = false): PropertyDecorator {
+export function Property(typeFn?: () => Type, options?: Partial<PropertyMetadataOptions>): PropertyDecorator {
   return (target, propertyKey) => {
     const type = Reflect.getMetadata('design:type', target, propertyKey);
     setPropertyMetadata(target.constructor, propertyKey, {
+      isArray: false,
+      possibleUndefined: false,
       propertyKey: propertyKey.toString(),
       type,
       typeFn,
-      possibleUndefined,
+      ...options,
     });
   };
 }
@@ -60,6 +67,7 @@ export function getPropertiesMetadata<T>(target: Type<T>): PropertyMetadata<T>[]
           typeFn: item.typeFn ?? acc.typeFn,
           propertyKey: item.propertyKey ?? acc.propertyKey,
           possibleUndefined: item.possibleUndefined ?? acc.possibleUndefined,
+          isArray: item.isArray ?? acc.isArray,
         }),
         { propertyKey, type: null } as PropertyMetadata
       )
