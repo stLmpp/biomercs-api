@@ -9,6 +9,7 @@ import { TopicTransferModule } from './topic-transfer/topic-transfer.module';
 import { PostModule } from './post/post.module';
 import { TopicPlayerLastReadModule } from './topic-player-last-read/topic-player-last-read.module';
 import { SubCategoryTransferModule } from './sub-category-transfer/sub-category-transfer.module';
+import { Params } from '../shared/type/params';
 
 const routes: Routes = [
   {
@@ -33,14 +34,16 @@ const routes: Routes = [
       {
         path: 'topic',
         module: TopicModule,
+        children: [
+          {
+            path: `:${Params.idTopic}/post`,
+            module: PostModule,
+          },
+        ],
       },
       {
         path: 'topic-transfer',
         module: TopicTransferModule,
-      },
-      {
-        path: 'post',
-        module: PostModule,
       },
       {
         path: 'topic-player-last-read',

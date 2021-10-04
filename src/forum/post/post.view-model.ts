@@ -2,11 +2,12 @@ import { PostInterface } from './post.interface';
 import { Property } from '../../mapper/property.decorator';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { PaginationMeta } from '../../shared/view-model/pagination.view-model';
+import { PostContent } from './post-content.view-model';
 
 export class PostViewModel implements PostInterface {
   @Property() id!: number;
   @Property() name!: string;
-  @Property() post!: object;
+  @Property(() => PostContent) content!: PostContent;
   @Property() idTopic!: number;
   @Property() idPlayer!: number;
   @Property() deletedDate?: Date | null;
