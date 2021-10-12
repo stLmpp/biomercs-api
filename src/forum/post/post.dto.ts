@@ -1,5 +1,4 @@
-import { IsObject, IsOptional, IsString, MaxLength } from 'class-validator';
-import { PostContent } from './post-content.view-model';
+import { IsOptional, IsString, MaxLength } from 'class-validator';
 
 export class PostUpdateDto {
   @IsOptional()
@@ -8,6 +7,6 @@ export class PostUpdateDto {
   name?: string;
 
   @IsOptional()
-  @IsObject()
-  content?: PostContent;
+  @IsString()
+  content?: string;
 }

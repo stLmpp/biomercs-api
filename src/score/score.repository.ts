@@ -170,7 +170,7 @@ export class ScoreRepository extends Repository<Score> {
     orderBy,
     orderByDirection,
     idStage,
-  }: ScoreApprovalParams): Promise<Pagination<Score>> {
+  }: ScoreApprovalParams): Promise<Pagination<Score, PaginationMeta>> {
     return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode, idStage)
       .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.AwaitingApproval })
       .orderBy(this._resolveOrderByApproval(orderBy), orderByDirection.toUpperCase() as Uppercase<OrderByDirection>)
@@ -295,7 +295,11 @@ export class ScoreRepository extends Repository<Score> {
     return this.queryDifferentCharacters(qb, idPlatformGameMiniGameModeCharacterCostumes, 'score').getOne();
   }
 
-  async findScoresWithChangeRequests(idPlayer: number, page: number, limit: number): Promise<Pagination<Score>> {
+  async findScoresWithChangeRequests(
+    idPlayer: number,
+    page: number,
+    limit: number
+  ): Promise<Pagination<Score, PaginationMeta>> {
     return this._createQueryBuilderRelations()
       .innerJoinAndSelect('score.scoreChangeRequests', 'scr')
       .andWhere('scr.dateFulfilled is null')

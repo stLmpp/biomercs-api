@@ -1,5 +1,6 @@
 import { FindConditions, SelectQueryBuilder } from 'typeorm';
 import { paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { PaginationMeta } from '../shared/view-model/pagination.view-model';
 
 declare module 'typeorm/query-builder/SelectQueryBuilder' {
   interface SelectQueryBuilder<Entity> {
@@ -8,8 +9,8 @@ declare module 'typeorm/query-builder/SelectQueryBuilder' {
     andNotExists(subQuery: (queryBuilder: SelectQueryBuilder<Entity>) => SelectQueryBuilder<any>): this;
     orNotExists(subQuery: (queryBuilder: SelectQueryBuilder<Entity>) => SelectQueryBuilder<any>): this;
     fillAndWhere(name: string, dto: FindConditions<Entity>): this;
-    paginateRaw<T = any>(page: number, limit: number): Promise<Pagination<T>>;
-    paginate(page: number, limit: number, route?: string): Promise<Pagination<Entity>>;
+    paginateRaw<T = any, M = any>(page: number, limit: number): Promise<Pagination<T, M>>;
+    paginate<M = any>(page: number, limit: number, route?: string): Promise<Pagination<Entity, M>>;
   }
 }
 
@@ -66,16 +67,14 @@ SelectQueryBuilder.prototype.paginateRaw = async function (page: number, limit: 
     this.connection.query(`SELECT COUNT(1) AS q FROM (${query}) AS COUNTED`, parameters).then(raw => +raw[0].q),
     this.limit(limit).offset(offset).getRawMany(),
   ]);
-  return {
-    items,
-    meta: {
-      currentPage: page,
-      itemsPerPage: limit,
-      itemCount: items.length,
-      totalItems: total,
-      totalPages: Math.ceil(total / limit),
-    },
+  const meta: PaginationMeta = {
+    currentPage: page,
+    itemsPerPage: limit,
+    itemCount: items.length,
+    totalItems: total,
+    totalPages: Math.ceil(total / limit),
   };
+  return new Pagination(items, meta as any);
 };
 
 SelectQueryBuilder.prototype.paginate = async function (page: any, limit: any, route: any) {

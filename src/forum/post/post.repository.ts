@@ -5,6 +5,7 @@ import { NotFoundException } from '@nestjs/common';
 import { SubCategoryModerator } from '../sub-category-moderator/sub-category-moderator.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { plainToClass } from 'class-transformer';
+import { PaginationMeta } from '../../shared/view-model/pagination.view-model';
 
 type PostRaw = PostViewModel & { isModerator: number | null };
 
@@ -75,7 +76,7 @@ export class PostRepository extends Repository<PostEntity> {
     limit: number
   ): Promise<PostViewModelPagination> {
     const queryBuilder = this._createQueryBuilderViewModel(idTopic, idPlayer).orderBy('post.id', 'ASC');
-    const raw: Pagination<PostRaw> = await queryBuilder.paginateRaw(page, limit);
+    const raw: Pagination<PostRaw, PaginationMeta> = await queryBuilder.paginateRaw(page, limit);
     return new PostViewModelPagination(raw.items.map(mapFromPostRawToViewModel), raw.meta);
   }
 
