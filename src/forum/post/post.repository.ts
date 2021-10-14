@@ -7,13 +7,14 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { plainToClass } from 'class-transformer';
 import { PaginationMeta } from '../../shared/view-model/pagination.view-model';
 
-type PostRaw = PostViewModel & { isModerator: number | null; firstPost: boolean };
+type PostRaw = Omit<PostViewModel, 'postCount'> & { isModerator: number | null; firstPost: boolean; postCount: string };
 
 function mapFromPostRawToViewModel(postRaw: PostRaw): PostViewModel {
   return plainToClass(PostViewModel, {
     ...postRaw,
     editAllowed: postRaw.editAllowed || !!postRaw.isModerator,
     deleteAllowed: !postRaw.firstPost && (postRaw.deleteAllowed || !!postRaw.isModerator),
+    postCount: +postRaw.postCount,
   });
 }
 
