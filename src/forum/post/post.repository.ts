@@ -7,19 +7,27 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { plainToClass } from 'class-transformer';
 import { PaginationMeta } from '../../shared/view-model/pagination.view-model';
 
-type PostRaw = PostViewModel & { isModerator: number | null };
+type PostRaw = PostViewModel & { isModerator: number | null; firstPost: boolean };
 
 function mapFromPostRawToViewModel(postRaw: PostRaw): PostViewModel {
   return plainToClass(PostViewModel, {
     ...postRaw,
     editAllowed: postRaw.editAllowed || !!postRaw.isModerator,
-    deleteAllowed: postRaw.deleteAllowed || !!postRaw.isModerator,
+    deleteAllowed: !postRaw.firstPost && (postRaw.deleteAllowed || !!postRaw.isModerator),
   });
 }
 
 @EntityRepository(PostEntity)
 export class PostRepository extends Repository<PostEntity> {
   private _createQueryBuilderViewModel(idTopic: number, idPlayer: number): SelectQueryBuilder<PostEntity> {
+    const firstPostQueryBuilder = (queryBuilder: SelectQueryBuilder<any>, alias: string): SelectQueryBuilder<any> =>
+      queryBuilder
+        .subQuery()
+        .from(PostEntity, alias)
+        .andWhere(`${alias}.idTopic = :idTopic`, { idTopic })
+        .orderBy(`${alias}.id`, 'ASC')
+        .limit(1);
+
     return this.createQueryBuilder('post')
       .select('post.id', 'id')
       .addSelect('post.name', 'name')
@@ -43,13 +51,9 @@ export class PostRepository extends Repository<PostEntity> {
       .addSelect(`player.id = ${idPlayer}`, 'editAllowed')
       .addSelect(
         subQuery =>
-          subQuery
-            .subQuery()
-            .select(`(player.id = ${idPlayer} AND post_first.id != post.id)`)
-            .from(PostEntity, 'post_first')
-            .andWhere('post_first.idTopic = :idTopic', { idTopic })
-            .orderBy('post_first.id', 'ASC')
-            .limit(1),
+          firstPostQueryBuilder(subQuery, 'post_first').select(
+            `(player.id = ${idPlayer} AND post_first.id != post.id)`
+          ),
         'deleteAllowed'
       )
       .addSelect(
@@ -62,6 +66,10 @@ export class PostRepository extends Repository<PostEntity> {
             .andWhere('sub_category_moderator.idSubCategory = topic.idSubCategory')
             .andWhere('moderator.idPlayer = :idPlayer', { idPlayer }),
         'isModerator'
+      )
+      .addSelect(
+        subQuery => firstPostQueryBuilder(subQuery, 'post_first_1').select('post_first_1.id = post.id'),
+        'firstPost'
       )
       .innerJoin('post.topic', 'topic')
       .innerJoin('post.player', 'player')
