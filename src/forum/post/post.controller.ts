@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Patch } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Patch } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../../auth/api-auth.decorator';
 import { PostService } from './post.service';
@@ -23,5 +23,10 @@ export class PostController {
     @Body() dto: PostUpdateDto
   ): Promise<PostViewModel> {
     return this.postService.update(idTopic, idPost, player.id, dto);
+  }
+
+  @Delete(`:${Params.idPost}`)
+  async delete(@Param(Params.idPost) idPost: number): Promise<void> {
+    await this.postService.delete(idPost);
   }
 }

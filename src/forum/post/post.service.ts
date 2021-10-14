@@ -20,4 +20,8 @@ export class PostService {
     await this.postRepository.update(idPost, dto);
     return this.postRepository.findById(idTopic, idPost, idPlayer);
   }
+
+  async delete(idPost: number): Promise<void> {
+    await this.postRepository.softDelete(idPost);
+  }
 }
