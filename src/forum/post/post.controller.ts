@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Patch } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Patch, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../../auth/api-auth.decorator';
 import { PostService } from './post.service';
@@ -7,13 +7,18 @@ import { PostViewModel } from './post.view-model';
 import { AuthUser } from '../../auth/auth-user.decorator';
 import { AuthPlayerPipe } from '../../auth/auth-player.decorator';
 import { Player } from '../../player/player.entity';
-import { PostUpdateDto } from './post.dto';
+import { PostAddDto, PostUpdateDto } from './post.dto';
 
 @ApiAuth()
 @ApiTags('Post')
 @Controller()
 export class PostController {
   constructor(private postService: PostService) {}
+
+  @Post()
+  async add(@Body() dto: PostAddDto): Promise<PostViewModel> {
+    return this.postService.add(dto);
+  }
 
   @Patch(`:${Params.idPost}`)
   async update(

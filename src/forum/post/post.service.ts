@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PostRepository } from './post.repository';
 import { PostViewModel, PostViewModelPagination } from './post.view-model';
-import { PostUpdateDto } from './post.dto';
+import { PostAddDto, PostUpdateDto } from './post.dto';
 
 @Injectable()
 export class PostService {
@@ -23,5 +23,10 @@ export class PostService {
 
   async delete(idPost: number): Promise<void> {
     await this.postRepository.softDelete(idPost);
+  }
+
+  async add(dto: PostAddDto): Promise<PostViewModel> {
+    const post = await this.postRepository.save(dto);
+    return this.postRepository.findById(post.idTopic, post.id, post.idPlayer);
   }
 }
