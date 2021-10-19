@@ -13,7 +13,7 @@ function mapFromPostRawToViewModel(postRaw: PostRaw): PostViewModel {
   return plainToClass(PostViewModel, {
     ...postRaw,
     editAllowed: postRaw.editAllowed || !!postRaw.isModerator,
-    deleteAllowed: !postRaw.firstPost && (postRaw.deleteAllowed || !!postRaw.isModerator),
+    deleteAllowed: !postRaw.deletedDate && !postRaw.firstPost && (postRaw.deleteAllowed || !!postRaw.isModerator),
     postCount: +postRaw.postCount,
   });
 }
@@ -25,14 +25,16 @@ export class PostRepository extends Repository<PostEntity> {
       queryBuilder
         .subQuery()
         .from(PostEntity, alias)
+        .withDeleted()
         .andWhere(`${alias}.idTopic = :idTopic`, { idTopic })
         .orderBy(`${alias}.id`, 'ASC')
         .limit(1);
 
     return this.createQueryBuilder('post')
+      .withDeleted()
       .select('post.id', 'id')
       .addSelect('post.name', 'name')
-      .addSelect('post.content', 'content')
+      .addSelect(`case when "post"."deletedDate" is null then "post"."content" else '[ post deleted ]' end`, 'content')
       .addSelect('post.idTopic', 'idTopic')
       .addSelect('player.id', 'idPlayer')
       .addSelect('post.deletedDate', 'deletedDate')
@@ -43,6 +45,7 @@ export class PostRepository extends Repository<PostEntity> {
             .subQuery()
             .select('count(1)')
             .from(PostEntity, 'post_count')
+            .withDeleted()
             .andWhere('post_count.idPlayer = post.idPlayer'),
         'postCount'
       )
