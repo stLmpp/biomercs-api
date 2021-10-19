@@ -20,6 +20,7 @@ export class PostController {
     return this.postService.add(dto);
   }
 
+  // TODO validate same user or moderator (#56)
   @Patch(`:${Params.idPost}`)
   async update(
     @AuthUser(AuthPlayerPipe) player: Player,
@@ -30,6 +31,7 @@ export class PostController {
     return this.postService.update(idTopic, idPost, player.id, dto);
   }
 
+  // TODO validate same user or moderator (#56)
   @Delete(`:${Params.idPost}`)
   async delete(@Param(Params.idPost) idPost: number): Promise<void> {
     await this.postService.delete(idPost);

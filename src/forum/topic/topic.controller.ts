@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../../auth/api-auth.decorator';
 import { Params } from '../../shared/type/params';
 import { TopicService } from './topic.service';
-import { TopicWithPostsViewModel } from './topic.view-model';
+import { TopicViewModel, TopicWithPostsViewModel } from './topic.view-model';
 import { AuthUser } from '../../auth/auth-user.decorator';
 import { AuthPlayerPipe } from '../../auth/auth-player.decorator';
 import { Player } from '../../player/player.entity';
@@ -29,6 +29,37 @@ export class TopicController {
     this.topicService.increaseView(idTopic);
   }
 
+  // TODO validate moderator (#56)
+  @Put(`:${Params.idTopic}/lock`)
+  async lock(
+    @AuthUser(AuthPlayerPipe) player: Player,
+    @Param(Params.idTopic) idTopic: number
+  ): Promise<TopicViewModel> {
+    return this.topicService.lock(idTopic, player.id);
+  }
+
+  // TODO validate moderator (#56)
+  @Put(`:${Params.idTopic}/unlock`)
+  async unlock(
+    @AuthUser(AuthPlayerPipe) player: Player,
+    @Param(Params.idTopic) idTopic: number
+  ): Promise<TopicViewModel> {
+    return this.topicService.unlock(idTopic, player.id);
+  }
+
+  // TODO validate moderator (#56)
+  @Put(`:${Params.idTopic}/pin`)
+  async pin(@Param(Params.idTopic) idTopic: number): Promise<void> {
+    return this.topicService.pin(idTopic);
+  }
+
+  // TODO validate moderator (#56)
+  @Put(`:${Params.idTopic}/unpin`)
+  async unpin(@Param(Params.idTopic) idTopic: number): Promise<void> {
+    return this.topicService.unpin(idTopic);
+  }
+
+  // TODO validate same user or moderator (#56)
   @Delete(`:${Params.idTopic}`)
   async delete(@Param(Params.idTopic) idTopic: number): Promise<void> {
     return this.topicService.delete(idTopic);

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { TopicRepository } from './topic.repository';
-import { TopicViewModelPaginated, TopicWithPostsViewModel } from './topic.view-model';
+import { TopicViewModel, TopicViewModelPaginated, TopicWithPostsViewModel } from './topic.view-model';
 import { Topic } from './topic.entity';
 import { Cron } from '@nestjs/schedule';
 import { UpdateResult } from 'typeorm';
@@ -61,5 +61,23 @@ export class TopicService {
 
   async delete(idTopic: number): Promise<void> {
     await this.topicRepository.softDelete(idTopic);
+  }
+
+  async lock(idTopic: number, idPlayer: number): Promise<TopicViewModel> {
+    await this.topicRepository.update(idTopic, { lockedDate: new Date() });
+    return this.topicRepository.findById(idTopic, idPlayer);
+  }
+
+  async unlock(idTopic: number, idPlayer: number): Promise<TopicViewModel> {
+    await this.topicRepository.update(idTopic, { lockedDate: null });
+    return this.topicRepository.findById(idTopic, idPlayer);
+  }
+
+  async pin(idTopic: number): Promise<void> {
+    await this.topicRepository.update(idTopic, { pinned: true });
+  }
+
+  async unpin(idTopic: number): Promise<void> {
+    await this.topicRepository.update(idTopic, { pinned: false });
   }
 }
