@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../../auth/api-auth.decorator';
 import { Params } from '../../shared/type/params';
 import { TopicService } from './topic.service';
-import { TopicViewModel, TopicWithPostsViewModel } from './topic.view-model';
+import { TopicWithPostsViewModel } from './topic.view-model';
 import { AuthUser } from '../../auth/auth-user.decorator';
 import { AuthPlayerPipe } from '../../auth/auth-player.decorator';
 import { Player } from '../../player/player.entity';
@@ -31,20 +31,14 @@ export class TopicController {
 
   // TODO validate moderator (#56)
   @Put(`:${Params.idTopic}/lock`)
-  async lock(
-    @AuthUser(AuthPlayerPipe) player: Player,
-    @Param(Params.idTopic) idTopic: number
-  ): Promise<TopicViewModel> {
-    return this.topicService.lock(idTopic, player.id);
+  async lock(@Param(Params.idTopic) idTopic: number): Promise<void> {
+    return this.topicService.lock(idTopic);
   }
 
   // TODO validate moderator (#56)
   @Put(`:${Params.idTopic}/unlock`)
-  async unlock(
-    @AuthUser(AuthPlayerPipe) player: Player,
-    @Param(Params.idTopic) idTopic: number
-  ): Promise<TopicViewModel> {
-    return this.topicService.unlock(idTopic, player.id);
+  async unlock(@Param(Params.idTopic) idTopic: number): Promise<void> {
+    return this.topicService.unlock(idTopic);
   }
 
   // TODO validate moderator (#56)
