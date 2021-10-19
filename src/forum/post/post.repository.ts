@@ -12,8 +12,8 @@ type PostRaw = Omit<PostViewModel, 'postCount'> & { isModerator: number | null; 
 function mapFromPostRawToViewModel(postRaw: PostRaw): PostViewModel {
   return plainToClass(PostViewModel, {
     ...postRaw,
-    editAllowed: postRaw.editAllowed || !!postRaw.isModerator,
-    deleteAllowed: !postRaw.deletedDate && !postRaw.firstPost && (postRaw.deleteAllowed || !!postRaw.isModerator),
+    editAllowed: !postRaw.deletedDate && (postRaw.editAllowed || !!postRaw.isModerator),
+    deleteAllowed: !postRaw.deletedDate && (postRaw.deleteAllowed || !!postRaw.isModerator),
     postCount: +postRaw.postCount,
   });
 }

@@ -17,6 +17,7 @@ export class PostViewModel implements PostInterface {
   @Property() shortNameRegionPlayer!: string;
   @Property() editAllowed!: boolean;
   @Property() deleteAllowed!: boolean;
+  @Property() firstPost!: boolean;
 }
 
 export class PostViewModelPagination implements Pagination<PostViewModel> {

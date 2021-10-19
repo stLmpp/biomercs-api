@@ -1,6 +1,6 @@
 import { BaseEntity } from '../../shared/super/base-entity';
 import { TopicInterface } from './topic.interface';
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
+import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import { SchemaEnum } from '../../environment/schema.enum';
 import { Property } from '../../mapper/property.decorator';
 import { SubCategory } from '../sub-category/sub-category.entity';
@@ -61,4 +61,8 @@ export class Topic extends BaseEntity implements TopicInterface {
   @ManyToOne(() => Player)
   @JoinColumn()
   player?: Player;
+
+  @Property()
+  @DeleteDateColumn({ type: 'timestamp', nullable: true })
+  deletedDate?: Date | null;
 }

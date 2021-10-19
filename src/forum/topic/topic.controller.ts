@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Put, Query } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Put, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../../auth/api-auth.decorator';
 import { Params } from '../../shared/type/params';
@@ -27,5 +27,10 @@ export class TopicController {
   @Put(`:${Params.idTopic}/increase-views`)
   increaseViews(@Param(Params.idTopic) idTopic: number): void {
     this.topicService.increaseView(idTopic);
+  }
+
+  @Delete(`:${Params.idTopic}`)
+  async delete(@Param(Params.idTopic) idTopic: number): Promise<void> {
+    return this.topicService.delete(idTopic);
   }
 }

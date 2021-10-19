@@ -58,4 +58,8 @@ export class TopicService {
     topicWithPostsViewModel.posts = posts;
     return topicWithPostsViewModel;
   }
+
+  async delete(idTopic: number): Promise<void> {
+    await this.topicRepository.softDelete(idTopic);
+  }
 }
