@@ -59,6 +59,7 @@ export class SubCategoryRepository extends Repository<SubCategory> {
         subQuery =>
           subQuery
             .subQuery()
+            .withDeleted()
             .select('count(1)')
             .from(PostEntity, 'post_count')
             .innerJoin('post_count.topic', 'topic_post_count', 'topic_post_count.idSubCategory = sub_category.id'),
@@ -84,6 +85,7 @@ export class SubCategoryRepository extends Repository<SubCategory> {
             .andWhere('moderator.idPlayer = :idPlayer', { idPlayer }),
         'isModerator'
       )
+      .withDeleted()
       .leftJoin('sub_category.topics', 'last_topic')
       .leftJoin('last_topic.posts', 'last_post')
       .leftJoin('last_post.player', 'player_last_post')
@@ -91,10 +93,12 @@ export class SubCategoryRepository extends Repository<SubCategory> {
         subQuery =>
           `(last_topic.id = (${subQuery
             .subQuery()
+            .withDeleted()
             .select('topic_join.id')
             .from(Topic, 'topic_join')
             .innerJoin('topic_join.posts', 'topic_post_join')
             .andWhere('topic_join.idSubCategory = sub_category.id')
+            .andWhere('topic_join.deletedDate is null')
             .orderBy('topic_post_join.creationDate', 'DESC')
             .limit(1)
             .getQuery()}) or last_topic.id is null)`
@@ -103,6 +107,7 @@ export class SubCategoryRepository extends Repository<SubCategory> {
         subQuery =>
           `(last_post.id = (${subQuery
             .subQuery()
+            .withDeleted()
             .from(PostEntity, 'post_join')
             .addSelect('post_join.id')
             .andWhere('post_join.idTopic = last_topic.id')
@@ -111,8 +116,8 @@ export class SubCategoryRepository extends Repository<SubCategory> {
             .getQuery()}) or last_post.id is null)`
       )
       .addOrderBy('sub_category.order', 'ASC');
-    if (withDeleted) {
-      queryBuilder.withDeleted();
+    if (!withDeleted) {
+      queryBuilder.andWhere('sub_category.deletedDate is null');
     }
     return queryBuilder;
   }
