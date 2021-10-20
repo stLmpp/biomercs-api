@@ -6,6 +6,7 @@ import { SubCategoryModeratorRepository } from './sub-category-moderator.reposit
 import { ModeratorModule } from '../moderator/moderator.module';
 import { MapperModule } from '../../mapper/mapper.module';
 import { EnvironmentModule } from '../../environment/environment.module';
+import { ModeratorGuard } from './api-moderator';
 
 @Module({
   imports: [
@@ -14,8 +15,8 @@ import { EnvironmentModule } from '../../environment/environment.module';
     MapperModule,
     EnvironmentModule,
   ],
-  providers: [SubCategoryModeratorService],
+  providers: [SubCategoryModeratorService, ModeratorGuard],
   controllers: [SubCategoryModeratorController],
-  exports: [SubCategoryModeratorService],
+  exports: [SubCategoryModeratorService, ModeratorGuard],
 })
 export class SubCategoryModeratorModule {}

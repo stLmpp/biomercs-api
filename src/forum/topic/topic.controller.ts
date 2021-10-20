@@ -7,6 +7,7 @@ import { TopicWithPostsViewModel } from './topic.view-model';
 import { AuthUser } from '../../auth/auth-user.decorator';
 import { AuthPlayerPipe } from '../../auth/auth-player.decorator';
 import { Player } from '../../player/player.entity';
+import { ApiModerator } from '../sub-category-moderator/api-moderator';
 
 @ApiAuth()
 @ApiTags('Topic')
@@ -29,33 +30,36 @@ export class TopicController {
     this.topicService.increaseView(idTopic);
   }
 
-  // TODO validate moderator (#56)
+  @ApiModerator()
   @Put(`:${Params.idTopic}/lock`)
   async lock(@Param(Params.idTopic) idTopic: number): Promise<void> {
     return this.topicService.lock(idTopic);
   }
 
-  // TODO validate moderator (#56)
+  @ApiModerator()
   @Put(`:${Params.idTopic}/unlock`)
   async unlock(@Param(Params.idTopic) idTopic: number): Promise<void> {
     return this.topicService.unlock(idTopic);
   }
 
-  // TODO validate moderator (#56)
+  @ApiModerator()
   @Put(`:${Params.idTopic}/pin`)
   async pin(@Param(Params.idTopic) idTopic: number): Promise<void> {
     return this.topicService.pin(idTopic);
   }
 
-  // TODO validate moderator (#56)
+  @ApiModerator()
   @Put(`:${Params.idTopic}/unpin`)
   async unpin(@Param(Params.idTopic) idTopic: number): Promise<void> {
     return this.topicService.unpin(idTopic);
   }
 
-  // TODO validate same user or moderator (#56)
   @Delete(`:${Params.idTopic}`)
-  async delete(@Param(Params.idTopic) idTopic: number): Promise<void> {
-    return this.topicService.delete(idTopic);
+  async delete(
+    @AuthUser(AuthPlayerPipe) player: Player,
+    @Param(Params.idSubCategory) idSubCategory: number,
+    @Param(Params.idTopic) idTopic: number
+  ): Promise<void> {
+    return this.topicService.delete(idSubCategory, idTopic, player.id);
   }
 }

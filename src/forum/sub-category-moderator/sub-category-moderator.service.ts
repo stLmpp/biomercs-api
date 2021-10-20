@@ -29,4 +29,8 @@ export class SubCategoryModeratorService {
       relations: ['moderator', 'moderator.player'],
     });
   }
+
+  async isModerator(idSubCategory: number, idPlayer: number): Promise<boolean> {
+    return this.subCategoryModeratorRepository.isModerator(idSubCategory, idPlayer);
+  }
 }

@@ -20,20 +20,23 @@ export class PostController {
     return this.postService.add(dto);
   }
 
-  // TODO validate same user or moderator (#56)
   @Patch(`:${Params.idPost}`)
   async update(
     @AuthUser(AuthPlayerPipe) player: Player,
+    @Param(Params.idSubCategory) idSubCategory: number,
     @Param(Params.idTopic) idTopic: number,
     @Param(Params.idPost) idPost: number,
     @Body() dto: PostUpdateDto
   ): Promise<PostViewModel> {
-    return this.postService.update(idTopic, idPost, player.id, dto);
+    return this.postService.update(idSubCategory, idTopic, idPost, player.id, dto);
   }
 
-  // TODO validate same user or moderator (#56)
   @Delete(`:${Params.idPost}`)
-  async delete(@Param(Params.idPost) idPost: number): Promise<void> {
-    await this.postService.delete(idPost);
+  async delete(
+    @AuthUser(AuthPlayerPipe) player: Player,
+    @Param(Params.idSubCategory) idSubCategory: number,
+    @Param(Params.idPost) idPost: number
+  ): Promise<void> {
+    await this.postService.delete(idSubCategory, idPost, player.id);
   }
 }

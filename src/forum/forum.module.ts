@@ -22,6 +22,18 @@ const routes: Routes = [
       {
         path: 'sub-category',
         module: SubCategoryModule,
+        children: [
+          {
+            path: `:${Params.idSubCategory}/topic`,
+            module: TopicModule,
+            children: [
+              {
+                path: `:${Params.idTopic}/post`,
+                module: PostModule,
+              },
+            ],
+          },
+        ],
       },
       {
         path: 'moderator',
@@ -30,16 +42,6 @@ const routes: Routes = [
       {
         path: 'sub-category-moderator',
         module: SubCategoryModeratorModule,
-      },
-      {
-        path: 'topic',
-        module: TopicModule,
-        children: [
-          {
-            path: `:${Params.idTopic}/post`,
-            module: PostModule,
-          },
-        ],
       },
       {
         path: 'topic-transfer',

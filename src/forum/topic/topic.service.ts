@@ -1,14 +1,19 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { TopicRepository } from './topic.repository';
 import { TopicViewModelPaginated, TopicWithPostsViewModel } from './topic.view-model';
 import { Topic } from './topic.entity';
 import { Cron } from '@nestjs/schedule';
 import { UpdateResult } from 'typeorm';
 import { PostService } from '../post/post.service';
+import { SubCategoryModeratorService } from '../sub-category-moderator/sub-category-moderator.service';
 
 @Injectable()
 export class TopicService {
-  constructor(private topicRepository: TopicRepository, private postService: PostService) {}
+  constructor(
+    private topicRepository: TopicRepository,
+    private postService: PostService,
+    private subCategoryModeratorService: SubCategoryModeratorService
+  ) {}
 
   private readonly _increaseViewsMap = new Map<number, number>();
 
@@ -59,7 +64,14 @@ export class TopicService {
     return topicWithPostsViewModel;
   }
 
-  async delete(idTopic: number): Promise<void> {
+  async delete(idSubCategory: number, idTopic: number, idPlayer: number): Promise<void> {
+    const isModerator = await this.subCategoryModeratorService.isModerator(idSubCategory, idPlayer);
+    if (!isModerator) {
+      const isCreator = await this.topicRepository.exists({ id: idTopic, idPlayer });
+      if (!isCreator) {
+        throw new ForbiddenException(`You can only delete topics you own`);
+      }
+    }
     await this.topicRepository.softDelete(idTopic);
   }
 

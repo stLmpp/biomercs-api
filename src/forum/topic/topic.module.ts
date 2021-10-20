@@ -7,9 +7,17 @@ import { PostModule } from '../post/post.module';
 import { MapperModule } from '../../mapper/mapper.module';
 import { EnvironmentModule } from '../../environment/environment.module';
 import { PlayerModule } from '../../player/player.module';
+import { SubCategoryModeratorModule } from '../sub-category-moderator/sub-category-moderator.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([TopicRepository]), PostModule, MapperModule, EnvironmentModule, PlayerModule],
+  imports: [
+    TypeOrmModule.forFeature([TopicRepository]),
+    PostModule,
+    MapperModule,
+    EnvironmentModule,
+    PlayerModule,
+    SubCategoryModeratorModule,
+  ],
   providers: [TopicService],
   controllers: [TopicController],
   exports: [TopicService],
