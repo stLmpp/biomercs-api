@@ -4,7 +4,7 @@ import { UserService } from './user.service';
 import { UserUpdateDto } from './user.dto';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { Params } from '../shared/type/params';
-import { UserViewModel } from './user.view-model';
+import { UserOnlineViewModel, UserViewModel } from './user.view-model';
 import { ApiAdmin } from '../auth/api-admin.decorator';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ApiPagination } from '../shared/decorator/api-pagination';
@@ -20,6 +20,11 @@ export class UserController {
     private userService: UserService,
     @InjectMapProfile(User, UserViewModel) private mapProfile: MapProfile<User, UserViewModel>
   ) {}
+
+  @Get('online')
+  async findOnline(): Promise<UserOnlineViewModel[]> {
+    return this.userService.findOnline();
+  }
 
   @Patch(`:${Params.idUser}`)
   async update(@Param(Params.idUser) idUser: number, @Body() dto: UserUpdateDto): Promise<UserViewModel> {

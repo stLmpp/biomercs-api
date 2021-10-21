@@ -1,6 +1,8 @@
 import { EntityRepository, Repository } from 'typeorm';
 import { User } from './user.entity';
 import { UserGetDto } from './user.dto';
+import { UserOnlineViewModel } from './user.view-model';
+import { subMinutes } from 'date-fns';
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
@@ -84,5 +86,15 @@ export class UserRepository extends Repository<User> {
       .andWhere('p.id = :idPlayer', { idPlayer })
       .getOneOrFail()
       .then(user => user.admin);
+  }
+
+  findOnline(): Promise<UserOnlineViewModel[]> {
+    return this.createQueryBuilder('user')
+      .innerJoin('user.player', 'player')
+      .select('user.id', 'id')
+      .addSelect('player.id', 'idPlayer')
+      .addSelect('player.personaName', 'personaName')
+      .andWhere('user.lastOnline > :lastOnline', { lastOnline: subMinutes(new Date(), 1) })
+      .getRawMany();
   }
 }
