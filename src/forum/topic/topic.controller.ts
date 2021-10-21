@@ -1,19 +1,29 @@
-import { Controller, Delete, Get, Param, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../../auth/api-auth.decorator';
 import { Params } from '../../shared/type/params';
 import { TopicService } from './topic.service';
-import { TopicWithPostsViewModel } from './topic.view-model';
+import { TopicAddViewModel, TopicWithPostsViewModel } from './topic.view-model';
 import { AuthUser } from '../../auth/auth-user.decorator';
 import { AuthPlayerPipe } from '../../auth/auth-player.decorator';
 import { Player } from '../../player/player.entity';
 import { ApiModerator } from '../sub-category-moderator/api-moderator';
+import { TopicAddDto } from './topic.dto';
 
 @ApiAuth()
 @ApiTags('Topic')
 @Controller()
 export class TopicController {
   constructor(private topicService: TopicService) {}
+
+  @Post()
+  async add(
+    @AuthUser(AuthPlayerPipe) player: Player,
+    @Param(Params.idSubCategory) idSubCategory: number,
+    @Body() dto: TopicAddDto
+  ): Promise<TopicAddViewModel> {
+    return this.topicService.add(idSubCategory, dto, player.id);
+  }
 
   @Get(`:${Params.idTopic}/with/posts`)
   async findByIdWithPosts(

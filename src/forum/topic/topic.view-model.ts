@@ -51,3 +51,8 @@ export class TopicRecentViewModel {
   @Property() idPlayer!: number;
   @Property() playerPersonaName!: string;
 }
+
+export class TopicAddViewModel {
+  @Property() idTopic!: number;
+  @Property() page!: number;
+}

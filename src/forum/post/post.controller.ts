@@ -16,8 +16,8 @@ export class PostController {
   constructor(private postService: PostService) {}
 
   @Post()
-  async add(@Body() dto: PostAddDto): Promise<PostViewModel> {
-    return this.postService.add(dto);
+  async add(@AuthUser(AuthPlayerPipe) player: Player, @Body() dto: PostAddDto): Promise<PostViewModel> {
+    return this.postService.add(dto, player.id);
   }
 
   @Patch(`:${Params.idPost}`)

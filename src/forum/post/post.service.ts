@@ -52,8 +52,8 @@ export class PostService {
     await this.postRepository.softDelete(idPost);
   }
 
-  async add(dto: PostAddDto): Promise<PostViewModel> {
-    const post = await this.postRepository.save(dto);
-    return this.postRepository.findById(post.idTopic, post.id, post.idPlayer);
+  async add(dto: PostAddDto, idPlayer: number): Promise<PostViewModel> {
+    const post = await this.postRepository.save({ ...dto, idPlayer });
+    return this.postRepository.findById(post.idTopic, post.id, idPlayer);
   }
 }

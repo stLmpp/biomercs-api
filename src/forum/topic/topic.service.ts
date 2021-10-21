@@ -1,11 +1,13 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { TopicRepository } from './topic.repository';
-import { TopicViewModelPaginated, TopicWithPostsViewModel } from './topic.view-model';
+import { TopicAddViewModel, TopicViewModelPaginated, TopicWithPostsViewModel } from './topic.view-model';
 import { Topic } from './topic.entity';
 import { Cron } from '@nestjs/schedule';
 import { UpdateResult } from 'typeorm';
 import { PostService } from '../post/post.service';
 import { SubCategoryModeratorService } from '../sub-category-moderator/sub-category-moderator.service';
+import { Transactional } from 'typeorm-transactional-cls-hooked';
+import { TopicAddDto } from './topic.dto';
 
 @Injectable()
 export class TopicService {
@@ -16,6 +18,17 @@ export class TopicService {
   ) {}
 
   private readonly _increaseViewsMap = new Map<number, number>();
+
+  @Transactional()
+  async add(idSubCategory: number, { name, content }: TopicAddDto, idPlayer: number): Promise<TopicAddViewModel> {
+    const topic = await this.topicRepository.save({ name, idPlayer, idSubCategory, views: 0 });
+
+    await this.postService.add({ name, content, idTopic: topic.id }, idPlayer);
+    return {
+      idTopic: topic.id,
+      page: await this.topicRepository.findLastPageBySubCategory(idSubCategory, topic.id, idPlayer),
+    };
+  }
 
   @Cron('*/30 * * * * *')
   async increaseViewsCron(): Promise<void> {

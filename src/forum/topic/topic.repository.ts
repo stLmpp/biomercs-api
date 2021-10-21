@@ -6,6 +6,7 @@ import { TopicPlayerLastRead } from '../topic-player-last-read/topic-player-last
 import { plainToClass } from 'class-transformer';
 import { NotFoundException } from '@nestjs/common';
 import { SubCategoryModerator } from '../sub-category-moderator/sub-category-moderator.entity';
+import { FORUM_DEFAULT_LIMIT } from '../forum';
 
 type TopicRaw = Omit<TopicViewModel, 'repliesCount' | 'hasNewPosts' | 'isModerator'> & {
   repliesCount: string;
@@ -87,17 +88,25 @@ export class TopicRepository extends Repository<Topic> {
       );
   }
 
+  private _addOrderByPaginated(queryBuilder: SelectQueryBuilder<Topic>): SelectQueryBuilder<Topic> {
+    return queryBuilder
+      .addOrderBy('topic.pinned', 'DESC')
+      .addOrderBy('last_post.creationDate', 'DESC')
+      .addOrderBy('topic.id', 'ASC');
+  }
+
   async findBySubCategoryPaginated(
     idSubCategory: number,
     idPlayer: number,
     page: number,
     limit: number
   ): Promise<TopicViewModelPaginated> {
-    const queryBuilder = this._createQueryBuilderWithInfo(idPlayer)
-      .andWhere('topic.idSubCategory = :idSubCategory', { idSubCategory })
-      .addOrderBy('topic.pinned', 'DESC')
-      .addOrderBy('last_post.creationDate', 'DESC')
-      .addOrderBy('topic.id', 'ASC');
+    const queryBuilder = this._addOrderByPaginated(this._createQueryBuilderWithInfo(idPlayer)).andWhere(
+      'topic.idSubCategory = :idSubCategory',
+      {
+        idSubCategory,
+      }
+    );
     const paginated = await queryBuilder.paginateRaw<TopicRaw>(page, limit);
     return new TopicViewModelPaginated(paginated.items.map(mapFromTopicRawToTopicViewModel), paginated.meta);
   }
@@ -138,5 +147,13 @@ export class TopicRepository extends Repository<Topic> {
       .set({ views: () => `views + ${views}` })
       .where({ id: idTopic })
       .execute();
+  }
+
+  async findLastPageBySubCategory(idSubCategory: number, idTopic: number, idPlayer: number): Promise<number> {
+    return await this._addOrderByPaginated(this._createQueryBuilderWithInfo(idPlayer))
+      .andWhere('topic.idSubCategory = :idSubCategory', {
+        idSubCategory,
+      })
+      .getPage('topic', idTopic, FORUM_DEFAULT_LIMIT);
   }
 }

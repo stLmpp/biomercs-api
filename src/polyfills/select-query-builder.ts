@@ -11,6 +11,7 @@ declare module 'typeorm/query-builder/SelectQueryBuilder' {
     fillAndWhere(name: string, dto: FindConditions<Entity>): this;
     paginateRaw<T = any, M = any>(page: number, limit: number): Promise<Pagination<T, M>>;
     paginate<M = any>(page: number, limit: number, route?: string): Promise<Pagination<Entity, M>>;
+    getPage(alias: string, id: number, itemsPerPage: number): Promise<number>;
   }
 }
 
@@ -79,4 +80,15 @@ SelectQueryBuilder.prototype.paginateRaw = async function (page: number, limit: 
 
 SelectQueryBuilder.prototype.paginate = async function (page: any, limit: any, route: any) {
   return paginate(this, { page, limit, route });
+};
+
+SelectQueryBuilder.prototype.getPage = async function (alias: string, id: number, itemsPerPage: number) {
+  const entities = await this.select(`${alias}.id`, 'id').getRawMany<{ id: number }>();
+  for (let index = 0; index < entities.length; index++) {
+    const idEntity = entities[index].id;
+    if (idEntity === id) {
+      return Math.ceil((index + 1) / itemsPerPage);
+    }
+  }
+  return -1;
 };

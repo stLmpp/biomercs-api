@@ -25,8 +25,4 @@ export class PostAddDto {
   @IsDefined()
   @IsNumber()
   idTopic!: number;
-
-  @IsDefined()
-  @IsNumber()
-  idPlayer!: number;
 }
