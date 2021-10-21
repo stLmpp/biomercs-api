@@ -8,5 +8,6 @@ import { TopicPlayerLastReadRepository } from './topic-player-last-read.reposito
   imports: [TypeOrmModule.forFeature([TopicPlayerLastReadRepository])],
   providers: [TopicPlayerLastReadService],
   controllers: [TopicPlayerLastReadController],
+  exports: [TopicPlayerLastReadService],
 })
 export class TopicPlayerLastReadModule {}

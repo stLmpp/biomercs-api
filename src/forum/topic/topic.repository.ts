@@ -7,6 +7,7 @@ import { plainToClass } from 'class-transformer';
 import { NotFoundException } from '@nestjs/common';
 import { SubCategoryModerator } from '../sub-category-moderator/sub-category-moderator.entity';
 import { FORUM_DEFAULT_LIMIT } from '../forum';
+import { isNull } from 'st-utils';
 
 type TopicRaw = Omit<TopicViewModel, 'repliesCount' | 'hasNewPosts' | 'isModerator'> & {
   repliesCount: string;
@@ -18,7 +19,7 @@ function mapFromTopicRawToTopicViewModel(topicRaw: TopicRaw): TopicViewModel {
   return plainToClass(TopicViewModel, {
     ...topicRaw,
     repliesCount: +topicRaw.repliesCount,
-    hasNewPosts: !!topicRaw.hasNewPosts,
+    hasNewPosts: topicRaw.hasNewPosts || isNull(topicRaw.hasNewPosts),
     isModerator: !!topicRaw.isModerator,
   });
 }

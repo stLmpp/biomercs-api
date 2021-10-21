@@ -9,12 +9,13 @@ import { AuthPlayerPipe } from '../../auth/auth-player.decorator';
 import { Player } from '../../player/player.entity';
 import { ApiModerator } from '../sub-category-moderator/api-moderator';
 import { TopicAddDto } from './topic.dto';
+import { TopicPlayerLastReadService } from '../topic-player-last-read/topic-player-last-read.service';
 
 @ApiAuth()
 @ApiTags('Topic')
 @Controller()
 export class TopicController {
-  constructor(private topicService: TopicService) {}
+  constructor(private topicService: TopicService, private topicPlayerLastReadService: TopicPlayerLastReadService) {}
 
   @Post()
   async add(
@@ -72,6 +73,11 @@ export class TopicController {
   @Put(`:${Params.idTopic}/unpin`)
   async unpin(@Param(Params.idTopic) idTopic: number): Promise<void> {
     return this.topicService.unpin(idTopic);
+  }
+
+  @Put(`:${Params.idTopic}/read`)
+  async read(@AuthUser(AuthPlayerPipe) player: Player, @Param(Params.idTopic) idTopic: number): Promise<void> {
+    return this.topicPlayerLastReadService.upsert(player.id, idTopic);
   }
 
   @Delete(`:${Params.idTopic}`)

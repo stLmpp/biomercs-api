@@ -9,6 +9,7 @@ import { EnvironmentModule } from '../../environment/environment.module';
 import { PlayerModule } from '../../player/player.module';
 import { SubCategoryModeratorModule } from '../sub-category-moderator/sub-category-moderator.module';
 import { UserModule } from '../../user/user.module';
+import { TopicPlayerLastReadModule } from '../topic-player-last-read/topic-player-last-read.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { UserModule } from '../../user/user.module';
     PlayerModule,
     SubCategoryModeratorModule,
     UserModule,
+    TopicPlayerLastReadModule,
   ],
   providers: [TopicService],
   controllers: [TopicController],
