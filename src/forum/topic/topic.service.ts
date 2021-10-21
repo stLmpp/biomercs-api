@@ -13,13 +13,15 @@ import { PostService } from '../post/post.service';
 import { SubCategoryModeratorService } from '../sub-category-moderator/sub-category-moderator.service';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { TopicAddDto } from './topic.dto';
+import { UserService } from '../../user/user.service';
 
 @Injectable()
 export class TopicService {
   constructor(
     private topicRepository: TopicRepository,
     private postService: PostService,
-    private subCategoryModeratorService: SubCategoryModeratorService
+    private subCategoryModeratorService: SubCategoryModeratorService,
+    private userService: UserService
   ) {}
 
   private readonly _increaseViewsMap = new Map<number, number>();
@@ -76,12 +78,18 @@ export class TopicService {
     page: number,
     limit: number
   ): Promise<TopicWithPostsViewModel> {
-    const [topic, posts] = await Promise.all([
+    const [topic, posts, isAdmin] = await Promise.all([
       this.topicRepository.findById(idTopic, idPlayer),
       this.postService.findByTopicPaginated(idTopic, idPlayer, page, limit),
+      this.userService.isAdminByPlayer(idPlayer),
     ]);
+    for (const post of posts.items) {
+      post.editAllowed = post.editAllowed || isAdmin;
+      post.deleteAllowed = post.deleteAllowed || isAdmin;
+    }
     const topicWithPostsViewModel = new TopicWithPostsViewModel();
     Object.assign(topicWithPostsViewModel, topic);
+    topicWithPostsViewModel.isModerator = topicWithPostsViewModel.isModerator || isAdmin;
     topicWithPostsViewModel.posts = posts;
     return topicWithPostsViewModel;
   }

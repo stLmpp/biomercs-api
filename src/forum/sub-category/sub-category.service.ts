@@ -103,6 +103,9 @@ export class SubCategoryService {
       this.topicService.findBySubCategoryPaginated(idSubCategory, idPlayer, page, limit),
       this.moderatorService.findBySubCategory(idSubCategory),
     ]);
+    for (const topic of topics.items) {
+      topic.isModerator = topic.isModerator || isAdmin;
+    }
     const moderatorsViewModel = this.mapProfileModerator.map(moderators);
     return new SubCategoryWithInfoModeratorsTopicsViewModel({
       ...subCategoryWithInfo,

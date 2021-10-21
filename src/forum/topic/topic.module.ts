@@ -8,6 +8,7 @@ import { MapperModule } from '../../mapper/mapper.module';
 import { EnvironmentModule } from '../../environment/environment.module';
 import { PlayerModule } from '../../player/player.module';
 import { SubCategoryModeratorModule } from '../sub-category-moderator/sub-category-moderator.module';
+import { UserModule } from '../../user/user.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { SubCategoryModeratorModule } from '../sub-category-moderator/sub-catego
     EnvironmentModule,
     PlayerModule,
     SubCategoryModeratorModule,
+    UserModule,
   ],
   providers: [TopicService],
   controllers: [TopicController],
