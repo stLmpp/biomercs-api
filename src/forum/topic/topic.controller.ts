@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../../auth/api-auth.decorator';
 import { Params } from '../../shared/type/params';
 import { TopicService } from './topic.service';
-import { TopicAddViewModel, TopicWithPostsViewModel } from './topic.view-model';
+import { TopicAddViewModel, TopicPostPageViewModel, TopicWithPostsViewModel } from './topic.view-model';
 import { AuthUser } from '../../auth/auth-user.decorator';
 import { AuthPlayerPipe } from '../../auth/auth-player.decorator';
 import { Player } from '../../player/player.entity';
@@ -33,6 +33,16 @@ export class TopicController {
     @Query(Params.limit) limit: number
   ): Promise<TopicWithPostsViewModel> {
     return this.topicService.findByIdWithPostsPaginated(idTopic, player.id, page, limit);
+  }
+
+  @Get(`:${Params.idTopic}/page/with/post/:${Params.idPost}`)
+  async findPageTopicPost(
+    @AuthUser(AuthPlayerPipe) player: Player,
+    @Param(Params.idSubCategory) idSubCategory: number,
+    @Param(Params.idTopic) idTopic: number,
+    @Param(Params.idPost) idPost: number
+  ): Promise<TopicPostPageViewModel> {
+    return this.topicService.findPageTopicPost(idSubCategory, idTopic, idPost, player.id);
   }
 
   @Put(`:${Params.idTopic}/increase-views`)

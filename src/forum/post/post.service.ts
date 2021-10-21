@@ -56,4 +56,8 @@ export class PostService {
     const post = await this.postRepository.save({ ...dto, idPlayer });
     return this.postRepository.findById(post.idTopic, post.id, idPlayer);
   }
+
+  async findPageById(idTopic: number, idPost: number, idPlayer: number): Promise<number> {
+    return this.postRepository.findPageById(idTopic, idPost, idPlayer);
+  }
 }

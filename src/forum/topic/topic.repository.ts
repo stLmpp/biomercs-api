@@ -149,7 +149,7 @@ export class TopicRepository extends Repository<Topic> {
       .execute();
   }
 
-  async findLastPageBySubCategory(idSubCategory: number, idTopic: number, idPlayer: number): Promise<number> {
+  async findPageById(idSubCategory: number, idTopic: number, idPlayer: number): Promise<number> {
     return await this._addOrderByPaginated(this._createQueryBuilderWithInfo(idPlayer))
       .andWhere('topic.idSubCategory = :idSubCategory', {
         idSubCategory,

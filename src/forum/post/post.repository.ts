@@ -6,6 +6,7 @@ import { SubCategoryModerator } from '../sub-category-moderator/sub-category-mod
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { plainToClass } from 'class-transformer';
 import { PaginationMeta } from '../../shared/view-model/pagination.view-model';
+import { FORUM_DEFAULT_LIMIT } from '../forum';
 
 type PostRaw = Omit<PostViewModel, 'postCount'> & { isModerator: number | null; firstPost: boolean; postCount: string };
 
@@ -100,5 +101,11 @@ export class PostRepository extends Repository<PostEntity> {
       throw new NotFoundException(`Post with id "${idPost}" not found`);
     }
     return mapFromPostRawToViewModel(raw);
+  }
+
+  async findPageById(idTopic: number, idPost: number, idPlayer: number): Promise<number> {
+    return this._createQueryBuilderViewModel(idTopic, idPlayer)
+      .orderBy('post.id', 'ASC')
+      .getPage('post', idPost, FORUM_DEFAULT_LIMIT);
   }
 }

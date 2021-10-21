@@ -56,3 +56,11 @@ export class TopicAddViewModel {
   @Property() idTopic!: number;
   @Property() page!: number;
 }
+
+export class TopicPostPageViewModel {
+  @Property() idSubCategory!: number;
+  @Property() idTopic!: number;
+  @Property() pageTopic!: number;
+  @Property() idPost!: number;
+  @Property() pagePost!: number;
+}

@@ -1,6 +1,11 @@
 import { ForbiddenException, Injectable } from '@nestjs/common';
 import { TopicRepository } from './topic.repository';
-import { TopicAddViewModel, TopicViewModelPaginated, TopicWithPostsViewModel } from './topic.view-model';
+import {
+  TopicAddViewModel,
+  TopicPostPageViewModel,
+  TopicViewModelPaginated,
+  TopicWithPostsViewModel,
+} from './topic.view-model';
 import { Topic } from './topic.entity';
 import { Cron } from '@nestjs/schedule';
 import { UpdateResult } from 'typeorm';
@@ -26,7 +31,7 @@ export class TopicService {
     await this.postService.add({ name, content, idTopic: topic.id }, idPlayer);
     return {
       idTopic: topic.id,
-      page: await this.topicRepository.findLastPageBySubCategory(idSubCategory, topic.id, idPlayer),
+      page: await this.findPageById(idSubCategory, topic.id, idPlayer),
     };
   }
 
@@ -41,6 +46,10 @@ export class TopicService {
     }
     this._increaseViewsMap.clear();
     await Promise.all(promises);
+  }
+
+  async findPageById(idSubCategory: number, idTopic: number, idPlayer: number): Promise<number> {
+    return this.topicRepository.findPageById(idSubCategory, idTopic, idPlayer);
   }
 
   async findBySubCategoryPaginated(
@@ -102,5 +111,18 @@ export class TopicService {
 
   async unpin(idTopic: number): Promise<void> {
     await this.topicRepository.update(idTopic, { pinned: false });
+  }
+
+  async findPageTopicPost(
+    idSubCategory: number,
+    idTopic: number,
+    idPost: number,
+    idPlayer: number
+  ): Promise<TopicPostPageViewModel> {
+    const [pageTopic, pagePost] = await Promise.all([
+      this.findPageById(idSubCategory, idTopic, idPlayer),
+      this.postService.findPageById(idTopic, idPost, idPlayer),
+    ]);
+    return { idSubCategory, idTopic, idPost, pageTopic, pagePost };
   }
 }
