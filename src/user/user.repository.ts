@@ -85,7 +85,7 @@ export class UserRepository extends Repository<User> {
       .innerJoin('u.player', 'p')
       .andWhere('p.id = :idPlayer', { idPlayer })
       .getOneOrFail()
-      .then(user => user.admin);
+      .then(user => user.admin || user.owner);
   }
 
   findOnline(): Promise<UserOnlineViewModel[]> {

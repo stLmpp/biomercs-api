@@ -27,7 +27,7 @@ export class PostController {
     @Param(Params.idTopic) idTopic: number,
     @Param(Params.idPost) idPost: number,
     @Body() dto: PostUpdateDto
-  ): Promise<PostViewModel> {
+  ): Promise<void> {
     return this.postService.update(idSubCategory, idTopic, idPost, player.id, dto);
   }
 
