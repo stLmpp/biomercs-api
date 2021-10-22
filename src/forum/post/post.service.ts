@@ -3,12 +3,15 @@ import { PostRepository } from './post.repository';
 import { PostViewModel, PostViewModelPagination } from './post.view-model';
 import { PostAddDto, PostUpdateDto } from './post.dto';
 import { SubCategoryModeratorService } from '../sub-category-moderator/sub-category-moderator.service';
+import { Transactional } from 'typeorm-transactional-cls-hooked';
+import { PostHistoryService } from '../post-history/post-history.service';
 
 @Injectable()
 export class PostService {
   constructor(
     private postRepository: PostRepository,
-    private subCategoryModeratorService: SubCategoryModeratorService
+    private subCategoryModeratorService: SubCategoryModeratorService,
+    private postHistoryService: PostHistoryService
   ) {}
 
   private async _validateModeratorOrCreator(
@@ -26,15 +29,7 @@ export class PostService {
     }
   }
 
-  async findByTopicPaginated(
-    idTopic: number,
-    idPlayer: number,
-    page: number,
-    limit: number
-  ): Promise<PostViewModelPagination> {
-    return this.postRepository.findByTopicPaginated(idTopic, idPlayer, page, limit);
-  }
-
+  @Transactional()
   async update(
     idSubCategory: number,
     idTopic: number,
@@ -43,8 +38,19 @@ export class PostService {
     dto: PostUpdateDto
   ): Promise<PostViewModel> {
     await this._validateModeratorOrCreator(idSubCategory, idPost, idPlayer, `You can only edit posts you own`);
+    const post = await this.postRepository.findOneOrFail(idPost);
+    await this.postHistoryService.add(post);
     await this.postRepository.update(idPost, dto);
     return this.postRepository.findById(idTopic, idPost, idPlayer);
+  }
+
+  async findByTopicPaginated(
+    idTopic: number,
+    idPlayer: number,
+    page: number,
+    limit: number
+  ): Promise<PostViewModelPagination> {
+    return this.postRepository.findByTopicPaginated(idTopic, idPlayer, page, limit);
   }
 
   async delete(idSubCategory: number, idPost: number, idPlayer: number): Promise<void> {

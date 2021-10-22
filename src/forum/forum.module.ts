@@ -10,6 +10,7 @@ import { PostModule } from './post/post.module';
 import { TopicPlayerLastReadModule } from './topic-player-last-read/topic-player-last-read.module';
 import { SubCategoryTransferModule } from './sub-category-transfer/sub-category-transfer.module';
 import { Params } from '../shared/type/params';
+import { PostHistoryModule } from './post-history/post-history.module';
 
 const routes: Routes = [
   {
@@ -67,6 +68,7 @@ const routes: Routes = [
     PostModule,
     TopicPlayerLastReadModule,
     SubCategoryTransferModule,
+    PostHistoryModule,
   ],
 })
 export class ForumModule {}
