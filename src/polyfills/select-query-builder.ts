@@ -1,5 +1,5 @@
 import { FindConditions, SelectQueryBuilder } from 'typeorm';
-import { paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { paginate, Pagination, PaginationTypeEnum } from 'nestjs-typeorm-paginate';
 import { PaginationMeta } from '../shared/view-model/pagination.view-model';
 
 declare module 'typeorm/query-builder/SelectQueryBuilder' {
@@ -10,7 +10,7 @@ declare module 'typeorm/query-builder/SelectQueryBuilder' {
     orNotExists(subQuery: (queryBuilder: SelectQueryBuilder<Entity>) => SelectQueryBuilder<any>): this;
     fillAndWhere(name: string, dto: FindConditions<Entity>): this;
     paginateRaw<T = any, M = any>(page: number, limit: number): Promise<Pagination<T, M>>;
-    paginate<M = any>(page: number, limit: number, route?: string): Promise<Pagination<Entity, M>>;
+    paginate<M = any>(page: number, limit: number, hasRelations?: boolean): Promise<Pagination<Entity, M>>;
     getPage(alias: string, id: number, itemsPerPage: number): Promise<number>;
   }
 }
@@ -78,8 +78,12 @@ SelectQueryBuilder.prototype.paginateRaw = async function (page: number, limit: 
   return new Pagination(items, meta as any);
 };
 
-SelectQueryBuilder.prototype.paginate = async function (page: any, limit: any, route: any) {
-  return paginate(this, { page, limit, route });
+SelectQueryBuilder.prototype.paginate = async function (page: number, limit: number, hasRelations = false) {
+  return paginate(this, {
+    page,
+    limit,
+    paginationType: hasRelations ? PaginationTypeEnum.TAKE_AND_SKIP : PaginationTypeEnum.LIMIT_AND_OFFSET,
+  });
 };
 
 SelectQueryBuilder.prototype.getPage = async function (alias: string, id: number, itemsPerPage: number) {

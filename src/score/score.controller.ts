@@ -112,8 +112,8 @@ export class ScoreController {
     @Query(Params.orderBy, OptionalQueryPipe) orderBy?: string,
     @Query(Params.orderByDirection, OptionalQueryPipe) orderByDirection?: OrderByDirection
   ): Promise<ScoreApprovalPaginationViewModel> {
-    return this.mapProfileScoreApprovalPagination.mapPromise(
-      this.scoreService.findApprovalListAdmin({
+    return this.mapProfileScoreApprovalPagination.map(
+      await this.scoreService.findApprovalListAdmin({
         idMiniGame,
         idMode,
         idPlatform,

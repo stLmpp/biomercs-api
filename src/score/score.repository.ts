@@ -171,10 +171,13 @@ export class ScoreRepository extends Repository<Score> {
     orderByDirection,
     idStage,
   }: ScoreApprovalParams): Promise<Pagination<Score, PaginationMeta>> {
-    return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode, idStage)
-      .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.AwaitingApproval })
-      .orderBy(this._resolveOrderByApproval(orderBy), orderByDirection.toUpperCase() as Uppercase<OrderByDirection>)
-      .paginate(page, limit);
+    return (
+      this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode, idStage)
+        .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.AwaitingApproval })
+        // .andWhereInIds(pagination.items.map(score => score.id))
+        .orderBy(this._resolveOrderByApproval(orderBy), orderByDirection.toUpperCase() as Uppercase<OrderByDirection>)
+        .paginate(page, limit, true)
+    );
   }
 
   async findTopScoreByIdPlatformGameMiniGameModeStage(
@@ -305,7 +308,7 @@ export class ScoreRepository extends Repository<Score> {
       .andWhere('scr.dateFulfilled is null')
       .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.ChangesRequested })
       .andWhere('score.createdByIdPlayer = :idPlayer', { idPlayer })
-      .paginate(page, limit);
+      .paginate(page, limit, true);
   }
 
   async findScoreWithChangeRequests(idScore: number): Promise<Score> {
@@ -391,12 +394,12 @@ export class ScoreRepository extends Repository<Score> {
     if (dto.onlyMyScores && idPlayer) {
       queryBuilder.andWhere('pl.id = :idPlayer', { idPlayer });
     }
-    const { items, meta } = await queryBuilder.select('score.id').paginate(dto.page, dto.limit);
+    const { items, meta } = await queryBuilder.select('score.id').paginate(dto.page, dto.limit, true);
     const scores = await this.findByIdsWithAllRelations(items.map(raw => raw.id));
-    return {
-      items: items.map(raw => scores.find(_score => _score.id === raw.id)!),
-      meta,
-    };
+    return new Pagination(
+      items.map(raw => scores.find(_score => _score.id === raw.id)!),
+      meta
+    );
   }
 
   async findWorldRecordsTable(
