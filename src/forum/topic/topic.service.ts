@@ -14,6 +14,7 @@ import { SubCategoryModeratorService } from '../sub-category-moderator/sub-categ
 import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { TopicAddDto } from './topic.dto';
 import { UserService } from '../../user/user.service';
+import { TopicPlayerLastReadService } from '../topic-player-last-read/topic-player-last-read.service';
 
 @Injectable()
 export class TopicService {
@@ -21,7 +22,8 @@ export class TopicService {
     private topicRepository: TopicRepository,
     private postService: PostService,
     private subCategoryModeratorService: SubCategoryModeratorService,
-    private userService: UserService
+    private userService: UserService,
+    private topicPlayerLastReadService: TopicPlayerLastReadService
   ) {}
 
   private readonly _increaseViewsMap = new Map<number, number>();
@@ -29,8 +31,10 @@ export class TopicService {
   @Transactional()
   async add(idSubCategory: number, { name, content }: TopicAddDto, idPlayer: number): Promise<TopicAddViewModel> {
     const topic = await this.topicRepository.save({ name, idPlayer, idSubCategory, views: 0 });
-
-    await this.postService.add({ name, content, idTopic: topic.id }, idPlayer);
+    await Promise.all([
+      this.postService.add({ name, content, idTopic: topic.id }, idPlayer),
+      this.topicPlayerLastReadService.upsert(idPlayer, topic.id),
+    ]);
     return {
       idTopic: topic.id,
       page: await this.findPageById(idSubCategory, topic.id, idPlayer),
