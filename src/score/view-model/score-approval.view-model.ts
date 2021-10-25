@@ -5,7 +5,7 @@ import { Score } from '../score.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 
 export class ScoreApprovalPagination {
-  constructor(pagination: Pagination<Score>) {
+  constructor(pagination: Pagination<Score, PaginationMeta>) {
     this.meta = pagination.meta;
     this.scores = pagination.items;
   }

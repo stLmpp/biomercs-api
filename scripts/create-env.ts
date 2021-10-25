@@ -19,13 +19,7 @@ async function envExists(): Promise<boolean> {
     return;
   }
   let envOptions: string[] = getPropertiesMetadata(EnvironmentVariables).map(({ propertyKey }) => propertyKey);
-  const configDefault = await import('../config/default.json');
-  const configDev = await import('../config/development.json');
-  const excludeKeys = [...Object.keys(configDefault), ...Object.keys(configDev)];
   envOptions = envOptions.map(normalizeEnvironmentKey);
-  const file = envOptions
-    .filter(envKey => !excludeKeys.includes(envKey))
-    .map(key => `${key}=${key}`)
-    .join('\n');
+  const file = envOptions.map(key => `${key}=${key}`).join('\n');
   await writeFile(resolve(process.cwd() + '/.env'), file);
 })();

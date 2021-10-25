@@ -53,13 +53,13 @@ export class SteamController {
   @ApiAuth()
   @Put(`:${Params.idSteamProfile}/refresh`)
   async refresh(@Param(Params.idSteamProfile) idSteamProfile: number): Promise<SteamProfileViewModel> {
-    return this.mapProfile.mapPromise(this.steamService.updateSteamProfile(idSteamProfile));
+    return this.mapProfile.map(await this.steamService.updateSteamProfile(idSteamProfile));
   }
 
   @ApiAdmin()
   @ApiAuth()
   @Post(`create/:${Params.steamid}`)
   async create(@Param(Params.steamid) steamid: string): Promise<SteamProfileWithPlayerViewModel> {
-    return this.mapProfileSteamProfileWithPlayer.mapPromise(this.steamService.createWithPlayer(steamid, true));
+    return this.mapProfileSteamProfileWithPlayer.map(await this.steamService.createWithPlayer(steamid, true));
   }
 }

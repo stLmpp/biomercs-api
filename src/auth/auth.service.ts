@@ -316,6 +316,14 @@ export class AuthService {
     return await this.jwtService.signAsync({ id, password }, options);
   }
 
+  async devGetToken(): Promise<string> {
+    if (this.environment.production) {
+      throw new ForbiddenException('NOT');
+    }
+    const owner = await this.userService.findOwnerWithPasswordAndSalt();
+    return this.getToken(owner);
+  }
+
   async validateSteamToken(steamid: string, token: string): Promise<boolean> {
     const envSalt = await this.environment.envSalt();
     const hashed = await hash(steamid, envSalt);

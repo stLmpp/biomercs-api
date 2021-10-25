@@ -10,24 +10,18 @@ declare module 'typeorm/repository/Repository' {
       idOrOptions?: string | number | FindConditions<Entity> | FindConditions<Entity>[],
       options?: FindOneOptions<Entity>
     ): Promise<boolean>;
-    paginate(
-      options: IPaginationOptions,
-      searchOptions?: FindConditions<Entity> | FindManyOptions<Entity>
-    ): Promise<Pagination<Entity>>;
+    paginate(options: IPaginationOptions, searchOptions?: FindManyOptions<Entity>): Promise<Pagination<Entity>>;
   }
 }
 
-Repository.prototype.exists = async function (where: any) {
+Repository.prototype.exists = async function (where, options?: FindOneOptions) {
   if (isNumber(where) || isString(where)) {
-    return !!(await this.findOne(where, { select: ['id'] }));
+    return !!(await this.findOne(where, { ...options, select: ['id'] }));
   } else {
-    return !!(await this.findOne({ select: ['id'], where }));
+    return !!(await this.findOne({ ...options, select: ['id'], where }));
   }
 };
 
-Repository.prototype.paginate = async function (
-  options: IPaginationOptions,
-  findOptions: FindConditions<any> | FindManyOptions | undefined
-) {
+Repository.prototype.paginate = async function (options: IPaginationOptions, findOptions?: FindManyOptions) {
   return paginate(this, options, findOptions);
 };

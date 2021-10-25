@@ -19,6 +19,6 @@ export class InputTypeController {
 
   @Get(`platform/:${Params.idPlatform}`)
   async findByPlatform(@Param(Params.idPlatform) idPlatform: number): Promise<InputTypeViewModel[]> {
-    return this.mapProfile.mapPromise(this.inputTypeService.findByPlatform(idPlatform));
+    return this.mapProfile.map(await this.inputTypeService.findByPlatform(idPlatform));
   }
 }

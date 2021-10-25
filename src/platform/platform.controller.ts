@@ -53,7 +53,7 @@ export class PlatformController {
   @ApiAdmin()
   @Post()
   async add(@Body() dto: PlatformAddDto): Promise<PlatformViewModel> {
-    return this.mapProfile.mapPromise(this.platformService.add(dto));
+    return this.mapProfile.map(await this.platformService.add(dto));
   }
 
   @ApiAdmin()
@@ -62,7 +62,7 @@ export class PlatformController {
     @Param(Params.idPlatform) idPlatform: number,
     @Body() dto: PlatformUpdateDto
   ): Promise<PlatformViewModel> {
-    return this.mapProfile.mapPromise(this.platformService.update(idPlatform, dto));
+    return this.mapProfile.map(await this.platformService.update(idPlatform, dto));
   }
 
   @ApiAdmin()
@@ -72,8 +72,8 @@ export class PlatformController {
     @Param(Params.idGame) idGame: number,
     @Param(Params.idMiniGame) idMiniGame: number
   ): Promise<PlatformGameMiniGameViewModel> {
-    return this.mapProfilePlatformGameMiniGame.mapPromise(
-      this.platformGameMiniGameService.link(idPlatform, idGame, idMiniGame)
+    return this.mapProfilePlatformGameMiniGame.map(
+      await this.platformGameMiniGameService.link(idPlatform, idGame, idMiniGame)
     );
   }
 
@@ -95,8 +95,8 @@ export class PlatformController {
     @Param(Params.idMiniGame) idMiniGame: number,
     @Param(Params.idMode) idMode: number
   ): Promise<PlatformGameMiniGameModeViewModel> {
-    return this.mapProfilePlatformGameMiniGameMode.mapPromise(
-      this.platformGameMiniGameModeService.link(idPlatform, idGame, idMiniGame, idMode)
+    return this.mapProfilePlatformGameMiniGameMode.map(
+      await this.platformGameMiniGameModeService.link(idPlatform, idGame, idMiniGame, idMode)
     );
   }
 
@@ -122,8 +122,8 @@ export class PlatformController {
     @Param(Params.idMode) idMode: number,
     @Param(Params.idCharacterCostume) idCharacterCostume: number
   ): Promise<PlatformGameMiniGameModeCharacterCostumeViewModel> {
-    return this.mapProfilePlatformGameMiniGameModeCharacterCostume.mapPromise(
-      this.platformGameMiniGameModeCharacterCostumeService.link(
+    return this.mapProfilePlatformGameMiniGameModeCharacterCostume.map(
+      await this.platformGameMiniGameModeCharacterCostumeService.link(
         idPlatform,
         idGame,
         idMiniGame,
@@ -164,8 +164,8 @@ export class PlatformController {
     @Param(Params.idMode) idMode: number,
     @Param(Params.idStage) idStage: number
   ): Promise<PlatformGameMiniGameModeStageViewModel> {
-    return this.mapProfilePlatformGameMiniGameModeStage.mapPromise(
-      this.platformGameMiniGameModeStageService.link(idPlatform, idGame, idMiniGame, idMode, idStage)
+    return this.mapProfilePlatformGameMiniGameModeStage.map(
+      await this.platformGameMiniGameModeStageService.link(idPlatform, idGame, idMiniGame, idMode, idStage)
     );
   }
 
@@ -185,17 +185,17 @@ export class PlatformController {
 
   @Get()
   async findAll(): Promise<PlatformViewModel[]> {
-    return this.mapProfile.mapPromise(this.platformService.findAll());
+    return this.mapProfile.map(await this.platformService.findAll());
   }
 
   @ApiAdmin()
   @Get('approval')
   async findApprovalAdmin(): Promise<PlatformViewModel[]> {
-    return this.mapProfile.mapPromise(this.platformService.findApproval(ScoreStatusEnum.AwaitingApproval));
+    return this.mapProfile.map(await this.platformService.findApproval(ScoreStatusEnum.AwaitingApproval));
   }
 
   @Get(`:${Params.idPlatform}`)
   async findById(@Param(Params.idPlatform) idPlatform: number): Promise<PlatformViewModel> {
-    return this.mapProfile.mapPromise(this.platformService.findById(idPlatform));
+    return this.mapProfile.map(await this.platformService.findById(idPlatform));
   }
 }

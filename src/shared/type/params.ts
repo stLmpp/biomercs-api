@@ -22,6 +22,12 @@ export enum Params {
   idCharacterCostumes = 'idCharacterCostumes',
   idPlayersSelected = 'idPlayersSelected',
   idNotification = 'idNotification',
+  idCategory = 'idCategory',
+  idSubCategory = 'idSubCategory',
+  idSubCategoryTo = 'idSubCategoryTo',
+  idModeratorsSelected = 'idModeratorsSelected',
+  idTopic = 'idTopic',
+  idPost = 'idPost',
 
   // OTHERS
   steamid = 'steamid',
@@ -46,8 +52,8 @@ export enum Params {
   characterWorldRecord = 'characterWorldRecord',
   combinationWorldRecord = 'combinationWorldRecord',
   score = 'score',
-  usernameOrEmail = 'usernameOrEmail',
   key = 'key',
+  ruleType = 'ruleType',
 }
 
 export enum HeaderParams {

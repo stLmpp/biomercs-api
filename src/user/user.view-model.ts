@@ -14,3 +14,9 @@ export class UserViewModel implements UserInterface {
   @Property() idPlayer?: number;
   @Property() playerPersonaName?: string;
 }
+
+export class UserOnlineViewModel {
+  @Property() id!: number;
+  @Property() idPlayer!: number;
+  @Property() personaName!: string;
+}

@@ -1,6 +1,7 @@
 import { BaseExceptionFilter } from '@nestjs/core';
 import {
   ArgumentsHost,
+  BadRequestException,
   Catch,
   HttpException,
   InternalServerErrorException,
@@ -71,6 +72,9 @@ export class HandleErrorFilter extends BaseExceptionFilter {
         break;
       case PostgresError.SYNTAX_ERROR:
         exception = InternalServerErrorException;
+        break;
+      case PostgresError.FOREIGN_KEY_VIOLATION:
+        exception = BadRequestException;
         break;
       default:
         exception = InternalServerErrorException;

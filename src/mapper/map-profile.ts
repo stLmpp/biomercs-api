@@ -94,10 +94,4 @@ export class MapProfile<From, To> {
       return this._mapOne(value);
     }
   }
-
-  mapPromise(promise: Promise<From>): Promise<To>;
-  mapPromise(promise: Promise<From[]>): Promise<To[]>;
-  mapPromise(promise: Promise<From | From[]>): Promise<To | To[]> {
-    return promise.then(value => this.map(value));
-  }
 }

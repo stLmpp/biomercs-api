@@ -18,6 +18,6 @@ export class RegionController {
 
   @Get()
   async findAll(): Promise<RegionViewModel[]> {
-    return this.mapProfile.mapPromise(this.regionService.findAll());
+    return this.mapProfile.map(await this.regionService.findAll());
   }
 }

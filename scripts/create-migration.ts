@@ -1,13 +1,15 @@
 import { config } from 'dotenv';
-import { resolve as pathResolve } from 'path';
-import { asyncSpawn, buildBackEnd, getArg, getSpinner } from './util';
+import { resolve } from 'path';
+import { asyncSpawn, buildBackEnd, getArg, getSpinner, setDefaultVariables } from './util';
 import { generateOrmConfig } from './ormconfig';
 
 const spinner = getSpinner();
 
+setDefaultVariables();
+
 const path = getArg<boolean>(['p', 'prod', 'production']) ? '/.env-prod' : '/.env';
 
-config({ path: pathResolve(process.cwd() + path) });
+config({ path: resolve(process.cwd() + path) });
 
 const migrationName = getArg<string>(['n', 'name']);
 

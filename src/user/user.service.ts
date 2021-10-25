@@ -13,6 +13,7 @@ import { AuthCredentialsDto } from '../auth/auth.dto';
 import { FindConditions, ILike } from 'typeorm';
 import { isAfter, subDays } from 'date-fns';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { UserOnlineViewModel } from './user.view-model';
 
 @Injectable()
 export class UserService {
@@ -159,5 +160,17 @@ export class UserService {
 
   async findIdsByPlayers(idPlayers: number[]): Promise<number[]> {
     return this.userRepository.findIdsByPlayers(idPlayers);
+  }
+
+  async findOwnerWithPasswordAndSalt(): Promise<User> {
+    return this.userRepository.findOwnerWithPasswordAndSalt();
+  }
+
+  async isAdminByPlayer(idPlayer: number): Promise<boolean> {
+    return this.userRepository.isAdminByPlayer(idPlayer);
+  }
+
+  findOnline(): Promise<UserOnlineViewModel[]> {
+    return this.userRepository.findOnline();
   }
 }

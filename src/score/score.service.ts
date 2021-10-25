@@ -34,6 +34,7 @@ import { NotificationService } from '../notification/notification.service';
 import { NotificationTypeEnum } from '../notification/notification-type/notification-type.enum';
 import { UserService } from '../user/user.service';
 import { NotificationAddDto } from '../notification/notification.dto';
+import { PaginationMeta } from '../shared/view-model/pagination.view-model';
 
 @Injectable()
 export class ScoreService {
@@ -389,7 +390,11 @@ export class ScoreService {
     );
   }
 
-  async findScoresWithChangeRequests(idPlayer: number, page: number, limit: number): Promise<Pagination<Score>> {
+  async findScoresWithChangeRequests(
+    idPlayer: number,
+    page: number,
+    limit: number
+  ): Promise<Pagination<Score, PaginationMeta>> {
     return this.scoreRepository.findScoresWithChangeRequests(idPlayer, page, limit);
   }
 

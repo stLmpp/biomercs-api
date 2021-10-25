@@ -25,7 +25,7 @@ import { MapperModule } from './mapper/mapper.module';
 import { UrlMetadataModule } from './url-metadata/url-metadata.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { ContactModule } from './contact/contact.module';
-import { RateLimiterInterceptor, RateLimiterModule } from 'nestjs-rate-limiter';
+import { RateLimiterGuard, RateLimiterModule } from 'nestjs-rate-limiter';
 import { RuleModule } from './rule/rule.module';
 import { MailModule } from './mail/mail.module';
 import { ErrorModule } from './error/error.module';
@@ -35,6 +35,7 @@ import { EnvironmentModule } from './environment/environment.module';
 import { MailerConfig } from './mail/mailer.config';
 import { InputTypeModule } from './input-type/input-type.module';
 import { NotificationModule } from './notification/notification.module';
+import { ForumModule } from './forum/forum.module';
 
 @Module({
   imports: [
@@ -67,13 +68,14 @@ import { NotificationModule } from './notification/notification.module';
     EnvironmentModule,
     InputTypeModule,
     NotificationModule,
+    ForumModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
     { provide: APP_FILTER, useClass: HandleErrorFilter },
     AuthSubscriber,
-    { provide: APP_INTERCEPTOR, useClass: RateLimiterInterceptor },
+    { provide: APP_INTERCEPTOR, useClass: RateLimiterGuard },
     { provide: APP_INTERCEPTOR, useClass: ErrorInterceptor },
   ],
 })

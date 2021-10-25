@@ -59,7 +59,7 @@ export class AuthController {
   @ApiOkResponse()
   @Post('login')
   async login(@Body() dto: AuthCredentialsDto): Promise<UserViewModel> {
-    return this.mapProfile.mapPromise(this.authService.login(dto));
+    return this.mapProfile.map(await this.authService.login(dto));
   }
 
   @ApiOkResponse()
@@ -87,7 +87,7 @@ export class AuthController {
     @Param(Params.idUser) idUser: number,
     @Param(Params.confirmationCode) confirmationCode: number
   ): Promise<UserViewModel> {
-    return this.mapProfile.mapPromise(this.authService.confirmCode(idUser, confirmationCode));
+    return this.mapProfile.map(await this.authService.confirmCode(idUser, confirmationCode));
   }
 
   @ApiQuery({ name: Params.email, required: false })
@@ -149,7 +149,7 @@ export class AuthController {
 
   @Post('forgot-password/change-password')
   async changeForgottenPassword(@Body() dto: AuthChangeForgottenPasswordDto): Promise<UserViewModel> {
-    return this.mapProfile.mapPromise(this.authService.changeForgottenPassword(dto));
+    return this.mapProfile.map(await this.authService.changeForgottenPassword(dto));
   }
 
   @ApiAuth()
@@ -161,7 +161,7 @@ export class AuthController {
   @ApiAuth()
   @Post('change-password/confirm')
   async confirmChangePassword(@AuthUser() user: User, @Body() dto: AuthChangePasswordDto): Promise<UserViewModel> {
-    return this.mapProfile.mapPromise(this.authService.confirmCodeAndChangePassword(user.id, dto));
+    return this.mapProfile.map(await this.authService.confirmCodeAndChangePassword(user.id, dto));
   }
 
   @ApiAuth()
@@ -169,5 +169,10 @@ export class AuthController {
   async validateChangePassword(@Param(Params.key) key: string, @AuthUser() user: User): Promise<boolean> {
     const payload = this.authService.validateChangePassword(key);
     return payload?.idUser === user.id;
+  }
+
+  @Get(`dev/get-token`)
+  async devGetToken(): Promise<string> {
+    return this.authService.devGetToken();
   }
 }

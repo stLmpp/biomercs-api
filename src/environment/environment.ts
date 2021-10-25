@@ -1,4 +1,3 @@
-import { get, has } from 'config';
 import { genSalt } from 'bcrypt';
 import { resolve } from 'path';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
@@ -6,20 +5,19 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { NamingStrategy } from './naming.strategy';
 import { version } from '../../package.json';
 import { JwtModuleOptions } from '@nestjs/jwt';
-import { getPropertiesMetadata, Property } from '../mapper/property.decorator';
-import { isUndefined } from 'st-utils';
+import { getPropertiesMetadata, Property, PropertyMetadata } from '../mapper/property.decorator';
+import { isString, isUndefined } from 'st-utils';
 
 export class EnvironmentVariables {
   @Property() DB_DATABASE!: string;
   @Property() DB_HOST!: string;
   @Property() DB_PASSWORD!: string;
-  @Property() DB_PORT!: number;
-  @Property() DB_SYNCHRONIZE!: boolean;
+  @Property(() => Number) DB_PORT!: number;
   @Property() DB_USERNAME!: string;
   @Property() FRONT_END_HOST!: string;
-  @Property(() => Number, true) FRONT_END_PORT: number | undefined;
+  @Property(() => Number, { possibleUndefined: true }) FRONT_END_PORT: number | undefined;
   @Property() HOST!: string;
-  @Property() JWT_EXPIRES_IN!: number;
+  @Property(() => Number) JWT_EXPIRES_IN!: number;
   @Property() JWT_SECRET!: string;
   @Property() MAIL_ADDRESS!: string;
   @Property() MAIL_ADDRESS_OWNER!: string;
@@ -27,45 +25,64 @@ export class EnvironmentVariables {
   @Property() MAIL_AWS_API_VERSION!: string;
   @Property() MAIL_AWS_REGION!: string;
   @Property() MAIL_AWS_SECRET_ACCESS_KEY!: string;
-  @Property() MAIL_QUEUE_AUDIT_TIME!: number;
-  @Property() MAIL_QUEUE_MAX_RETRIES!: number;
-  @Property() NODE_ENV!: 'production' | 'development';
-  @Property() PORT!: number;
+  @Property(() => Number) MAIL_QUEUE_AUDIT_TIME!: number;
+  @Property(() => Number) MAIL_QUEUE_MAX_RETRIES!: number;
+  @Property(() => String) NODE_ENV!: 'production' | 'development';
+  @Property(() => Number) PORT!: number;
   @Property() SECRET_CHAR!: string;
   @Property() STEAM_API_KEY!: string;
   @Property() STEAM_OPENID_URL!: string;
   @Property() USERNAME_OWNER!: string;
-  @Property() USE_AUTH!: boolean;
-  @Property() USE_ERROR_FILTER!: boolean;
+  @Property(() => Boolean) USE_AUTH!: boolean;
+  @Property(() => Boolean) USE_ERROR_FILTER!: boolean;
   @Property() WEBSOCKET_PATH!: string;
-  @Property() WEBSOCKET_TRANSPORTS!: Array<'polling' | 'websocket'>;
+  @Property(() => String, { isArray: true }) WEBSOCKET_TRANSPORTS!: Array<'polling' | 'websocket'>;
+}
+
+function parseType({ type }: PropertyMetadata, value: any): any {
+  if (isUndefined(value)) {
+    return value;
+  }
+  switch (type) {
+    case Number:
+      return Number(value);
+    case Boolean:
+      return value === true || value === 'true';
+    default:
+      return value;
+  }
+}
+
+function parseArray(metadata: PropertyMetadata, valueString: any): any {
+  if (!valueString || !isString(valueString)) {
+    return undefined;
+  }
+  return valueString.split(',').map(value => parseType(metadata, value));
 }
 
 @Injectable()
 export class Environment {
   constructor() {
     const properties = getPropertiesMetadata(EnvironmentVariables);
-    for (const { propertyKey, type, possibleUndefined } of properties) {
+    const errors: string[] = [];
+    for (const metadata of properties) {
+      const { propertyKey, possibleUndefined, isArray } = metadata;
       let value = this._get(propertyKey);
-      if (type !== String) {
-        switch (type) {
-          case Number: {
-            if (!isUndefined(value)) {
-              value = Number(value);
-            }
-            break;
-          }
-          case Boolean:
-            value = value === true || value === 'true';
-            break;
-        }
-      }
       if (isUndefined(value) && !possibleUndefined) {
-        throw new InternalServerErrorException(`Environment variable "${propertyKey}" not found!`);
+        errors.push(propertyKey);
+        continue;
+      }
+      if (isArray) {
+        value = parseArray(metadata, value);
+      } else {
+        value = parseType(metadata, value);
       }
       this._cache.set(propertyKey, value);
     }
 
+    if (errors.length) {
+      throw new InternalServerErrorException(`Environment variables not found: \n\n${errors.join('\n')}`);
+    }
     this.production = this.get('NODE_ENV') === 'production';
     this.http = 'http' + (this.production ? 's' : '');
     this.apiUrl = this._getUrl(this.get('HOST'), this.get('PORT')) + '/api';
@@ -92,11 +109,7 @@ export class Environment {
 
   private _get<K extends keyof EnvironmentVariables>(key: K): EnvironmentVariables[K] | string | undefined {
     const param = this.normalizeKey(key);
-    if (has(param)) {
-      return get(param);
-    } else {
-      return process.env[param];
-    }
+    return process.env[param];
   }
 
   normalizeKey(key: keyof EnvironmentVariables): string {
@@ -121,7 +134,7 @@ export class Environment {
       username: this.get('DB_USERNAME'),
       password: this.get('DB_PASSWORD'),
       database: this.get('DB_DATABASE'),
-      synchronize: this.get('DB_SYNCHRONIZE'),
+      synchronize: false,
       type: 'postgres',
       autoLoadEntities: true,
       logging: !this.production ? 'all' : false,
