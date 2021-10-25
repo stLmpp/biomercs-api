@@ -15,6 +15,7 @@ import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { TopicAddDto } from './topic.dto';
 import { UserService } from '../../user/user.service';
 import { TopicPlayerLastReadService } from '../topic-player-last-read/topic-player-last-read.service';
+import { TopicTransferService } from '../topic-transfer/topic-transfer.service';
 
 @Injectable()
 export class TopicService {
@@ -23,7 +24,8 @@ export class TopicService {
     private postService: PostService,
     private subCategoryModeratorService: SubCategoryModeratorService,
     private userService: UserService,
-    private topicPlayerLastReadService: TopicPlayerLastReadService
+    private topicPlayerLastReadService: TopicPlayerLastReadService,
+    private topicTransferService: TopicTransferService
   ) {}
 
   private readonly _increaseViewsMap = new Map<number, number>();
@@ -52,6 +54,14 @@ export class TopicService {
     }
     this._increaseViewsMap.clear();
     await Promise.all(promises);
+  }
+
+  @Transactional()
+  async move(idSubCategory: number, idTopic: number, idSubCategoryTo: number): Promise<void> {
+    await Promise.all([
+      this.topicTransferService.add(idTopic, idSubCategory, idSubCategoryTo),
+      this.topicRepository.update(idTopic, { idSubCategory: idSubCategoryTo }),
+    ]);
   }
 
   async findPageById(idSubCategory: number, idTopic: number, idPlayer: number): Promise<number> {

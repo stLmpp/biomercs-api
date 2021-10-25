@@ -24,6 +24,7 @@ export enum Params {
   idNotification = 'idNotification',
   idCategory = 'idCategory',
   idSubCategory = 'idSubCategory',
+  idSubCategoryTo = 'idSubCategoryTo',
   idModeratorsSelected = 'idModeratorsSelected',
   idTopic = 'idTopic',
   idPost = 'idPost',
@@ -51,7 +52,6 @@ export enum Params {
   characterWorldRecord = 'characterWorldRecord',
   combinationWorldRecord = 'combinationWorldRecord',
   score = 'score',
-  usernameOrEmail = 'usernameOrEmail',
   key = 'key',
   ruleType = 'ruleType',
 }

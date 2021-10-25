@@ -8,5 +8,6 @@ import { TopicTransferRepository } from './topic-transfer.repository';
   imports: [TypeOrmModule.forFeature([TopicTransferRepository])],
   providers: [TopicTransferService],
   controllers: [TopicTransferController],
+  exports: [TopicTransferService],
 })
 export class TopicTransferModule {}

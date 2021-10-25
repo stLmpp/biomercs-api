@@ -10,6 +10,7 @@ import { PlayerModule } from '../../player/player.module';
 import { SubCategoryModeratorModule } from '../sub-category-moderator/sub-category-moderator.module';
 import { UserModule } from '../../user/user.module';
 import { TopicPlayerLastReadModule } from '../topic-player-last-read/topic-player-last-read.module';
+import { TopicTransferModule } from '../topic-transfer/topic-transfer.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { TopicPlayerLastReadModule } from '../topic-player-last-read/topic-playe
     SubCategoryModeratorModule,
     UserModule,
     TopicPlayerLastReadModule,
+    TopicTransferModule,
   ],
   providers: [TopicService],
   controllers: [TopicController],
