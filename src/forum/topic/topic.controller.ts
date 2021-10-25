@@ -83,11 +83,12 @@ export class TopicController {
   @ApiModerator()
   @Put(`:${Params.idTopic}/move/:${Params.idSubCategoryTo}`)
   async move(
+    @AuthUser(AuthPlayerPipe) player: Player,
     @Param(Params.idSubCategory) idSubCategory: number,
     @Param(Params.idTopic) idTopic: number,
     @Param(Params.idSubCategoryTo) idSubCategoryTo: number
-  ): Promise<void> {
-    return this.topicService.move(idSubCategory, idTopic, idSubCategoryTo);
+  ): Promise<number> {
+    return this.topicService.move(idSubCategory, idTopic, idSubCategoryTo, player.id);
   }
 
   @Delete(`:${Params.idTopic}`)

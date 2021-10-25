@@ -27,37 +27,7 @@ export class CategoryService {
     private mapProfileTopicRecent: MapProfile<Topic, TopicRecentViewModel>
   ) {}
 
-  @Transactional()
-  async update(
-    idCategory: number,
-    { deleted, restored, ...dto }: CategoryUpdateDto,
-    idPlayer: number
-  ): Promise<Category> {
-    const promises: Promise<UpdateResult>[] = [this.categoryRepository.update(idCategory, dto)];
-    if (deleted) {
-      promises.push(this.categoryRepository.softDelete(idCategory));
-    }
-    if (restored) {
-      promises.push(this.categoryRepository.restore(idCategory));
-    }
-    await Promise.all(promises);
-    return this.findById(idCategory, idPlayer);
-  }
-
-  async add(dto: CategoryAddDto): Promise<Category> {
-    const lastOrder = await this.categoryRepository
-      .findOne({ order: { order: 'DESC' }, select: ['order'] })
-      .then(category => category?.order ?? 0);
-    return this.categoryRepository.save({ ...dto, order: lastOrder + 1 });
-  }
-
-  async updateOrder(idCategories: number[]): Promise<Category[]> {
-    const dtos: Partial<Category>[] = idCategories.map((id, index) => ({ id, order: index + 1 }));
-    await this.categoryRepository.save(dtos);
-    return this.categoryRepository.findByIds(idCategories, { withDeleted: true });
-  }
-
-  async findAll(idPlayer: number): Promise<CategoryWithSubCategoriesViewModel[]> {
+  private async _findAllWithInfo(idPlayer: number): Promise<CategoryWithSubCategoriesViewModel[]> {
     const isAdmin = await this.userService.isAdminByPlayer(idPlayer);
     const [categories, subCategoriesInfo] = await Promise.all([
       this.categoryRepository
@@ -84,13 +54,50 @@ export class CategoryService {
     return categories;
   }
 
+  @Transactional()
+  async update(
+    idCategory: number,
+    { deleted, restored, ...dto }: CategoryUpdateDto,
+    idPlayer: number
+  ): Promise<Category> {
+    const promises: Promise<UpdateResult>[] = [this.categoryRepository.update(idCategory, dto)];
+    if (deleted) {
+      promises.push(this.categoryRepository.softDelete(idCategory));
+    }
+    if (restored) {
+      promises.push(this.categoryRepository.restore(idCategory));
+    }
+    await Promise.all(promises);
+    return this.findById(idCategory, idPlayer);
+  }
+
+  async findAll(): Promise<Category[]> {
+    return this.categoryRepository.find({ relations: ['subCategories'] });
+  }
+
+  async add(dto: CategoryAddDto): Promise<Category> {
+    const lastOrder = await this.categoryRepository
+      .findOne({ order: { order: 'DESC' }, select: ['order'] })
+      .then(category => category?.order ?? 0);
+    return this.categoryRepository.save({ ...dto, order: lastOrder + 1 });
+  }
+
+  async updateOrder(idCategories: number[]): Promise<Category[]> {
+    const dtos: Partial<Category>[] = idCategories.map((id, index) => ({ id, order: index + 1 }));
+    await this.categoryRepository.save(dtos);
+    return this.categoryRepository.findByIds(idCategories, { withDeleted: true });
+  }
+
   async findById(idCategory: number, idPlayer: number): Promise<Category> {
     const isAdmin = await this.userService.isAdminByPlayer(idPlayer);
     return this.categoryRepository.findOneOrFail(idCategory, { withDeleted: isAdmin });
   }
 
   async findAllWithRecentTopics(idPlayer: number): Promise<CategoriesWithRecentTopicsViewModel> {
-    const [categories, topics] = await Promise.all([this.findAll(idPlayer), this.topicService.findRecentTopics(3)]);
+    const [categories, topics] = await Promise.all([
+      this._findAllWithInfo(idPlayer),
+      this.topicService.findRecentTopics(3),
+    ]);
     const recentTopics = this.mapProfileTopicRecent.map(topics);
     return new CategoriesWithRecentTopicsViewModel(categories, recentTopics);
   }

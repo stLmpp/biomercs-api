@@ -75,7 +75,11 @@ import { InputTypeViewModel } from '../input-type/input-type.view-model';
 import { Notification } from '../notification/notification.entity';
 import { NotificationViewModel } from '../notification/notification.view-model';
 import { Category } from '../forum/category/category.entity';
-import { CategoryViewModel, CategoryWithSubCategoriesViewModel } from '../forum/category/category.view-model';
+import {
+  CategoryViewModel,
+  CategoryWithSubCategoriesAltViewModel,
+  CategoryWithSubCategoriesViewModel,
+} from '../forum/category/category.view-model';
 import { SubCategory } from '../forum/sub-category/sub-category.entity';
 import {
   SubCategoryViewModel,
@@ -306,6 +310,7 @@ const mapProfiles: MapProfile<any, any>[] = [
       from => from.posts?.[0]?.creationDate ?? new Date()
     ),
   mapperService.create(PostEntity, PostViewModel),
+  mapperService.create(Category, CategoryWithSubCategoriesAltViewModel),
 ];
 
 function createScoreViewModeMap<T extends ScoreViewModel>(type: Type<T>): MapProfile<Score, T> {

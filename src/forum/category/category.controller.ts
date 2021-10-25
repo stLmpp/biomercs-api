@@ -3,8 +3,9 @@ import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../../auth/api-auth.decorator';
 import { ApiAdmin } from '../../auth/api-admin.decorator';
 import {
-  CategoryViewModel,
   CategoriesWithRecentTopicsViewModel,
+  CategoryViewModel,
+  CategoryWithSubCategoriesAltViewModel,
   CategoryWithSubCategoriesViewModel,
 } from './category.view-model';
 import { CategoryAddDto, CategoryUpdateDto } from './category.dto';
@@ -25,7 +26,9 @@ export class CategoryController {
     private categoryService: CategoryService,
     @InjectMapProfile(Category, CategoryWithSubCategoriesViewModel)
     private mapProfileWithSubCategories: MapProfile<Category, CategoryWithSubCategoriesViewModel>,
-    @InjectMapProfile(Category, CategoryViewModel) private mapProfile: MapProfile<Category, CategoryViewModel>
+    @InjectMapProfile(Category, CategoryViewModel) private mapProfile: MapProfile<Category, CategoryViewModel>,
+    @InjectMapProfile(Category, CategoryWithSubCategoriesAltViewModel)
+    private mapProfileWithSubCategoriesAlt: MapProfile<Category, CategoryWithSubCategoriesAltViewModel>
   ) {}
 
   @ApiAdmin()
@@ -52,8 +55,8 @@ export class CategoryController {
   }
 
   @Get()
-  async findAll(@AuthUser(AuthPlayerPipe) player: Player): Promise<CategoryWithSubCategoriesViewModel[]> {
-    return this.categoryService.findAll(player.id);
+  async findAll(): Promise<CategoryWithSubCategoriesAltViewModel[]> {
+    return this.mapProfileWithSubCategoriesAlt.map(await this.categoryService.findAll());
   }
 
   @Get('with/recent-topics')

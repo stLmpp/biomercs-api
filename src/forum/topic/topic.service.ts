@@ -57,11 +57,12 @@ export class TopicService {
   }
 
   @Transactional()
-  async move(idSubCategory: number, idTopic: number, idSubCategoryTo: number): Promise<void> {
+  async move(idSubCategory: number, idTopic: number, idSubCategoryTo: number, idPlayer: number): Promise<number> {
     await Promise.all([
       this.topicTransferService.add(idTopic, idSubCategory, idSubCategoryTo),
       this.topicRepository.update(idTopic, { idSubCategory: idSubCategoryTo }),
     ]);
+    return this.findPageById(idSubCategoryTo, idTopic, idPlayer);
   }
 
   async findPageById(idSubCategory: number, idTopic: number, idPlayer: number): Promise<number> {
