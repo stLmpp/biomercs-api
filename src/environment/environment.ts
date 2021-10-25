@@ -13,7 +13,6 @@ export class EnvironmentVariables {
   @Property() DB_HOST!: string;
   @Property() DB_PASSWORD!: string;
   @Property(() => Number) DB_PORT!: number;
-  @Property(() => Boolean) DB_SYNCHRONIZE!: boolean;
   @Property() DB_USERNAME!: string;
   @Property() FRONT_END_HOST!: string;
   @Property(() => Number, { possibleUndefined: true }) FRONT_END_PORT: number | undefined;
@@ -135,7 +134,7 @@ export class Environment {
       username: this.get('DB_USERNAME'),
       password: this.get('DB_PASSWORD'),
       database: this.get('DB_DATABASE'),
-      synchronize: false /*this.get('DB_SYNCHRONIZE')*/,
+      synchronize: false,
       type: 'postgres',
       autoLoadEntities: true,
       logging: !this.production ? 'all' : false,
