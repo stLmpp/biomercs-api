@@ -23,13 +23,13 @@ export class StageController {
   @ApiAdmin()
   @Post()
   async add(@Body() dto: StageAddDto): Promise<StageViewModel> {
-    return this.mapProfile.mapPromise(this.stageService.add(dto));
+    return this.mapProfile.map(await this.stageService.add(dto));
   }
 
   @ApiAdmin()
   @Patch(`:${Params.idStage}`)
   async update(@Param(Params.idStage) idStage: number, @Body() dto: StageUpdateDto): Promise<StageViewModel> {
-    return this.mapProfile.mapPromise(this.stageService.update(idStage, dto));
+    return this.mapProfile.map(await this.stageService.update(idStage, dto));
   }
 
   @Get(`platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}/mode/:${Params.idMode}`)
@@ -39,8 +39,8 @@ export class StageController {
     @Param(Params.idMiniGame) idMiniGame: number,
     @Param(Params.idMode) idMode: number
   ): Promise<StageViewModel[]> {
-    return this.mapProfile.mapPromise(
-      this.stageService.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode)
+    return this.mapProfile.map(
+      await this.stageService.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode)
     );
   }
 
@@ -53,8 +53,8 @@ export class StageController {
     @Param(Params.idMiniGame) idMiniGame: number,
     @Param(Params.idMode) idMode: number
   ): Promise<StageViewModel[]> {
-    return this.mapProfile.mapPromise(
-      this.stageService.findApprovalByIdPlatformGameMiniGameMode(
+    return this.mapProfile.map(
+      await this.stageService.findApprovalByIdPlatformGameMiniGameMode(
         ScoreStatusEnum.AwaitingApproval,
         idPlatform,
         idGame,
@@ -68,11 +68,11 @@ export class StageController {
   async findByIdPlatformsGamesMiniGamesModes(
     @Query() dto: StagePlatformsGamesMiniGamesModesDto
   ): Promise<StageViewModel[]> {
-    return this.mapProfile.mapPromise(this.stageService.findByIdPlatformsGamesMiniGamesModes(dto));
+    return this.mapProfile.map(await this.stageService.findByIdPlatformsGamesMiniGamesModes(dto));
   }
 
   @Get(`:${Params.idStage}`)
   async findById(@Param(Params.idStage) idStage: number): Promise<StageViewModel> {
-    return this.mapProfile.mapPromise(this.stageService.findById(idStage));
+    return this.mapProfile.map(await this.stageService.findById(idStage));
   }
 }

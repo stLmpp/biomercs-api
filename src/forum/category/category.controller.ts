@@ -34,7 +34,7 @@ export class CategoryController {
   @ApiAdmin()
   @Post()
   async add(@Body() dto: CategoryAddDto): Promise<CategoryViewModel> {
-    return this.mapProfileWithSubCategories.mapPromise(this.categoryService.add(dto));
+    return this.mapProfileWithSubCategories.map(await this.categoryService.add(dto));
   }
 
   @ApiAdmin()
@@ -44,14 +44,14 @@ export class CategoryController {
     @Body() dto: CategoryUpdateDto,
     @AuthUser(AuthPlayerPipe) player: Player
   ): Promise<CategoryViewModel> {
-    return this.mapProfile.mapPromise(this.categoryService.update(idCategory, dto, player.id));
+    return this.mapProfile.map(await this.categoryService.update(idCategory, dto, player.id));
   }
 
   @ApiAdmin()
   @ApiBody({ type: Number, isArray: true })
   @Put('order')
   async updateOrder(@Body() idCategories: number[]): Promise<CategoryViewModel[]> {
-    return this.mapProfile.mapPromise(this.categoryService.updateOrder(idCategories));
+    return this.mapProfile.map(await this.categoryService.updateOrder(idCategories));
   }
 
   @Get()
@@ -71,6 +71,6 @@ export class CategoryController {
     @Param(Params.idCategory) idCategory: number,
     @AuthUser(AuthPlayerPipe) player: Player
   ): Promise<CategoryViewModel> {
-    return this.mapProfile.mapPromise(this.categoryService.findById(idCategory, player.id));
+    return this.mapProfile.map(await this.categoryService.findById(idCategory, player.id));
   }
 }

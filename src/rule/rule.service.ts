@@ -25,7 +25,7 @@ export class RuleService {
   }
 
   async findAll(): Promise<Rule[]> {
-    return await this.ruleRepository.find();
+    return this.ruleRepository.find();
   }
 
   async findByType(type: RuleTypeEnum): Promise<Rule[]> {

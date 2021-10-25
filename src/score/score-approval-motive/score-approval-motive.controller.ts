@@ -24,7 +24,7 @@ export class ScoreApprovalMotiveController {
   @ApiAdmin()
   @Post()
   async add(@Body() dto: ScoreApprovalMotiveAddDto): Promise<ScoreApprovalMotiveViewModel> {
-    return this.mapProfile.mapPromise(this.scoreApprovalMotiveService.add(dto));
+    return this.mapProfile.map(await this.scoreApprovalMotiveService.add(dto));
   }
 
   @ApiAdmin()
@@ -33,11 +33,11 @@ export class ScoreApprovalMotiveController {
     @Param(Params.idScoreApprovalMotive) idScoreApprovalMotive: number,
     @Body() dto: ScoreApprovalMotiveUpdateDto
   ): Promise<ScoreApprovalMotiveViewModel> {
-    return this.mapProfile.mapPromise(this.scoreApprovalMotiveService.update(idScoreApprovalMotive, dto));
+    return this.mapProfile.map(await this.scoreApprovalMotiveService.update(idScoreApprovalMotive, dto));
   }
 
   @Get('action')
   async findByAction(@Query(Params.action) action: ScoreApprovalActionEnum): Promise<ScoreApprovalMotiveViewModel[]> {
-    return this.mapProfile.mapPromise(this.scoreApprovalMotiveService.findByAction(action));
+    return this.mapProfile.map(await this.scoreApprovalMotiveService.findByAction(action));
   }
 }

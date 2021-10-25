@@ -28,7 +28,7 @@ export class UserController {
 
   @Patch(`:${Params.idUser}`)
   async update(@Param(Params.idUser) idUser: number, @Body() dto: UserUpdateDto): Promise<UserViewModel> {
-    return this.mapProfile.mapPromise(this.userService.update(idUser, dto));
+    return this.mapProfile.map(await this.userService.update(idUser, dto));
   }
 
   @ApiAdmin()

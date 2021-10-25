@@ -39,7 +39,7 @@ export class PlayerController {
   @ApiAdmin()
   @Post()
   async create(@Body() dto: PlayerAddDto): Promise<PlayerViewModel> {
-    return this.mapProfile.mapPromise(this.playerService.add({ ...dto, noUser: true }));
+    return this.mapProfile.map(await this.playerService.add({ ...dto, noUser: true }));
   }
 
   @Put(`:${Params.idPlayer}/link-steam`)
@@ -49,7 +49,7 @@ export class PlayerController {
 
   @Put(`:${Params.idPlayer}/unlink-steam`)
   async unlinkSteamProfile(@Param(Params.idPlayer) idPlayer: number): Promise<PlayerViewModel> {
-    return this.mapProfile.mapPromise(this.playerService.unlinkSteamProfile(idPlayer));
+    return this.mapProfile.map(await this.playerService.unlinkSteamProfile(idPlayer));
   }
 
   @Get(`persona-name/:${Params.personaName}/id`)
@@ -64,7 +64,7 @@ export class PlayerController {
 
   @Get('auth')
   async findAuthPlayer(@AuthUser() user: User): Promise<PlayerViewModel> {
-    return this.mapProfile.mapPromise(this.playerService.findByIdUserOrFail(user.id));
+    return this.mapProfile.map(await this.playerService.findByIdUserOrFail(user.id));
   }
 
   @ApiQuery({ name: Params.idPlayersSelected, required: false })
@@ -119,7 +119,7 @@ export class PlayerController {
 
   @Get(`:${Params.idPlayer}`)
   async findById(@Param(Params.idPlayer) idPlayer: number): Promise<PlayerWithRegionSteamProfileViewModel> {
-    return this.mapProfileWithRegionSteamProfile.mapPromise(this.playerService.findById(idPlayer));
+    return this.mapProfileWithRegionSteamProfile.map(await this.playerService.findById(idPlayer));
   }
 
   @Patch(`:${Params.idPlayer}`)
@@ -127,7 +127,7 @@ export class PlayerController {
     @Param(Params.idPlayer) idPlayer: number,
     @Body() dto: PlayerUpdateDto
   ): Promise<PlayerWithRegionSteamProfileViewModel> {
-    return this.mapProfileWithRegionSteamProfile.mapPromise(this.playerService.update(idPlayer, dto));
+    return this.mapProfileWithRegionSteamProfile.map(await this.playerService.update(idPlayer, dto));
   }
 
   @ApiBody({

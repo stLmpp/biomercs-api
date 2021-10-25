@@ -23,13 +23,13 @@ export class ModeController {
   @ApiAdmin()
   @Post()
   async add(@Body() dto: ModeAddDto): Promise<ModeViewModel> {
-    return this.mapProfile.mapPromise(this.modeService.add(dto));
+    return this.mapProfile.map(await this.modeService.add(dto));
   }
 
   @ApiAdmin()
   @Patch(`:${Params.idMode}`)
   async update(@Param(Params.idMode) idMode: number, @Body() dto: ModeUpdateDto): Promise<ModeViewModel> {
-    return this.mapProfile.mapPromise(this.modeService.update(idMode, dto));
+    return this.mapProfile.map(await this.modeService.update(idMode, dto));
   }
 
   @Get(`platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}`)
@@ -38,7 +38,7 @@ export class ModeController {
     @Param(Params.idGame) idGame: number,
     @Param(Params.idMiniGame) idMiniGame: number
   ): Promise<ModeViewModel[]> {
-    return this.mapProfile.mapPromise(this.modeService.findByIdPlatformGameMiniGame(idPlatform, idGame, idMiniGame));
+    return this.mapProfile.map(await this.modeService.findByIdPlatformGameMiniGame(idPlatform, idGame, idMiniGame));
   }
 
   @ApiAdmin()
@@ -48,8 +48,8 @@ export class ModeController {
     @Param(Params.idGame) idGame: number,
     @Param(Params.idMiniGame) idMiniGame: number
   ): Promise<ModeViewModel[]> {
-    return this.mapProfile.mapPromise(
-      this.modeService.findApprovalByIdPlatformGameMiniGame(
+    return this.mapProfile.map(
+      await this.modeService.findApprovalByIdPlatformGameMiniGame(
         ScoreStatusEnum.AwaitingApproval,
         idPlatform,
         idGame,
@@ -60,7 +60,7 @@ export class ModeController {
 
   @Get(`platforms/games/mini-games`)
   async findByIdPlatformsGamesMiniGames(@Query() dto: ModePlatformsGamesMiniGamesDto): Promise<ModeViewModel[]> {
-    return this.mapProfile.mapPromise(this.modeService.findByIdPlatformsGamesMiniGames(dto));
+    return this.mapProfile.map(await this.modeService.findByIdPlatformsGamesMiniGames(dto));
   }
 
   @Get(`:${Params.idMode}`)
