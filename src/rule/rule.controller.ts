@@ -24,7 +24,7 @@ export class RuleController {
   @ApiAuth()
   @Post()
   async add(@Body() dto: RuleAddDto): Promise<RuleViewModel> {
-    return this.mapProfile.mapPromise(this.ruleService.add(dto));
+    return this.mapProfile.map(await this.ruleService.add(dto));
   }
 
   @ApiAdmin()
@@ -32,17 +32,17 @@ export class RuleController {
   @ApiBody({ isArray: true, type: RuleUpsertDto, required: true, description: 'Make sure to send all fields' })
   @Post('upsert')
   async upsert(@Body(RuleUpsertRemoveInvalidPipe) dtos: RuleUpsertDto[]): Promise<RuleViewModel[]> {
-    return this.mapProfile.mapPromise(this.ruleService.upsert(dtos));
+    return this.mapProfile.map(await this.ruleService.upsert(dtos));
   }
 
   @Get()
   async findAll(): Promise<RuleViewModel[]> {
-    return this.mapProfile.mapPromise(this.ruleService.findAll());
+    return this.mapProfile.map(await this.ruleService.findAll());
   }
 
   @ApiParam({ name: Params.type, enum: RuleTypeEnum })
   @Get(`:${Params.type}`)
   async findByType(@Param(Params.type) type: RuleTypeEnum): Promise<RuleViewModel[]> {
-    return this.mapProfile.mapPromise(this.ruleService.findByType(type));
+    return this.mapProfile.map(await this.ruleService.findByType(type));
   }
 }

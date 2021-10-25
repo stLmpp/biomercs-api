@@ -16,7 +16,8 @@ export class RuleService {
   async upsert(dtos: RuleUpsertDto[]): Promise<Rule[]> {
     /** This non-null assertion is safe because this dto is filtered in the {@see RuleUpsertRemoveInvalidPipe} */
     await Promise.all(arrayRemoveMutate(dtos, dto => dto.deleted).map(dto => this.ruleRepository.delete(dto.id!)));
-    return await this.ruleRepository.save(dtos);
+    await this.ruleRepository.save(dtos);
+    return this.findAll();
   }
 
   async delete(id: string): Promise<void> {
