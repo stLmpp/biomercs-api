@@ -23,6 +23,7 @@ export class TopicViewModel implements TopicInterface {
   @Property() hasNewPosts!: boolean;
   @Property() creationDate!: Date;
   @Property() isModerator!: boolean;
+  @Property() notifications!: boolean;
 }
 
 export class TopicWithPostsViewModel extends TopicViewModel {

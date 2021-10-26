@@ -11,6 +11,7 @@ import { SubCategoryModeratorModule } from '../sub-category-moderator/sub-catego
 import { UserModule } from '../../user/user.module';
 import { TopicPlayerLastReadModule } from '../topic-player-last-read/topic-player-last-read.module';
 import { TopicTransferModule } from '../topic-transfer/topic-transfer.module';
+import { TopicPlayerSettingsModule } from '../topic-player-settings/topic-player-settings.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { TopicTransferModule } from '../topic-transfer/topic-transfer.module';
     UserModule,
     TopicPlayerLastReadModule,
     TopicTransferModule,
+    TopicPlayerSettingsModule,
   ],
   providers: [TopicService],
   controllers: [TopicController],

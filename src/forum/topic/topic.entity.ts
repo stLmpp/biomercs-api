@@ -8,6 +8,7 @@ import { Score } from '../../score/score.entity';
 import { PostEntity } from '../post/post.entity';
 import { TopicPlayerLastRead } from '../topic-player-last-read/topic-player-last-read.entity';
 import { Player } from '../../player/player.entity';
+import { TopicPlayerSettings } from '../topic-player-settings/topic-player-settings.entity';
 
 @Entity({ schema: SchemaEnum.forum })
 export class Topic extends BaseEntity implements TopicInterface {
@@ -65,4 +66,8 @@ export class Topic extends BaseEntity implements TopicInterface {
   @Property()
   @DeleteDateColumn({ type: 'timestamp', nullable: true })
   deletedDate?: Date | null;
+
+  @Property(() => TopicPlayerSettings)
+  @OneToMany(() => TopicPlayerSettings, topicPlayerSettings => topicPlayerSettings.topic)
+  topicPlayerSettings?: TopicPlayerSettings[];
 }

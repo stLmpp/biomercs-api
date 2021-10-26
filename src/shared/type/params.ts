@@ -54,6 +54,7 @@ export enum Params {
   score = 'score',
   key = 'key',
   ruleType = 'ruleType',
+  notifications = 'notifications',
 }
 
 export enum HeaderParams {

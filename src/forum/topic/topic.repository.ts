@@ -43,6 +43,7 @@ export class TopicRepository extends Repository<Topic> {
       .addSelect('last_post.id', 'idLastPost')
       .addSelect('last_post.name', 'nameLastPost')
       .addSelect('topic.creationDate', 'creationDate')
+      .addSelect('coalesce(topic_player_settings.notifications, true)', 'notifications')
       .addSelect(
         subQuery =>
           subQuery
@@ -76,6 +77,9 @@ export class TopicRepository extends Repository<Topic> {
       .innerJoin('topic.posts', 'last_post')
       .innerJoin('last_post.player', 'player_last_post')
       .innerJoin('topic.player', 'player')
+      .leftJoin('topic.topicPlayerSettings', 'topic_player_settings', 'topic_player_settings.idPlayer = :idPlayer', {
+        idPlayer,
+      })
       .andWhere(
         subQuery =>
           `last_post.id = (${subQuery

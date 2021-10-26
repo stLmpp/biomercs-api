@@ -10,12 +10,17 @@ import { Player } from '../../player/player.entity';
 import { ApiModerator } from '../sub-category-moderator/api-moderator';
 import { TopicAddDto } from './topic.dto';
 import { TopicPlayerLastReadService } from '../topic-player-last-read/topic-player-last-read.service';
+import { TopicPlayerSettingsService } from '../topic-player-settings/topic-player-settings.service';
 
 @ApiAuth()
 @ApiTags('Topic')
 @Controller()
 export class TopicController {
-  constructor(private topicService: TopicService, private topicPlayerLastReadService: TopicPlayerLastReadService) {}
+  constructor(
+    private topicService: TopicService,
+    private topicPlayerLastReadService: TopicPlayerLastReadService,
+    private topicPlayerSettingsService: TopicPlayerSettingsService
+  ) {}
 
   @Post()
   async add(
@@ -78,6 +83,15 @@ export class TopicController {
   @Put(`:${Params.idTopic}/read`)
   async read(@AuthUser(AuthPlayerPipe) player: Player, @Param(Params.idTopic) idTopic: number): Promise<void> {
     return this.topicPlayerLastReadService.upsert(player.id, idTopic);
+  }
+
+  @Put(`:${Params.idTopic}/notifications/:${Params.notifications}`)
+  async notifications(
+    @AuthUser(AuthPlayerPipe) player: Player,
+    @Param(Params.idTopic) idTopic: number,
+    @Param(Params.notifications) notifications: boolean
+  ): Promise<void> {
+    return this.topicPlayerSettingsService.upsert(idTopic, player.id, notifications);
   }
 
   @ApiModerator()
