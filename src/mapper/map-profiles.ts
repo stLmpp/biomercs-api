@@ -228,10 +228,7 @@ const mapProfiles: MapProfile<any, any>[] = [
       }
     ),
   mapperService.create(InputType, InputTypeViewModel),
-  mapperService.create(Notification, NotificationViewModel).for(
-    dest => dest.idScoreStatus,
-    from => from.score?.idScoreStatus ?? null
-  ),
+  mapperService.create(Notification, NotificationViewModel),
   mapperService.create(Category, CategoryWithSubCategoriesViewModel),
   mapperService.create(SubCategory, SubCategoryWithInfoModeratorsViewModel).for(
     dest => dest.moderators,

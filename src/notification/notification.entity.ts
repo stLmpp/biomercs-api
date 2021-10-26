@@ -2,10 +2,10 @@ import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne } from 'typeorm
 import { SchemaEnum } from '../environment/schema.enum';
 import { BaseEntity } from '../shared/super/base-entity';
 import { Property } from '../mapper/property.decorator';
-import { Score } from '../score/score.entity';
 import { User } from '../user/user.entity';
 import { NotificationInterface } from './notification.interface';
 import { NotificationType } from './notification-type/notification-type.entity';
+import { NotificationExtra } from './notification-extra.view-model';
 
 @Entity({ schema: SchemaEnum.main })
 export class Notification extends BaseEntity implements NotificationInterface {
@@ -31,13 +31,8 @@ export class Notification extends BaseEntity implements NotificationInterface {
   seen!: boolean;
 
   @Property()
-  @Column({ nullable: true })
-  idScore?: number | null;
-
-  @Property(() => Score)
-  @ManyToOne(() => Score, { nullable: true })
-  @JoinColumn()
-  score?: Score | null;
+  @Column({ type: 'json', nullable: true })
+  extra?: NotificationExtra | null;
 
   @Property()
   @Column({ nullable: true })

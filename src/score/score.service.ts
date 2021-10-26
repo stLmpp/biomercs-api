@@ -72,7 +72,7 @@ export class ScoreService {
         },
       } = score;
       await this.mailService.sendMailInfo(
-        { to: playerCreated.user.email, subject: 'Biomercs2 - Score approved' },
+        { to: playerCreated.user.email, subject: 'Biomercs - Score approved' },
         {
           title: 'Score approved',
           info: [
@@ -146,7 +146,7 @@ export class ScoreService {
         const dtos: NotificationAddDto[] = idUsers.map(idUser => ({
           idUser,
           idNotificationType: NotificationTypeEnum.ScoreSubmittedManyPlayers,
-          idScore: score.id,
+          extra: { idScore: score.id, idScoreStatus: score.idScoreStatus },
         }));
         await this.notificationService.addAndSendMany(dtos);
       }
@@ -167,10 +167,12 @@ export class ScoreService {
       throw new BadRequestException(`Score is not awaiting for Admin approval`);
     }
     const approvalDate = new Date();
+    const idScoreStatus =
+      action === ScoreApprovalActionEnum.Approve ? ScoreStatusEnum.Approved : ScoreStatusEnum.Rejected;
     await Promise.all([
       this.scoreApprovalService.addAdmin({ ...dto, idUser: user.id, action, actionDate: approvalDate, idScore }),
       this.scoreRepository.update(idScore, {
-        idScoreStatus: action === ScoreApprovalActionEnum.Approve ? ScoreStatusEnum.Approved : ScoreStatusEnum.Rejected,
+        idScoreStatus,
         approvalDate,
       }),
     ]);
@@ -193,7 +195,11 @@ export class ScoreService {
         action === ScoreApprovalActionEnum.Approve
           ? NotificationTypeEnum.ScoreApproved
           : NotificationTypeEnum.ScoreRejected;
-      const dtos: NotificationAddDto[] = idUsers.map(idUser => ({ idNotificationType, idScore, idUser }));
+      const dtos: NotificationAddDto[] = idUsers.map(idUser => ({
+        idNotificationType,
+        extra: { idScore, idScoreStatus },
+        idUser,
+      }));
       await this.notificationService.addAndSendMany(dtos);
     }
     this.scoreGateway.updateCountApprovals();
@@ -207,7 +213,7 @@ export class ScoreService {
     if (idUser) {
       await this.notificationService.addAndSend({
         idNotificationType: NotificationTypeEnum.ScoreRequestedChanges,
-        idScore,
+        extra: { idScore, idScoreStatus: ScoreStatusEnum.ChangesRequested },
         idUser,
       });
     }
@@ -441,5 +447,13 @@ export class ScoreService {
       throw new BadRequestException(`Can't cancel score because the status is not ${status.description}`);
     }
     await this.scoreRepository.update(idScore, { idScoreStatus: ScoreStatusEnum.Cancelled });
+  }
+
+  async findByIds(idScores: number[]): Promise<Score[]> {
+    return this.scoreRepository.findByIds(idScores);
+  }
+
+  async findById(idScore: number): Promise<Score | undefined> {
+    return this.scoreRepository.findOne(idScore);
   }
 }

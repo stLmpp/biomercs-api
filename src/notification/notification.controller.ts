@@ -2,13 +2,10 @@ import { Controller, Delete, Get, Param, Put, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../auth/api-auth.decorator';
 import { NotificationService } from './notification.service';
-import { Notification } from './notification.entity';
 import { Params } from '../shared/type/params';
 import { AuthUser } from '../auth/auth-user.decorator';
 import { User } from '../user/user.entity';
-import { InjectMapProfile } from '../mapper/inject-map-profile';
 import { NotificationViewModel } from './notification.view-model';
-import { MapProfile } from '../mapper/map-profile';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { ApiPagination } from '../shared/decorator/api-pagination';
 
@@ -16,11 +13,7 @@ import { ApiPagination } from '../shared/decorator/api-pagination';
 @ApiTags('Notification')
 @Controller('notification')
 export class NotificationController {
-  constructor(
-    private notificationService: NotificationService,
-    @InjectMapProfile(Notification, NotificationViewModel)
-    private mapProfile: MapProfile<Notification, NotificationViewModel>
-  ) {}
+  constructor(private notificationService: NotificationService) {}
 
   @ApiPagination(NotificationViewModel)
   @Get()
@@ -29,8 +22,7 @@ export class NotificationController {
     @Query(Params.page) page: number,
     @Query(Params.limit) limit: number
   ): Promise<Pagination<NotificationViewModel>> {
-    const { meta, items } = await this.notificationService.get(user.id, page, limit);
-    return { meta, items: this.mapProfile.map(items) };
+    return this.notificationService.findByIdUserPaginated(user.id, page, limit);
   }
 
   @Get('unread-count')

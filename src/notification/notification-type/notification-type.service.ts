@@ -7,8 +7,10 @@ import { NotificationType } from './notification-type.entity';
 export class NotificationTypeService {
   constructor(private notificationTypeRepository: NotificationTypeRepository) {}
 
-  async findById(idNotificationType: NotificationTypeEnum): Promise<NotificationType> {
-    return this.notificationTypeRepository.findOneOrFail(idNotificationType);
+  async findContentById(idNotificationType: NotificationTypeEnum): Promise<string> {
+    return this.notificationTypeRepository
+      .findOneOrFail(idNotificationType, { select: ['content'] })
+      .then(({ content }) => content);
   }
 
   async findByIds(idNotificationTypes: NotificationTypeEnum[]): Promise<NotificationType[]> {

@@ -10,6 +10,12 @@ import { ScoreService } from '../score/score.service';
 import { fromScoreToName } from '../score/shared';
 import { Score } from '../score/score.entity';
 import { IsNull } from 'typeorm';
+import { NotificationExtraScore } from './notification-extra.view-model';
+import { NotificationViewModel } from './notification.view-model';
+import { isNotNil } from 'st-utils';
+import { InjectMapProfile } from '../mapper/inject-map-profile';
+import { MapProfile } from '../mapper/map-profile';
+import { Json } from '../util/find-operator';
 
 @Injectable()
 export class NotificationService {
@@ -17,23 +23,62 @@ export class NotificationService {
     private notificationRepository: NotificationRepository,
     private notificationGateway: NotificationGateway,
     private notificationTypeService: NotificationTypeService,
-    @Inject(forwardRef(() => ScoreService)) private scoreService: ScoreService
+    @Inject(forwardRef(() => ScoreService)) private scoreService: ScoreService,
+    @InjectMapProfile(Notification, NotificationViewModel)
+    private mapProfile: MapProfile<Notification, NotificationViewModel>
   ) {}
+
+  private async _getViewModelById(idNotification: number): Promise<NotificationViewModel> {
+    const notification = await this.notificationRepository.findOneOrFail(idNotification);
+    if (notification.extra && NotificationExtraScore.is(notification.extra)) {
+      const idScore = notification.extra.idScore;
+      const score = await this.scoreService.findById(idScore);
+      if (score) {
+        notification.extra.idScoreStatus = score.idScoreStatus;
+      }
+    }
+    return this.mapProfile.map(notification);
+  }
+
+  private async _getViewModelByIds(idNotifications: number[]): Promise<NotificationViewModel[]> {
+    const notifications = await this._completeWithScore(await this.notificationRepository.findByIds(idNotifications));
+    return this.mapProfile.map(notifications);
+  }
+
+  private async _completeWithScore(notifications: Notification[]): Promise<Notification[]> {
+    const idScores = notifications
+      .map(notification =>
+        notification.extra && NotificationExtraScore.is(notification.extra) ? notification.extra.idScore : null
+      )
+      .filter(isNotNil);
+    if (idScores.length) {
+      const scores = await this.scoreService.findByIds(idScores);
+      for (const notification of notifications) {
+        if (notification.extra && NotificationExtraScore.is(notification.extra)) {
+          const idScore = notification.extra.idScore;
+          const score = scores.find(_score => _score.id === idScore);
+          if (score) {
+            notification.extra.idScoreStatus = score.idScoreStatus;
+          }
+        }
+      }
+    }
+    return notifications;
+  }
 
   async addAndSend(dto: NotificationAddDto): Promise<void> {
     if (!dto.content && !dto.idNotificationType) {
-      throw new BadRequestException('content or idNotificationType is required');
+      throw new BadRequestException('"content" or "idNotificationType" is required');
     }
     if (dto.idNotificationType) {
-      const notificationType = await this.notificationTypeService.findById(dto.idNotificationType);
-      dto.content = notificationType.content;
+      dto.content = await this.notificationTypeService.findContentById(dto.idNotificationType);
     }
-    if (dto.idScore) {
-      const score = await this.scoreService.findByIdWithAllRelations(dto.idScore);
+    if (dto.extra && NotificationExtraScore.is(dto.extra)) {
+      const score = await this.scoreService.findByIdWithAllRelations(dto.extra.idScore);
       dto.content = `${dto.content}\n${fromScoreToName(score)}`;
     }
     const { id } = await this.notificationRepository.save(dto);
-    const notification = await this.notificationRepository.findOneOrFail(id, { relations: ['score'] });
+    const notification = await this._getViewModelById(id);
     this.notificationGateway.sendNotification(notification);
   }
 
@@ -44,8 +89,8 @@ export class NotificationService {
     const dtosWithIdScore: (NotificationAddDto & { idScore: number })[] = [];
     const dtosWithIdNotificationType: (NotificationAddDto & { idNotificationType: number })[] = [];
     for (const dto of dtos) {
-      if (dto.idScore) {
-        dtosWithIdScore.push({ ...dto, idScore: dto.idScore });
+      if (dto.extra && NotificationExtraScore.is(dto.extra)) {
+        dtosWithIdScore.push({ ...dto, idScore: dto.extra.idScore });
       }
       if (dto.idNotificationType) {
         dtosWithIdNotificationType.push({ ...dto, idNotificationType: dto.idNotificationType });
@@ -71,8 +116,9 @@ export class NotificationService {
             dto.content = notificationType.content;
           }
         }
-        if (dto.idScore) {
-          const score = scores.find(_score => _score.id === dto.idScore);
+        if (dto.extra && NotificationExtraScore.is(dto.extra)) {
+          const { idScore } = dto.extra;
+          const score = scores.find(_score => _score.id === idScore);
           if (score) {
             dto.content = `${dto.content}\n${fromScoreToName(score)}`;
           }
@@ -82,10 +128,8 @@ export class NotificationService {
       .filter(dto => dto.idNotificationType || dto.content);
     const notificationsSaved = await this.notificationRepository.save(newDtos);
     const idNotifications = notificationsSaved.map(notification => notification.id);
-    const notifications = await this.notificationRepository.findByIds(idNotifications, { relations: ['score'] });
-    for (const notification of notifications) {
-      this.notificationGateway.sendNotification(notification);
-    }
+    const notifications = await this._getViewModelByIds(idNotifications);
+    this.notificationGateway.sendNotifications(notifications);
   }
 
   async read(idNotification: number): Promise<number> {
@@ -99,11 +143,13 @@ export class NotificationService {
     return this.unseenCount(idUser);
   }
 
-  async get(idUser: number, page: number, limit: number): Promise<Pagination<Notification>> {
-    return this.notificationRepository.paginate(
+  async findByIdUserPaginated(idUser: number, page: number, limit: number): Promise<Pagination<NotificationViewModel>> {
+    const { items, meta } = await this.notificationRepository.paginate(
       { page, limit },
-      { where: { idUser }, order: { id: 'DESC' }, relations: ['score'] }
+      { where: { idUser }, order: { id: 'DESC' } }
     );
+    const notifications = await this._completeWithScore(items);
+    return new Pagination<NotificationViewModel>(this.mapProfile.map(notifications), meta);
   }
 
   async unreadCount(idUser: number): Promise<number> {
@@ -123,8 +169,10 @@ export class NotificationService {
   }
 
   async findNotificationsAndSendUpdate(idScore: number): Promise<void> {
-    const notifications = await this.notificationRepository.find({ where: { idScore }, relations: ['score'] });
-    this.notificationGateway.sendNotifications(notifications);
+    const notifications = await this.notificationRepository.find({
+      where: { extra: Json('idScore', '' + idScore) },
+    });
+    this.notificationGateway.sendNotifications(this.mapProfile.map(notifications));
   }
 
   async delete(idNotification: number): Promise<void> {

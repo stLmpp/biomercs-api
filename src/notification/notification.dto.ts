@@ -1,5 +1,6 @@
-import { IsDefined, IsOptional, IsString } from 'class-validator';
+import { IsDefined, IsObject, IsOptional, IsString } from 'class-validator';
 import { IsNumber } from '../validation/is-number';
+import { NotificationExtra } from './notification-extra.view-model';
 
 export class NotificationAddDto {
   @IsOptional()
@@ -12,9 +13,9 @@ export class NotificationAddDto {
 
   @IsOptional()
   @IsNumber()
-  idScore?: number;
+  idNotificationType?: number;
 
   @IsOptional()
-  @IsNumber()
-  idNotificationType?: number;
+  @IsObject()
+  extra?: NotificationExtra;
 }
