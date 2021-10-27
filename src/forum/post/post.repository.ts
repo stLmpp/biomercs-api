@@ -40,6 +40,7 @@ export class PostRepository extends Repository<PostEntity> {
       .addSelect('player.id', 'idPlayer')
       .addSelect('post.deletedDate', 'deletedDate')
       .addSelect('player.personaName', 'personaNamePlayer')
+      .addSelect('player.avatar', 'avatarPlayer')
       .addSelect(
         subQuery =>
           subQuery

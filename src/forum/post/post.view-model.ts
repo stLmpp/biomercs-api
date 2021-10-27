@@ -15,6 +15,7 @@ export class PostViewModel implements PostInterface {
   @Property() idRegionPlayer!: number;
   @Property() nameRegionPlayer!: string;
   @Property() shortNameRegionPlayer!: string;
+  @Property() avatarPlayer?: string | null;
   @Property() editAllowed!: boolean;
   @Property() deleteAllowed!: boolean;
   @Property() firstPost!: boolean;

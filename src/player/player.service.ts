@@ -170,11 +170,22 @@ export class PlayerService {
   async avatar(idPlayer: number, file: FileType): Promise<string> {
     const buffer = await sharp(file.buffer).resize({ height: 300, width: 300 }).png().toBuffer();
     const avatar = `${idPlayer}.png`;
-    await this.fileUploadService.sendFile(
+    await this.fileUploadService.send(
       { ...file, buffer },
       { path: this.environment.get('AWS_S3_BUCKET_IMAGE_AVATAR'), name: avatar }
     );
     await this.playerRepository.update(idPlayer, { avatar });
     return avatar;
+  }
+
+  async removeAvatar(idPlayer: number): Promise<void> {
+    const { avatar } = await this.playerRepository.findOneOrFail(idPlayer, { select: ['avatar'] });
+    if (!avatar) {
+      return;
+    }
+    await Promise.all([
+      this.fileUploadService.delete(this.environment.get('AWS_S3_BUCKET_IMAGE_AVATAR') + avatar),
+      this.playerRepository.update(idPlayer, { avatar: null }),
+    ]);
   }
 }

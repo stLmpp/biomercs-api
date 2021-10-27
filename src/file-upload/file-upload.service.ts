@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, PutObjectCommand, S3Client } from '@aws-sdk/client-s3';
 import { Environment } from '../environment/environment';
 import { FileType } from './file.type';
 
@@ -21,13 +21,22 @@ export class FileUploadService {
     },
   });
 
-  async sendFile(file: FileType, options: FileUploadOptions = {}): Promise<void> {
+  async send(file: FileType, options: FileUploadOptions = {}): Promise<void> {
     const { name = file.originalname, path = '' } = options;
     await this._s3Client.send(
       new PutObjectCommand({
         Bucket: this.environment.get('AWS_S3_BUCKET'),
         Key: path + name,
         Body: file.buffer,
+      })
+    );
+  }
+
+  async delete(path: string): Promise<void> {
+    await this._s3Client.send(
+      new DeleteObjectCommand({
+        Bucket: this.environment.get('AWS_S3_BUCKET'),
+        Key: path,
       })
     );
   }

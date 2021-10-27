@@ -66,6 +66,12 @@ export class PlayerController {
     return this.playerService.avatar(idPlayer, file);
   }
 
+  @ApiPlayerOrAdmin()
+  @Put(`:${Params.idPlayer}/remove-avatar`)
+  async removeAvatar(@Param(Params.idPlayer) idPlayer: number): Promise<void> {
+    return this.playerService.removeAvatar(idPlayer);
+  }
+
   @Get(`persona-name/:${Params.personaName}/id`)
   async findIdByPersonaName(@Param(Params.personaName) personaName: string): Promise<number> {
     return this.playerService.findIdByPersonaName(personaName);
