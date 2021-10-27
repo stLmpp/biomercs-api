@@ -162,6 +162,12 @@ export class UserService {
     return this.userRepository.findIdsByPlayers(idPlayers);
   }
 
+  async findIdByPlayer(idPlayer: number): Promise<number> {
+    return this.userRepository
+      .findOneOrFail({ where: { player: { id: idPlayer } }, select: ['id'] })
+      .then(user => user.id);
+  }
+
   async findOwnerWithPasswordAndSalt(): Promise<User> {
     return this.userRepository.findOwnerWithPasswordAndSalt();
   }

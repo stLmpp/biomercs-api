@@ -34,7 +34,7 @@ export class TopicService {
   async add(idSubCategory: number, { name, content }: TopicAddDto, idPlayer: number): Promise<TopicAddViewModel> {
     const topic = await this.topicRepository.save({ name, idPlayer, idSubCategory, views: 0 });
     await Promise.all([
-      this.postService.add({ name, content, idTopic: topic.id }, idPlayer),
+      this.postService.add(idSubCategory, { name, content, idTopic: topic.id }, idPlayer),
       this.topicPlayerLastReadService.upsert(idPlayer, topic.id),
     ]);
     return {
@@ -147,5 +147,13 @@ export class TopicService {
       this.postService.findPageById(idTopic, idPost, idPlayer),
     ]);
     return { idSubCategory, idTopic, idPost, pageTopic, pagePost };
+  }
+
+  async findById(idTopic: number): Promise<Topic> {
+    return this.topicRepository.findOneOrFail(idTopic);
+  }
+
+  async findByIds(idTopics: number[]): Promise<Topic[]> {
+    return this.topicRepository.findByIds(idTopics);
   }
 }

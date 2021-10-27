@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { SubCategoryService } from './sub-category.service';
 import { SubCategoryController } from './sub-category.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -19,8 +19,8 @@ import { PlayerModule } from '../../player/player.module';
     MapperModule,
     ModeratorModule,
     UserModule,
-    TopicModule,
-    PlayerModule,
+    forwardRef(() => TopicModule),
+    forwardRef(() => PlayerModule),
   ],
   providers: [SubCategoryService],
   controllers: [SubCategoryController],

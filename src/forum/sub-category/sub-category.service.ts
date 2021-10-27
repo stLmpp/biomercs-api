@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { SubCategoryRepository } from './sub-category.repository';
 import { SubCategoryWithInfoModeratorsTopicsViewModel, SubCategoryWithInfoViewModel } from './sub-category.view-model';
 import { SubCategory } from './sub-category.entity';
@@ -23,7 +23,7 @@ export class SubCategoryService {
     @InjectMapProfile(Moderator, ModeratorViewModel)
     private mapProfileModerator: MapProfile<Moderator, ModeratorViewModel>,
     private userService: UserService,
-    private topicService: TopicService
+    @Inject(forwardRef(() => TopicService)) private topicService: TopicService
   ) {}
 
   @Transactional()
@@ -112,5 +112,11 @@ export class SubCategoryService {
       topics,
       moderators: moderatorsViewModel,
     });
+  }
+
+  async findIdCategoryByIdSubCategory(idSubCategory: number): Promise<number> {
+    return this.subCategoryRepository
+      .findOneOrFail(idSubCategory, { select: ['idCategory'] })
+      .then(subCategory => subCategory.idCategory);
   }
 }

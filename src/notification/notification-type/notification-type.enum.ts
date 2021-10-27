@@ -3,4 +3,5 @@ export enum NotificationTypeEnum {
   ScoreRejected,
   ScoreRequestedChanges,
   ScoreSubmittedManyPlayers,
+  TopicReply,
 }

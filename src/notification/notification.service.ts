@@ -10,12 +10,14 @@ import { ScoreService } from '../score/score.service';
 import { fromScoreToName } from '../score/shared';
 import { Score } from '../score/score.entity';
 import { IsNull } from 'typeorm';
-import { NotificationExtraScore } from './notification-extra.view-model';
+import { NotificationExtraPost, NotificationExtraScore } from './notification-extra.view-model';
 import { NotificationViewModel } from './notification.view-model';
 import { isNotNil } from 'st-utils';
 import { InjectMapProfile } from '../mapper/inject-map-profile';
 import { MapProfile } from '../mapper/map-profile';
 import { Json } from '../util/find-operator';
+import { Topic } from '../forum/topic/topic.entity';
+import { TopicService } from '../forum/topic/topic.service';
 
 @Injectable()
 export class NotificationService {
@@ -25,7 +27,8 @@ export class NotificationService {
     private notificationTypeService: NotificationTypeService,
     @Inject(forwardRef(() => ScoreService)) private scoreService: ScoreService,
     @InjectMapProfile(Notification, NotificationViewModel)
-    private mapProfile: MapProfile<Notification, NotificationViewModel>
+    private mapProfile: MapProfile<Notification, NotificationViewModel>,
+    @Inject(forwardRef(() => TopicService)) private topicService: TopicService
   ) {}
 
   private async _getViewModelById(idNotification: number): Promise<NotificationViewModel> {
@@ -73,9 +76,15 @@ export class NotificationService {
     if (dto.idNotificationType) {
       dto.content = await this.notificationTypeService.findContentById(dto.idNotificationType);
     }
-    if (dto.extra && NotificationExtraScore.is(dto.extra)) {
-      const score = await this.scoreService.findByIdWithAllRelations(dto.extra.idScore);
-      dto.content = `${dto.content}\n${fromScoreToName(score)}`;
+    if (dto.extra) {
+      if (NotificationExtraScore.is(dto.extra)) {
+        const score = await this.scoreService.findByIdWithAllRelations(dto.extra.idScore);
+        dto.content = `${dto.content}\n${fromScoreToName(score)}`;
+      }
+      if (NotificationExtraPost.is(dto.extra)) {
+        const topic = await this.topicService.findById(dto.extra.idTopic);
+        dto.content = `${dto.content}\n${topic.name}`;
+      }
     }
     const { id } = await this.notificationRepository.save(dto);
     const notification = await this._getViewModelById(id);
@@ -88,9 +97,15 @@ export class NotificationService {
     }
     const dtosWithIdScore: (NotificationAddDto & { idScore: number })[] = [];
     const dtosWithIdNotificationType: (NotificationAddDto & { idNotificationType: number })[] = [];
+    const dtosWithIdTopic: (NotificationAddDto & { idTopic: number })[] = [];
     for (const dto of dtos) {
-      if (dto.extra && NotificationExtraScore.is(dto.extra)) {
-        dtosWithIdScore.push({ ...dto, idScore: dto.extra.idScore });
+      if (dto.extra) {
+        if (NotificationExtraScore.is(dto.extra)) {
+          dtosWithIdScore.push({ ...dto, idScore: dto.extra.idScore });
+        }
+        if (NotificationExtraPost.is(dto.extra)) {
+          dtosWithIdTopic.push({ ...dto, idTopic: dto.extra.idTopic });
+        }
       }
       if (dto.idNotificationType) {
         dtosWithIdNotificationType.push({ ...dto, idNotificationType: dto.idNotificationType });
@@ -106,6 +121,10 @@ export class NotificationService {
     if (dtosWithIdScore.length) {
       scores = await this.scoreService.findByIdsWithAllRelations(dtosWithIdScore.map(dto => dto.idScore));
     }
+    let topics: Topic[] = [];
+    if (dtosWithIdTopic) {
+      topics = await this.topicService.findByIds(dtosWithIdTopic.map(dto => dto.idTopic));
+    }
     const newDtos = dtos
       .map(dto => {
         if (dto.idNotificationType) {
@@ -116,11 +135,20 @@ export class NotificationService {
             dto.content = notificationType.content;
           }
         }
-        if (dto.extra && NotificationExtraScore.is(dto.extra)) {
-          const { idScore } = dto.extra;
-          const score = scores.find(_score => _score.id === idScore);
-          if (score) {
-            dto.content = `${dto.content}\n${fromScoreToName(score)}`;
+        if (dto.extra) {
+          if (NotificationExtraScore.is(dto.extra)) {
+            const { idScore } = dto.extra;
+            const score = scores.find(_score => _score.id === idScore);
+            if (score) {
+              dto.content = `${dto.content}\n${fromScoreToName(score)}`;
+            }
+          }
+          if (NotificationExtraPost.is(dto.extra)) {
+            const { idTopic } = dto.extra;
+            const topic = topics.find(_topic => _topic.id === idTopic);
+            if (topic) {
+              dto.content = `${dto.content}\n${topic.name}`;
+            }
           }
         }
         return dto;

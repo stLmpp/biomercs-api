@@ -7,6 +7,7 @@ import { MapperModule } from '../mapper/mapper.module';
 import { NotificationGateway } from './notification.gateway';
 import { NotificationTypeModule } from './notification-type/notification-type.module';
 import { ScoreModule } from '../score/score.module';
+import { TopicModule } from '../forum/topic/topic.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { ScoreModule } from '../score/score.module';
     MapperModule,
     NotificationTypeModule,
     forwardRef(() => ScoreModule),
+    forwardRef(() => TopicModule),
   ],
   providers: [NotificationService, NotificationGateway],
   controllers: [NotificationController],

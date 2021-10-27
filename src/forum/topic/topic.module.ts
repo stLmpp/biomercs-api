@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TopicService } from './topic.service';
 import { TopicController } from './topic.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -16,10 +16,10 @@ import { TopicPlayerSettingsModule } from '../topic-player-settings/topic-player
 @Module({
   imports: [
     TypeOrmModule.forFeature([TopicRepository]),
-    PostModule,
+    forwardRef(() => PostModule),
     MapperModule,
     EnvironmentModule,
-    PlayerModule,
+    forwardRef(() => PlayerModule),
     SubCategoryModeratorModule,
     UserModule,
     TopicPlayerLastReadModule,
