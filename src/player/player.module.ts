@@ -7,6 +7,7 @@ import { SteamModule } from '../steam/steam.module';
 import { RegionModule } from '../region/region.module';
 import { MapperModule } from '../mapper/mapper.module';
 import { EnvironmentModule } from '../environment/environment.module';
+import { FileUploadModule } from '../file-upload/file-upload.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { EnvironmentModule } from '../environment/environment.module';
     RegionModule,
     MapperModule,
     EnvironmentModule,
+    FileUploadModule,
   ],
   controllers: [PlayerController],
   providers: [PlayerService],

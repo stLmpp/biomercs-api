@@ -21,10 +21,10 @@ export class EnvironmentVariables {
   @Property() JWT_SECRET!: string;
   @Property() MAIL_ADDRESS!: string;
   @Property() MAIL_ADDRESS_OWNER!: string;
-  @Property() MAIL_AWS_ACCESS_KEY_ID!: string;
-  @Property() MAIL_AWS_API_VERSION!: string;
-  @Property() MAIL_AWS_REGION!: string;
-  @Property() MAIL_AWS_SECRET_ACCESS_KEY!: string;
+  @Property() AWS_ACCESS_KEY_ID!: string;
+  @Property() AWS_MAIL_API_VERSION!: string;
+  @Property() AWS_REGION!: string;
+  @Property() AWS_SECRET_ACCESS_KEY!: string;
   @Property(() => Number) MAIL_QUEUE_AUDIT_TIME!: number;
   @Property(() => Number) MAIL_QUEUE_MAX_RETRIES!: number;
   @Property(() => String) NODE_ENV!: 'production' | 'development';
@@ -37,6 +37,9 @@ export class EnvironmentVariables {
   @Property(() => Boolean) USE_ERROR_FILTER!: boolean;
   @Property() WEBSOCKET_PATH!: string;
   @Property(() => String, { isArray: true }) WEBSOCKET_TRANSPORTS!: Array<'polling' | 'websocket'>;
+  @Property() AWS_S3_API_VERSION!: string;
+  @Property() AWS_S3_BUCKET!: string;
+  @Property() AWS_S3_BUCKET_IMAGE_AVATAR!: string;
 }
 
 function parseType({ type }: PropertyMetadata, value: any): any {

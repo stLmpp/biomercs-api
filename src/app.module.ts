@@ -36,6 +36,7 @@ import { MailerConfig } from './mail/mailer.config';
 import { InputTypeModule } from './input-type/input-type.module';
 import { NotificationModule } from './notification/notification.module';
 import { ForumModule } from './forum/forum.module';
+import { FileUploadModule } from './file-upload/file-upload.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { ForumModule } from './forum/forum.module';
     InputTypeModule,
     NotificationModule,
     ForumModule,
+    FileUploadModule,
   ],
   controllers: [AppController],
   providers: [

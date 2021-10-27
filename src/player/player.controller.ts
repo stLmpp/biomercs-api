@@ -9,6 +9,7 @@ import {
   Post,
   Put,
   Query,
+  UploadedFile,
 } from '@nestjs/common';
 import { ApiBody, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ApiAuth } from '../auth/api-auth.decorator';
@@ -24,6 +25,13 @@ import { ApiPagination } from '../shared/decorator/api-pagination';
 import { InjectMapProfile } from '../mapper/inject-map-profile';
 import { Player } from './player.entity';
 import { MapProfile } from '../mapper/map-profile';
+import { ApiPlayerOrAdmin } from '../auth/api-player-or-admin.decorator';
+import { ApiFile } from '../file-upload/api-file.decorator';
+import { FileType } from '../file-upload/file.type';
+import { fileFilterImages } from '../file-upload/file-filter-images';
+import { FileUploadService } from '../file-upload/file-upload.service';
+import { Environment } from '../environment/environment';
+import sharp from 'sharp';
 
 @ApiAuth()
 @ApiTags('Player')
@@ -33,7 +41,9 @@ export class PlayerController {
     private playerService: PlayerService,
     @InjectMapProfile(Player, PlayerViewModel) private mapProfile: MapProfile<Player, PlayerViewModel>,
     @InjectMapProfile(Player, PlayerWithRegionSteamProfileViewModel)
-    private mapProfileWithRegionSteamProfile: MapProfile<Player, PlayerWithRegionSteamProfileViewModel>
+    private mapProfileWithRegionSteamProfile: MapProfile<Player, PlayerWithRegionSteamProfileViewModel>,
+    private fileUploadService: FileUploadService,
+    private environment: Environment
   ) {}
 
   @ApiAdmin()
@@ -42,14 +52,27 @@ export class PlayerController {
     return this.mapProfile.map(await this.playerService.add({ ...dto, noUser: true }));
   }
 
+  @ApiPlayerOrAdmin()
   @Put(`:${Params.idPlayer}/link-steam`)
   async linkSteamProfile(@Param(Params.idPlayer) idPlayer: number): Promise<string> {
     return this.playerService.linkSteamProfile(idPlayer);
   }
 
+  @ApiPlayerOrAdmin()
   @Put(`:${Params.idPlayer}/unlink-steam`)
   async unlinkSteamProfile(@Param(Params.idPlayer) idPlayer: number): Promise<PlayerViewModel> {
     return this.mapProfile.map(await this.playerService.unlinkSteamProfile(idPlayer));
+  }
+
+  @ApiPlayerOrAdmin()
+  @ApiFile('file', { limits: { fileSize: 5_250_000 }, fileFilter: fileFilterImages })
+  @Put(`:${Params.idPlayer}/avatar`)
+  async avatar(@Param(Params.idPlayer) idPlayer: number, @UploadedFile() file: FileType): Promise<void> {
+    const buffer = await sharp(file.buffer).resize({ height: 300, width: 300 }).png().toBuffer();
+    await this.fileUploadService.sendFile(
+      { ...file, buffer },
+      { path: this.environment.get('AWS_S3_BUCKET_IMAGE_AVATAR'), name: `${idPlayer}.png` }
+    );
   }
 
   @Get(`persona-name/:${Params.personaName}/id`)
@@ -122,6 +145,7 @@ export class PlayerController {
     return this.mapProfileWithRegionSteamProfile.map(await this.playerService.findById(idPlayer));
   }
 
+  @ApiPlayerOrAdmin()
   @Patch(`:${Params.idPlayer}`)
   async update(
     @Param(Params.idPlayer) idPlayer: number,
@@ -130,6 +154,7 @@ export class PlayerController {
     return this.mapProfileWithRegionSteamProfile.map(await this.playerService.update(idPlayer, dto));
   }
 
+  @ApiPlayerOrAdmin()
   @ApiBody({
     required: true,
     schema: { type: 'object', properties: { personaName: { type: 'string' } } },

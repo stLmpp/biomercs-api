@@ -10,11 +10,11 @@ export class MailerConfig implements MailerOptionsFactory {
   constructor(private environment: Environment) {}
 
   private readonly _awsSES = new SES({
-    apiVersion: this.environment.get('MAIL_AWS_API_VERSION'),
-    region: this.environment.get('MAIL_AWS_REGION'),
+    apiVersion: this.environment.get('AWS_MAIL_API_VERSION'),
+    region: this.environment.get('AWS_REGION'),
     credentials: {
-      accessKeyId: this.environment.get('MAIL_AWS_ACCESS_KEY_ID'),
-      secretAccessKey: this.environment.get('MAIL_AWS_SECRET_ACCESS_KEY'),
+      accessKeyId: this.environment.get('AWS_ACCESS_KEY_ID'),
+      secretAccessKey: this.environment.get('AWS_SECRET_ACCESS_KEY'),
     },
   });
 
