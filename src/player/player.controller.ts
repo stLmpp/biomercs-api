@@ -157,7 +157,7 @@ export class PlayerController {
     schema: { type: 'object', properties: { personaName: { type: 'string' } } },
   })
   @ApiResponse({ status: 200, type: 'string', description: 'Returns the updated lastUpdatedPersonaNameDate' })
-  @Put(`:${Params.idPlayer}/personaName`)
+  @Put(`:${Params.idPlayer}/persona-name`)
   async updatePersonaName(
     @Param(Params.idPlayer) idPlayer: number,
     @Body(Params.personaName) personaName: string
