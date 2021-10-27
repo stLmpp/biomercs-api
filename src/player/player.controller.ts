@@ -29,9 +29,6 @@ import { ApiPlayerOrAdmin } from '../auth/api-player-or-admin.decorator';
 import { ApiFile } from '../file-upload/api-file.decorator';
 import { FileType } from '../file-upload/file.type';
 import { fileFilterImages } from '../file-upload/file-filter-images';
-import { FileUploadService } from '../file-upload/file-upload.service';
-import { Environment } from '../environment/environment';
-import sharp from 'sharp';
 
 @ApiAuth()
 @ApiTags('Player')
@@ -41,9 +38,7 @@ export class PlayerController {
     private playerService: PlayerService,
     @InjectMapProfile(Player, PlayerViewModel) private mapProfile: MapProfile<Player, PlayerViewModel>,
     @InjectMapProfile(Player, PlayerWithRegionSteamProfileViewModel)
-    private mapProfileWithRegionSteamProfile: MapProfile<Player, PlayerWithRegionSteamProfileViewModel>,
-    private fileUploadService: FileUploadService,
-    private environment: Environment
+    private mapProfileWithRegionSteamProfile: MapProfile<Player, PlayerWithRegionSteamProfileViewModel>
   ) {}
 
   @ApiAdmin()
@@ -67,12 +62,8 @@ export class PlayerController {
   @ApiPlayerOrAdmin()
   @ApiFile('file', { limits: { fileSize: 5_250_000 }, fileFilter: fileFilterImages })
   @Put(`:${Params.idPlayer}/avatar`)
-  async avatar(@Param(Params.idPlayer) idPlayer: number, @UploadedFile() file: FileType): Promise<void> {
-    const buffer = await sharp(file.buffer).resize({ height: 300, width: 300 }).png().toBuffer();
-    await this.fileUploadService.sendFile(
-      { ...file, buffer },
-      { path: this.environment.get('AWS_S3_BUCKET_IMAGE_AVATAR'), name: `${idPlayer}.png` }
-    );
+  async avatar(@Param(Params.idPlayer) idPlayer: number, @UploadedFile() file: FileType): Promise<string> {
+    return this.playerService.avatar(idPlayer, file);
   }
 
   @Get(`persona-name/:${Params.personaName}/id`)

@@ -75,4 +75,8 @@ export class Player extends BaseEntity implements PlayerInterface {
   @Property(() => Score)
   @OneToMany(() => Score, score => score.createdByPlayer)
   scores?: Score[];
+
+  @Property()
+  @Column({ nullable: true, type: 'character varying' })
+  avatar?: string | null;
 }

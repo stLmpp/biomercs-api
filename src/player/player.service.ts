@@ -9,13 +9,19 @@ import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { FindConditions, ILike, In, Not } from 'typeorm';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { isAfter, subDays } from 'date-fns';
+import sharp from 'sharp';
+import { FileType } from '../file-upload/file.type';
+import { FileUploadService } from '../file-upload/file-upload.service';
+import { Environment } from '../environment/environment';
 
 @Injectable()
 export class PlayerService {
   constructor(
     private playerRepository: PlayerRepository,
     @Inject(forwardRef(() => SteamService)) private steamService: SteamService,
-    private regionService: RegionService
+    private regionService: RegionService,
+    private fileUploadService: FileUploadService,
+    private environment: Environment
   ) {}
 
   @Transactional()
@@ -159,5 +165,16 @@ export class PlayerService {
     const lastUpdatedPersonaNameDate = new Date();
     await this.playerRepository.update(idPlayer, { personaName, lastUpdatedPersonaNameDate });
     return lastUpdatedPersonaNameDate.toISOString();
+  }
+
+  async avatar(idPlayer: number, file: FileType): Promise<string> {
+    const buffer = await sharp(file.buffer).resize({ height: 300, width: 300 }).png().toBuffer();
+    const avatar = `${idPlayer}.png`;
+    await this.fileUploadService.sendFile(
+      { ...file, buffer },
+      { path: this.environment.get('AWS_S3_BUCKET_IMAGE_AVATAR'), name: avatar }
+    );
+    await this.playerRepository.update(idPlayer, { avatar });
+    return avatar;
   }
 }
