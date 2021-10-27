@@ -200,7 +200,8 @@ export class NotificationService {
     const notifications = await this.notificationRepository.find({
       where: { extra: Json('idScore', '' + idScore) },
     });
-    this.notificationGateway.sendNotifications(this.mapProfile.map(notifications));
+    const notificationsWithScore = await this._completeWithScore(notifications);
+    this.notificationGateway.sendNotifications(this.mapProfile.map(notificationsWithScore));
   }
 
   async delete(idNotification: number): Promise<void> {
