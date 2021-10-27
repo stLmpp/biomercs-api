@@ -11,6 +11,7 @@ import { NotificationModule } from '../../notification/notification.module';
 import { TopicPlayerSettingsModule } from '../topic-player-settings/topic-player-settings.module';
 import { TopicModule } from '../topic/topic.module';
 import { SubCategoryModule } from '../sub-category/sub-category.module';
+import { TopicPlayerLastReadModule } from '../topic-player-last-read/topic-player-last-read.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { SubCategoryModule } from '../sub-category/sub-category.module';
     TopicPlayerSettingsModule,
     forwardRef(() => TopicModule),
     forwardRef(() => SubCategoryModule),
+    TopicPlayerLastReadModule,
   ],
   providers: [PostService],
   controllers: [PostController],

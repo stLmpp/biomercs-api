@@ -12,6 +12,7 @@ import { TopicService } from '../topic/topic.service';
 import { NotificationAddDto } from '../../notification/notification.dto';
 import { NotificationTypeEnum } from '../../notification/notification-type/notification-type.enum';
 import { SubCategoryService } from '../sub-category/sub-category.service';
+import { TopicPlayerLastReadService } from '../topic-player-last-read/topic-player-last-read.service';
 
 @Injectable()
 export class PostService {
@@ -23,7 +24,8 @@ export class PostService {
     @Inject(forwardRef(() => NotificationService)) private notificationService: NotificationService,
     private topicPlayerSettingsService: TopicPlayerSettingsService,
     @Inject(forwardRef(() => TopicService)) private topicService: TopicService,
-    @Inject(forwardRef(() => SubCategoryService)) private subCategoryService: SubCategoryService
+    @Inject(forwardRef(() => SubCategoryService)) private subCategoryService: SubCategoryService,
+    private topicPlayerLastReadService: TopicPlayerLastReadService
   ) {}
 
   private async _validateModeratorOrCreator(
@@ -97,6 +99,7 @@ export class PostService {
       this.postRepository.findById(post.idTopic, post.id, idPlayer),
       this.userService.isAdminByPlayer(idPlayer),
       this.topicPlayerSettingsService.addIfNotSet(post.idTopic, idPlayer, true),
+      this.topicPlayerLastReadService.upsert(idPlayer, post.idTopic),
     ]);
     await this._sendNotification(idSubCategory, post.idTopic, post.id, idPlayer);
     postViewModel.deleteAllowed = postViewModel.deleteAllowed || isAdmin;
