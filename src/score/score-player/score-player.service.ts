@@ -3,13 +3,15 @@ import { ScorePlayer } from './score-player.entity';
 import { ScorePlayerAddDto, ScorePlayerUpdateDto } from './score-player.dto';
 import { ScorePlayerRepository } from './score-player.repository';
 import { PlatformGameMiniGameModeCharacterCostumeService } from '../../platform/platform-game-mini-game-mode-character-costume/platform-game-mini-game-mode-character-costume.service';
-import * as normalizeUrl from 'normalize-url';
+import normalizeUrl from 'normalize-url';
+import { PlatformInputTypeService } from '../../platform/platform-input-type/platform-input-type.service';
 
 @Injectable()
 export class ScorePlayerService {
   constructor(
     private scorePlayerRepository: ScorePlayerRepository,
-    private platformGameMiniGameModeCharacterCostumeService: PlatformGameMiniGameModeCharacterCostumeService
+    private platformGameMiniGameModeCharacterCostumeService: PlatformGameMiniGameModeCharacterCostumeService,
+    private platformInputTypeService: PlatformInputTypeService
   ) {}
 
   async addMany(
@@ -21,7 +23,7 @@ export class ScorePlayerService {
     dto: ScorePlayerAddDto[]
   ): Promise<ScorePlayer[]> {
     const scorePlayersDto = await Promise.all(
-      dto.map(async ({ idCharacterCostume, ...scorePlayer }) => {
+      dto.map(async ({ idInputType, idPlatformInputType, idCharacterCostume, ...scorePlayer }) => {
         const idPlatformGameMiniGameModeCharacterCostume =
           await this.platformGameMiniGameModeCharacterCostumeService.findIdByPlatformGameMiniGameModeCharacterCostume(
             idPlatform,
@@ -30,20 +32,26 @@ export class ScorePlayerService {
             idMode,
             idCharacterCostume
           );
+        if (idInputType && !idPlatformInputType) {
+          idPlatformInputType = await this.platformInputTypeService.findIdByPlatformInputType(idPlatform, idInputType);
+        }
+        if (!idInputType && !idPlatformInputType) {
+          idPlatformInputType = await this.platformInputTypeService.findIdByPlatformPlayer(
+            idPlatform,
+            scorePlayer.idPlayer
+          );
+        }
         const evidence = normalizeUrl(scorePlayer.evidence);
         return new ScorePlayer().extendDto({
           ...scorePlayer,
           idScore,
           idPlatformGameMiniGameModeCharacterCostume,
           evidence,
+          idPlatformInputType,
         });
       })
     );
     return this.scorePlayerRepository.save(scorePlayersDto);
-  }
-
-  async findCountByIdScoreWithoutCreator(idScore: number): Promise<number> {
-    return this.scorePlayerRepository.findCountByIdScoreWithoutCreator(idScore);
   }
 
   async updateMany(dtos: ScorePlayerUpdateDto[]): Promise<void> {

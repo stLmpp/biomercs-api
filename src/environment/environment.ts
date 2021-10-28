@@ -80,6 +80,7 @@ export class Environment {
   readonly apiUrl: string;
   readonly frontEndUrl: string;
   readonly appVersion = version;
+  readonly typeormNamingStrategy = new NamingStrategy();
 
   private _getUrl(host: string, port?: number): string {
     let url = `${this.http}://${host}`;
@@ -124,7 +125,7 @@ export class Environment {
       type: 'postgres',
       autoLoadEntities: true,
       logging: !this.production ? 'all' : false,
-      namingStrategy: new NamingStrategy(),
+      namingStrategy: this.typeormNamingStrategy,
       dropSchema: false,
       migrations: [resolve(process.cwd() + '/migration/*.js')],
       cli: { migrationsDir: 'migration' },

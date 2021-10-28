@@ -32,6 +32,14 @@ export class ScorePlayerAddDto {
   @IsString()
   @IsNotEmpty()
   evidence!: string;
+
+  @IsOptional()
+  @IsNumber()
+  idInputType?: number;
+
+  @IsOptional()
+  @IsNumber()
+  idPlatformInputType?: number;
 }
 
 export class ScorePlayerUpdateDto {

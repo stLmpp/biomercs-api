@@ -70,20 +70,34 @@ import { ErrorEntity } from '../error/error.entity';
 import { ErrorViewModel } from '../error/error.view-model';
 import { format } from 'sql-formatter';
 import { isString } from 'st-utils';
+import { InputType } from '../input-type/input-type.entity';
+import { InputTypeViewModel } from '../input-type/input-type.view-model';
 
 const mapProfiles: MapProfile<any, any>[] = [
   mapperService.create(Game, GameViewModel),
   mapperService.create(MiniGame, MiniGameViewModel),
   mapperService.create(Platform, PlatformViewModel),
   mapperService.create(Mode, ModeViewModel),
-  mapperService.create(Player, PlayerViewModel),
+  mapperService.create(Player, PlayerViewModel).for(
+    dest => dest.inputTypeName,
+    from => from.inputType?.name
+  ),
   mapperService.create(Player, PlayerWithRegionSteamProfileViewModel),
   mapperService.create(Region, RegionViewModel),
   mapperService.create(Rule, RuleViewModel),
   mapperService.create(Stage, StageViewModel),
   mapperService.create(SteamProfile, SteamProfileViewModel),
   mapperService.create(SteamProfile, SteamProfileWithPlayerViewModel),
-  mapperService.create(User, UserViewModel),
+  mapperService
+    .create(User, UserViewModel)
+    .for(
+      dest => dest.idPlayer,
+      from => from.player?.id
+    )
+    .for(
+      dest => dest.playerPersonaName,
+      from => from.player?.personaName
+    ),
   mapperService.create(CharacterCostume, CharacterCostumeViewModel),
   mapperService.create(Character, CharacterViewModel),
   mapperService.create(Character, CharacterViewModelWithCharacterCostumes),
@@ -119,6 +133,14 @@ const mapProfiles: MapProfile<any, any>[] = [
     .for(
       dest => dest.characterName,
       from => from.platformGameMiniGameModeCharacterCostume.characterCostume.character.name
+    )
+    .for(
+      dest => dest.inputTypeName,
+      from => from.platformInputType?.inputType?.name
+    )
+    .for(
+      dest => dest.idInputType,
+      from => from.platformInputType?.idInputType
     ),
   createScoreViewModeMap(ScoreViewModel),
   createScoreViewModeMap(ScoreWithScoreChangeRequestsViewModel),
@@ -182,6 +204,7 @@ const mapProfiles: MapProfile<any, any>[] = [
         return format(query, { language: 'postgresql' });
       }
     ),
+  mapperService.create(InputType, InputTypeViewModel),
 ];
 
 function createScoreViewModeMap<T extends ScoreViewModel>(type: Type<T>): MapProfile<Score, T> {

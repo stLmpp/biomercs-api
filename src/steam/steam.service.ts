@@ -72,12 +72,12 @@ export class SteamService {
   }
 
   @Transactional()
-  async createWithPlayer(steamid: string): Promise<SteamProfile> {
+  async createWithPlayer(steamid: string, noUser = false): Promise<SteamProfile> {
     const steamProfile = await this.create(steamid);
     const playerDto: PlayerAddDto & { noUser: boolean } = {
-      personaName: steamProfile.personaname,
+      personaName: steamProfile.personaname.substr(0, 100),
       idSteamProfile: steamProfile.id,
-      noUser: true,
+      noUser,
     };
     if (steamProfile.loccountrycode) {
       const possibleIdRegion = await this.regionService.findIdByShortName(steamProfile.loccountrycode);

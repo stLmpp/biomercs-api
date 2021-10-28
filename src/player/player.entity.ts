@@ -5,19 +5,21 @@ import { SteamProfile } from '../steam/steam-profile.entity';
 import { Region } from '../region/region.entity';
 import { PlayerInterface } from './player.interface';
 import { Property } from '../mapper/property.decorator';
+import { InputType } from '../input-type/input-type.entity';
+import { SchemaEnum } from '../environment/schema.enum';
 
-@Entity()
+@Entity({ schema: SchemaEnum.main })
 export class Player extends BaseEntity implements PlayerInterface {
   @Property()
-  @Column({ unique: true })
+  @Column({ unique: true, length: 100 })
   personaName!: string;
 
   @Property()
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 250 })
   title?: string;
 
   @Property()
-  @Column({ nullable: true })
+  @Column({ nullable: true, length: 2000 })
   aboutMe?: string;
 
   @Property()
@@ -54,4 +56,13 @@ export class Player extends BaseEntity implements PlayerInterface {
   @Property()
   @Column({ nullable: true })
   lastUpdatedPersonaNameDate?: Date;
+
+  @Property()
+  @Column({ type: 'int', nullable: true })
+  idInputType?: number | null;
+
+  @Property(() => InputType)
+  @ManyToOne(() => InputType, inputType => inputType.players, { nullable: true })
+  @JoinColumn()
+  inputType?: InputType | null;
 }

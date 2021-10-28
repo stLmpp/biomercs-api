@@ -3,4 +3,5 @@ export enum ScoreStatusEnum {
   Rejected,
   AwaitingApproval,
   ChangesRequested,
+  Cancelled,
 }

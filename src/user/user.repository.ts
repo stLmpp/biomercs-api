@@ -24,12 +24,14 @@ export class UserRepository extends Repository<User> {
   async findByAuthCode(code: number): Promise<User | undefined> {
     return this.createQueryBuilder('u')
       .innerJoin('u.currentAuthConfirmation', 'ac')
+      .leftJoinAndSelect('u.player', 'p')
       .andWhere('ac.code = :code', { code })
       .getOne();
   }
 
   async findByIdWithPasswordAndSalt(idUser: number): Promise<User> {
     return this.createQueryBuilder('user')
+      .leftJoinAndSelect('user.player', 'p')
       .addSelect('user.password')
       .addSelect('user.salt')
       .andWhere('user.id = :idUser', { idUser })

@@ -1,6 +1,6 @@
 import { resolve } from 'path';
 import { copy, rm, writeFile } from 'fs-extra';
-import * as AdmZip from 'adm-zip';
+import AdmZip from 'adm-zip';
 import { asyncSpawn, getArg, getSpinner } from './util';
 import { PackageJson } from 'type-fest';
 

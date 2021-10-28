@@ -31,21 +31,3 @@ export class ScoreApprovalAddAdminDto extends ScoreApprovalAddDto {
   @IsDefined()
   idScore!: number;
 }
-
-export class ScoreApprovalAddPlayerDto extends ScoreApprovalAddDto {
-  @IsDefined()
-  @IsNumber()
-  idPlayer!: number;
-
-  @IsDefined()
-  @IsEnum(ScoreApprovalActionEnum)
-  action!: ScoreApprovalActionEnum;
-
-  @IsDefined()
-  @IsDate()
-  actionDate!: Date;
-
-  @IsNumber()
-  @IsDefined()
-  idScore!: number;
-}

@@ -60,6 +60,6 @@ export class SteamController {
   @ApiAuth()
   @Post(`create/:${Params.steamid}`)
   async create(@Param(Params.steamid) steamid: string): Promise<SteamProfileWithPlayerViewModel> {
-    return this.mapProfileSteamProfileWithPlayer.mapPromise(this.steamService.createWithPlayer(steamid));
+    return this.mapProfileSteamProfileWithPlayer.mapPromise(this.steamService.createWithPlayer(steamid, true));
   }
 }

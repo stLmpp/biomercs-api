@@ -19,7 +19,7 @@ import {
 import { UserAddDto } from '../user/user.dto';
 import { genSalt, hash } from 'bcrypt';
 import { AuthRegisterViewModel, AuthSteamLoginSocketErrorType } from './auth.view-model';
-import { isNumber } from 'st-utils';
+import { isNumber, random } from 'st-utils';
 import { AuthConfirmationService } from './auth-confirmation/auth-confirmation.service';
 import { User } from '../user/user.entity';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
@@ -27,7 +27,6 @@ import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { PlayerService } from '../player/player.service';
 import { AuthGateway } from './auth.gateway';
 import { SteamService } from '../steam/steam.service';
-import { random } from '../util/util';
 import { MailService } from '../mail/mail.service';
 import { MailPriorityEnum } from '../mail/mail-priority.enum';
 import { EncryptorService } from '../encryptor/encryptor.service';
@@ -100,7 +99,9 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
     if (user.idCurrentAuthConfirmation) {
+      await this.userService.update(user.id, { idCurrentAuthConfirmation: null });
       await this.authConfirmationService.invalidateCode(user.idCurrentAuthConfirmation);
+      user.idCurrentAuthConfirmation = null;
     }
     await this._sendConfirmationCodeEmail(user);
   }
@@ -269,7 +270,7 @@ export class AuthService {
     }
     const steamProfile = await this.steamService.createWithPlayer(steamid);
     const password = '' + random(100_000_000_000, 999_999_999_999);
-    const user = await this._registerUser({ email, username: steamProfile.personaname, password });
+    const user = await this._registerUser({ email, username: steamProfile.personaname.substr(0, 100), password });
     await this.playerService.updateIdUser(steamProfile.player.id, user.id);
     return { email: user.email, message: 'User created! Please confirm your e-mail', idUser: user.id };
   }

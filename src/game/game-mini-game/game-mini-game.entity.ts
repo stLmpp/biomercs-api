@@ -5,9 +5,10 @@ import { MiniGame } from '../../mini-game/mini-game.entity';
 import { PlatformGameMiniGame } from '../../platform/platform-game-mini-game/platform-game-mini-game.entity';
 import { Property } from '../../mapper/property.decorator';
 import { GameMiniGameInterface } from './game-mini-game.interface';
+import { SchemaEnum } from '../../environment/schema.enum';
 
 @Unique(['idGame', 'idMiniGame'])
-@Entity()
+@Entity({ schema: SchemaEnum.main })
 export class GameMiniGame extends BaseEntity implements GameMiniGameInterface {
   @Property()
   @Column()

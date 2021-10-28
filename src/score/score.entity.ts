@@ -7,8 +7,9 @@ import { ScoreWorldRecord } from './score-world-record/score-world-record.entity
 import { ScoreChangeRequest } from './score-change-request/score-change-request.entity';
 import { Property } from '../mapper/property.decorator';
 import { ScoreStatus } from './score-status/score-status.entity';
+import { SchemaEnum } from '../environment/schema.enum';
 
-@Entity()
+@Entity({ schema: SchemaEnum.main })
 export class Score extends BaseEntity {
   @Property()
   @Column()

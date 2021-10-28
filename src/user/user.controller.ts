@@ -47,9 +47,6 @@ export class UserController {
     @Query(Params.limit) limit: number
   ): Promise<Pagination<UserViewModel>> {
     const { items, meta } = await this.userService.findByUsernameOrEmail(term, page, limit);
-    return {
-      meta,
-      items: this.mapProfile.map(items),
-    };
+    return { meta, items: this.mapProfile.map(items) };
   }
 }

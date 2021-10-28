@@ -2,8 +2,9 @@ import { Column, Entity } from 'typeorm';
 import { BaseEntity } from '../shared/super/base-entity';
 import { RuleInterface } from './rule.interface';
 import { Property } from '../mapper/property.decorator';
+import { SchemaEnum } from '../environment/schema.enum';
 
-@Entity({ orderBy: { order: 'ASC' } })
+@Entity({ schema: SchemaEnum.main, orderBy: { order: 'ASC' } })
 export class Rule extends BaseEntity implements RuleInterface {
   @Property()
   @Column()

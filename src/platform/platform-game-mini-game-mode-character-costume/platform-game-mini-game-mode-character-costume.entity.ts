@@ -4,9 +4,10 @@ import { PlatformGameMiniGameMode } from '../platform-game-mini-game-mode/platfo
 import { CharacterCostume } from '../../character/character-costume/character-costume.entity';
 import { Property } from '../../mapper/property.decorator';
 import { PlatformGameMiniGameModeCharacterCostumeInterface } from './platform-game-mini-game-mode-character-costume.interface';
+import { SchemaEnum } from '../../environment/schema.enum';
 
 @Unique(['idPlatformGameMiniGameMode', 'idCharacterCostume'])
-@Entity()
+@Entity({ schema: SchemaEnum.main })
 export class PlatformGameMiniGameModeCharacterCostume
   extends BaseEntity
   implements PlatformGameMiniGameModeCharacterCostumeInterface

@@ -3,8 +3,9 @@ import { BaseEntity } from '../shared/super/base-entity';
 import { Property } from '../mapper/property.decorator';
 import { ErrorInterface } from './error.interface';
 import { User } from '../user/user.entity';
+import { SchemaEnum } from '../environment/schema.enum';
 
-@Entity()
+@Entity({ schema: SchemaEnum.main })
 export class ErrorEntity extends BaseEntity implements ErrorInterface {
   @Property()
   @Column()

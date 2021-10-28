@@ -3,8 +3,9 @@ import { BaseEntity } from '../shared/super/base-entity';
 import { PlatformGameMiniGameMode } from '../platform/platform-game-mini-game-mode/platform-game-mini-game-mode.entity';
 import { Property } from '../mapper/property.decorator';
 import { ModeInterface } from './mode.interface';
+import { SchemaEnum } from '../environment/schema.enum';
 
-@Entity()
+@Entity({ schema: SchemaEnum.main })
 export class Mode extends BaseEntity implements ModeInterface {
   @Property()
   @Column()

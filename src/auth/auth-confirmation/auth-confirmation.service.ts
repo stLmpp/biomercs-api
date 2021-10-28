@@ -4,7 +4,7 @@ import { AuthConfirmationAddDto } from './auth-confirmation.dto';
 import { AuthConfirmation } from './auth-confirmation.entity';
 import { IsNull, MoreThanOrEqual } from 'typeorm';
 import { addDays, isBefore, subHours } from 'date-fns';
-import { random } from '../../util/util';
+import { random } from 'st-utils';
 import { User } from '../../user/user.entity';
 
 @Injectable()

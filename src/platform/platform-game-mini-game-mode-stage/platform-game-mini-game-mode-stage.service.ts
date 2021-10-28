@@ -55,22 +55,6 @@ export class PlatformGameMiniGameModeStageService {
     );
   }
 
-  async findByPlatformGameMiniGameModeStage(
-    idPlatform: number,
-    idGame: number,
-    idMiniGame: number,
-    idMode: number,
-    idStage: number
-  ): Promise<PlatformGameMiniGameModeStage> {
-    return this.platformGameMiniGameModeStageRepository.findByPlatformGameMiniGameModeStage(
-      idPlatform,
-      idGame,
-      idMiniGame,
-      idMode,
-      idStage
-    );
-  }
-
   async findByPlatformGameMiniGameMode(
     idPlatform: number,
     idGame: number,

@@ -1,26 +1,19 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "CommonJS",
     "declaration": true,
     "removeComments": true,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "allowSyntheticDefaultImports": true,
-    "target": "es2017",
+    "esModuleInterop": true,
+    "target": "ES2017",
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
     "resolveJsonModule": true,
     "strict": true,
-    "noImplicitAny": true,
-    "noImplicitThis": true,
-    "noImplicitOverride": true,
-    "alwaysStrict": true,
-    "strictBindCallApply": true,
-    "strictNullChecks": true,
-    "strictFunctionTypes": true,
-    "strictPropertyInitialization": true
+    "noImplicitOverride": true
   },
-  "exclude": ["node_modules", "test", "dist", "**/*spec.ts", "scripts"]
+  "exclude": ["node_modules", "test", "dist", "**/*spec.ts", "migration"]
 }

@@ -45,16 +45,6 @@ export class PlatformGameMiniGameModeStageRepository extends Repository<Platform
     ).id;
   }
 
-  async findByPlatformGameMiniGameModeStage(
-    idPlatform: number,
-    idGame: number,
-    idMiniGame: number,
-    idMode: number,
-    idStage: number
-  ): Promise<PlatformGameMiniGameModeStage> {
-    return this._createQueryBuilderRelationsWithStage(idPlatform, idGame, idMiniGame, idMode, idStage).getOneOrFail();
-  }
-
   async findByPlatformGameMiniGameMode(
     idPlatform: number,
     idGame: number,

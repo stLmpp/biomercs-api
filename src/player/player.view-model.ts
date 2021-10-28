@@ -13,6 +13,8 @@ export class PlayerViewModel implements PlayerInterface {
   @Property() personaName!: string;
   @Property() title?: string;
   @Property() lastUpdatedPersonaNameDate?: Date;
+  @Property() idInputType?: number;
+  @Property() inputTypeName?: string;
 }
 
 export class PlayerWithRegionSteamProfileViewModel extends PlayerViewModel {

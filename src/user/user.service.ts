@@ -34,7 +34,7 @@ export class UserService {
   }
 
   async update(idUser: number, dto: UserUpdateDto): Promise<User> {
-    const user = await this.userRepository.findOne(idUser);
+    const user = await this.userRepository.findOne(idUser, { relations: ['player'] });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -80,6 +80,7 @@ export class UserService {
   async validateUserToLogin(dto: AuthCredentialsDto): Promise<[User | undefined, HttpException | null]> {
     const user = await this.userRepository.findOne({
       where: [{ username: dto.username }, { email: dto.username }],
+      relations: ['player'],
     });
     if (!user || !user.canLogin()) {
       if (user?.bannedDate) {
@@ -136,7 +137,11 @@ export class UserService {
     usernameOrEmail = `%${usernameOrEmail}%`;
     return this.userRepository.paginate(
       { page, limit },
-      { where: [{ username: ILike(usernameOrEmail) }, { email: ILike(usernameOrEmail) }] }
+      {
+        where: [{ username: ILike(usernameOrEmail) }, { email: ILike(usernameOrEmail) }],
+        order: { username: 'ASC' },
+        relations: ['player'],
+      }
     );
   }
 

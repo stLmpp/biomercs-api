@@ -3,8 +3,9 @@ import { BaseEntity } from '../../shared/super/base-entity';
 import { Score } from '../score.entity';
 import { Property } from '../../mapper/property.decorator';
 import { ScoreChangeRequestInterface } from './score-change-request.interface';
+import { SchemaEnum } from '../../environment/schema.enum';
 
-@Entity()
+@Entity({ schema: SchemaEnum.main })
 export class ScoreChangeRequest extends BaseEntity implements ScoreChangeRequestInterface {
   @Property()
   @Column()

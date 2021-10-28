@@ -403,4 +403,13 @@ export class ScoreService {
         )
     );
   }
+
+  async cancelScore(idScore: number): Promise<void> {
+    const score = await this.scoreRepository.findOneOrFail(idScore);
+    if (score.idScoreStatus !== ScoreStatusEnum.ChangesRequested) {
+      const status = await this.scoreStatusService.findOneOrFail(ScoreStatusEnum.ChangesRequested);
+      throw new BadRequestException(`Can't cancel score because the status is not ${status.description}`);
+    }
+    await this.scoreRepository.update(idScore, { idScoreStatus: ScoreStatusEnum.Cancelled });
+  }
 }

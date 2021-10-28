@@ -37,7 +37,9 @@ export class ScoreRepository extends Repository<Score> {
       .innerJoinAndSelect('sp.platformGameMiniGameModeCharacterCostume', 'pgmmcc')
       .innerJoinAndSelect('pgmmcc.characterCostume', 'cc')
       .innerJoinAndSelect('cc.character', 'c')
-      .innerJoinAndSelect('sp.player', 'pl');
+      .innerJoinAndSelect('sp.player', 'pl')
+      .leftJoinAndSelect('sp.platformInputType', 'pit')
+      .leftJoinAndSelect('pit.inputType', 'it');
     if (idPlatform) {
       queryBuilder.andWhere('p.id = :idPlatform', { idPlatform });
     }
@@ -387,6 +389,9 @@ export class ScoreRepository extends Repository<Score> {
     }
     if (dto.idCharacterCostumes?.length) {
       queryBuilder.andWhere('cc.id in (:...idCharacterCostumes)', { idCharacterCostumes: dto.idCharacterCostumes });
+    }
+    if (dto.idStages?.length) {
+      queryBuilder.andWhere('s.id in (:...idStages)', { idStages: dto.idStages });
     }
     if (dto.worldRecord || dto.characterWorldRecord || dto.combinationWorldRecord) {
       const types: ScoreWorldRecordTypeEnum[] = [];

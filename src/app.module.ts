@@ -33,6 +33,7 @@ import { ErrorInterceptor } from './error/error.interceptor';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EnvironmentModule } from './environment/environment.module';
 import { MailerConfig } from './mail/mailer.config';
+import { InputTypeModule } from './input-type/input-type.module';
 
 @Module({
   imports: [
@@ -63,6 +64,7 @@ import { MailerConfig } from './mail/mailer.config';
     ErrorModule,
     ScheduleModule.forRoot(),
     EnvironmentModule,
+    InputTypeModule,
   ],
   controllers: [AppController],
   providers: [
