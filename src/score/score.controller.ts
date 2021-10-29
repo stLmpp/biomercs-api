@@ -57,8 +57,8 @@ export class ScoreController {
   ) {}
 
   @Post()
-  async add(@Body() dto: ScoreAddDto, @AuthUser() user: User): Promise<ScoreViewModel> {
-    return this.mapProfile.map(await this.scoreService.add(dto, user));
+  async add(@Body() dto: ScoreAddDto, @AuthUser(AuthPlayerPipe) player: Player): Promise<ScoreViewModel> {
+    return this.mapProfile.map(await this.scoreService.add(dto, player.id));
   }
 
   @ApiQuery({ name: Params.limit, required: false })

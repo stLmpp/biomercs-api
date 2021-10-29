@@ -102,12 +102,15 @@ export class ScoreService {
   @Transactional()
   async add(
     { idPlatform, idGame, idMiniGame, idMode, idStage, scorePlayers, ...dto }: ScoreAddDto,
-    user: User
+    idPlayer: number
   ): Promise<Score> {
-    const [mode, createdByIdPlayer] = await Promise.all([
-      this.modeService.findById(idMode),
-      this.playerService.findIdByIdUser(user.id),
-    ]);
+    if (scorePlayers.length && scorePlayers[0].idPlayer !== idPlayer) {
+      const isAdmin = await this.userService.isAdminByPlayer(idPlayer);
+      if (!isAdmin) {
+        throw new BadRequestException(`You can only submit scores for yourself`);
+      }
+    }
+    const mode = await this.modeService.findById(idMode);
     if (mode.playerQuantity !== scorePlayers.length) {
       throw new BadRequestException(
         `This mode requires ${mode.playerQuantity} player(s), but we received ${scorePlayers.length}`
@@ -126,12 +129,11 @@ export class ScoreService {
         ...dto,
         idPlatformGameMiniGameModeStage,
         idScoreStatus: ScoreStatusEnum.AwaitingApproval,
-        createdByIdPlayer,
+        createdByIdPlayer: idPlayer,
       })
     );
     if (scorePlayers.every(scorePlayer => !scorePlayer.host)) {
-      const hostPlayer =
-        scorePlayers.find(scorePlayer => scorePlayer.idPlayer === createdByIdPlayer) ?? scorePlayers[0];
+      const hostPlayer = scorePlayers.find(scorePlayer => scorePlayer.idPlayer === idPlayer) ?? scorePlayers[0];
       scorePlayers = scorePlayers.map(
         scorePlayer => new ScorePlayerAddDto({ ...scorePlayer, host: hostPlayer.idPlayer === scorePlayer.idPlayer })
       );
@@ -139,7 +141,7 @@ export class ScoreService {
     await this.scorePlayerService.addMany(score.id, idPlatform, idGame, idMiniGame, idMode, scorePlayers);
     if (mode.playerQuantity > 1) {
       const idPlayersWithoutCreator = scorePlayers
-        .filter(scorePlayer => scorePlayer.idPlayer !== createdByIdPlayer)
+        .filter(scorePlayer => scorePlayer.idPlayer !== idPlayer)
         .map(scorePlayer => scorePlayer.idPlayer);
       const idUsers = await this.userService.findIdsByPlayers(idPlayersWithoutCreator);
       if (idUsers.length) {
