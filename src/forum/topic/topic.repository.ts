@@ -43,7 +43,7 @@ export class TopicRepository extends Repository<Topic> {
       .addSelect('last_post.id', 'idLastPost')
       .addSelect('last_post.name', 'nameLastPost')
       .addSelect('topic.creationDate', 'creationDate')
-      .addSelect('coalesce(topic_player_settings.notifications, true)', 'notifications')
+      .addSelect(`coalesce(topic_player_settings.notifications, topic.idPlayer = ${idPlayer})`, 'notifications')
       .addSelect(
         subQuery =>
           subQuery
