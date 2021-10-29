@@ -36,7 +36,7 @@ export class AuthGateway implements OnGatewayDisconnect {
     this.server.emit(AuthGatewayEvents.userOnline, viewModel);
   }
 
-  handleDisconnect(client: Socket): any {
+  handleDisconnect(client: Socket): void {
     const token = client.handshake.query.token;
     if (!isString(token)) {
       return;
