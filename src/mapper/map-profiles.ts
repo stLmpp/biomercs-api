@@ -95,6 +95,8 @@ import { SubCategoryModeratorViewModel } from '../forum/sub-category-moderator/s
 import { SubCategoryModerator } from '../forum/sub-category-moderator/sub-category-moderator.entity';
 import { PostEntity } from '../forum/post/post.entity';
 import { PostViewModel } from '../forum/post/post.view-model';
+import { PlatformInputType } from '../platform/platform-input-type/platform-input-type.entity';
+import { PlatformInputTypeViewModel } from '../platform/platform-input-type/platform-input-type.view-model';
 
 const mapProfiles: MapProfile<any, any>[] = [
   mapperService.create(Game, GameViewModel),
@@ -311,6 +313,10 @@ const mapProfiles: MapProfile<any, any>[] = [
     ),
   mapperService.create(PostEntity, PostViewModel),
   mapperService.create(Category, CategoryWithSubCategoriesAltViewModel),
+  mapperService.create(PlatformInputType, PlatformInputTypeViewModel).for(
+    dest => dest.nameInputType,
+    from => from.inputType?.name ?? ''
+  ),
 ];
 
 function createScoreViewModeMap<T extends ScoreViewModel>(type: Type<T>): MapProfile<Score, T> {

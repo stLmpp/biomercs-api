@@ -13,6 +13,7 @@ import sharp from 'sharp';
 import { FileType } from '../file-upload/file.type';
 import { FileUploadService } from '../file-upload/file-upload.service';
 import { Environment } from '../environment/environment';
+import { InputTypeService } from '../input-type/input-type.service';
 
 @Injectable()
 export class PlayerService {
@@ -21,7 +22,8 @@ export class PlayerService {
     @Inject(forwardRef(() => SteamService)) private steamService: SteamService,
     private regionService: RegionService,
     private fileUploadService: FileUploadService,
-    private environment: Environment
+    private environment: Environment,
+    private inputTypeService: InputTypeService
   ) {}
 
   @Transactional()
@@ -82,6 +84,9 @@ export class PlayerService {
     await this.playerRepository.update(idPlayer, dto);
     if (dto.idRegion && player.idRegion !== dto.idRegion) {
       player.region = await this.regionService.findById(dto.idRegion);
+    }
+    if (dto.idInputType && player.idInputType !== dto.idInputType) {
+      player.inputType = await this.inputTypeService.findById(dto.idInputType);
     }
     return new Player().extendDto({ ...player, ...dto });
   }
