@@ -105,7 +105,10 @@ const mapProfiles: MapProfile<any, any>[] = [
     dest => dest.inputTypeName,
     from => from.inputType?.name
   ),
-  mapperService.create(Player, PlayerWithRegionSteamProfileViewModel),
+  mapperService.create(Player, PlayerWithRegionSteamProfileViewModel).for(
+    dest => dest.inputTypeName,
+    from => from.inputType?.name
+  ),
   mapperService.create(Region, RegionViewModel),
   mapperService.create(Rule, RuleViewModel),
   mapperService.create(Stage, StageViewModel),
