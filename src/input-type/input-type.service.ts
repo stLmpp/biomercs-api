@@ -9,4 +9,8 @@ export class InputTypeService {
   async findByPlatform(idPlatform: number): Promise<InputType[]> {
     return this.inputTypeRepository.findByPlatform(idPlatform);
   }
+
+  async findAll(): Promise<InputType[]> {
+    return this.inputTypeRepository.find();
+  }
 }
