@@ -55,6 +55,7 @@ export enum Params {
   key = 'key',
   ruleType = 'ruleType',
   notifications = 'notifications',
+  newName = 'newName',
 }
 
 export enum HeaderParams {

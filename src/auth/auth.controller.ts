@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -13,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { AuthRegisterViewModel } from './auth.view-model';
+import { AuthRegisterViewModel, AuthSteamValidateNamesViewModel } from './auth.view-model';
 import {
   AuthChangeForgottenPasswordDto,
   AuthChangePasswordDto,
@@ -92,7 +93,7 @@ export class AuthController {
 
   @ApiQuery({ name: Params.email, required: false })
   @ApiQuery({ name: Params.username, required: false })
-  @Get(`user/exists`)
+  @Get('user/exists')
   async userExists(@Query(Params.email) email?: string, @Query(Params.username) username?: string): Promise<boolean> {
     return (
       (await this.userService.anyByEmailOrUsername(username, email)) ||
@@ -139,6 +140,23 @@ export class AuthController {
     @Headers(HeaderParams.authorizationSteam) token: string
   ): Promise<boolean> {
     return this.authService.validateSteamToken(steamid, token);
+  }
+
+  @Get(`steam/:${Params.steamid}/validate-names`)
+  async validateSteamNames(@Param(Params.steamid) steamid: string): Promise<AuthSteamValidateNamesViewModel> {
+    return this.authService.validateSteamNames(steamid);
+  }
+
+  @Get('steam/register/name-exists')
+  async steamRegisterNameExists(@Query(Params.newName) newName?: string): Promise<boolean> {
+    if (!newName) {
+      throw new BadRequestException('newName is required');
+    }
+    const [userExists, playerExists] = await Promise.all([
+      this.userService.anyByEmailOrUsername(newName),
+      this.playerService.personaNameExists(newName),
+    ]);
+    return userExists || playerExists;
   }
 
   @ApiOkResponse()

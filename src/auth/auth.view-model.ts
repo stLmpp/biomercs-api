@@ -1,7 +1,9 @@
+import { Property } from '../mapper/property.decorator';
+
 export class AuthRegisterViewModel {
-  email!: string;
-  message!: string;
-  idUser!: number;
+  @Property() email!: string;
+  @Property() message!: string;
+  @Property() idUser!: number;
 }
 
 export enum AuthSteamLoginSocketErrorType {
@@ -13,10 +15,15 @@ export enum AuthSteamLoginSocketErrorType {
 }
 
 export class AuthSteamLoginSocketViewModel {
-  uuid!: string;
-  token!: string;
-  error?: string;
-  errorType?: AuthSteamLoginSocketErrorType;
-  steamid?: string;
-  idUser?: number;
+  @Property() uuid!: string;
+  @Property() token!: string;
+  @Property() error?: string;
+  @Property() errorType?: AuthSteamLoginSocketErrorType;
+  @Property() steamid?: string;
+  @Property() idUser?: number;
+}
+
+export class AuthSteamValidateNamesViewModel {
+  @Property() steamPersonaName!: string;
+  @Property() newName!: boolean;
 }

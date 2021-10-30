@@ -72,10 +72,10 @@ export class SteamService {
   }
 
   @Transactional()
-  async createWithPlayer(steamid: string, noUser = false): Promise<SteamProfile> {
+  async createWithPlayer(steamid: string, noUser = false, newName?: string): Promise<SteamProfile> {
     const steamProfile = await this.create(steamid);
     const playerDto: PlayerAddDto & { noUser: boolean } = {
-      personaName: steamProfile.personaname.substr(0, 100),
+      personaName: newName ?? steamProfile.personaname.substr(0, 100),
       idSteamProfile: steamProfile.id,
       noUser,
     };
