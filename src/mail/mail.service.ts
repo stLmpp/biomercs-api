@@ -110,10 +110,8 @@ export class MailService {
         break;
       }
       default: {
-        if (this.environment.production) {
-          await this.mailQueueRepository.save(new MailQueue().normalizeDto(newOptions));
-          this._mailQueue$.next();
-        }
+        await this.mailQueueRepository.save(new MailQueue().normalizeDto(newOptions));
+        this._mailQueue$.next();
       }
     }
   }

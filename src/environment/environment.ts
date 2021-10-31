@@ -22,7 +22,6 @@ export class EnvironmentVariables {
   @Property() MAIL_ADDRESS!: string;
   @Property() MAIL_ADDRESS_OWNER!: string;
   @Property() AWS_ACCESS_KEY_ID!: string;
-  @Property() AWS_MAIL_API_VERSION!: string;
   @Property() AWS_REGION!: string;
   @Property() AWS_SECRET_ACCESS_KEY!: string;
   @Property(() => Number) MAIL_QUEUE_AUDIT_TIME!: number;
@@ -40,6 +39,9 @@ export class EnvironmentVariables {
   @Property() AWS_S3_API_VERSION!: string;
   @Property() AWS_S3_BUCKET!: string;
   @Property() AWS_S3_BUCKET_IMAGE_AVATAR!: string;
+  @Property() MAIL_HOST!: string;
+  @Property(() => Number) MAIL_PORT!: number;
+  @Property() MAIL_PASS!: string;
 }
 
 function parseType({ type }: PropertyMetadata, value: any): any {
