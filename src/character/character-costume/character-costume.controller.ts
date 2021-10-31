@@ -26,7 +26,7 @@ export class CharacterCostumeController {
     @Param(Params.idCharacter) idCharacter: number,
     @Body() dto: CharacterCostumeAddDto
   ): Promise<CharacterCostumeViewModel> {
-    return this.mapProfile.mapPromise(this.characterCostumeService.add(dto));
+    return this.mapProfile.map(await this.characterCostumeService.add(dto));
   }
 
   @ApiAdmin()
@@ -35,6 +35,6 @@ export class CharacterCostumeController {
     @Param(Params.idCharacterCostume) idCharacterCostume: number,
     @Body() dto: CharacterCostumeUpdateDto
   ): Promise<CharacterCostumeViewModel> {
-    return this.mapProfile.mapPromise(this.characterCostumeService.update(idCharacterCostume, dto));
+    return this.mapProfile.map(await this.characterCostumeService.update(idCharacterCostume, dto));
   }
 }

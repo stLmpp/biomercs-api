@@ -5,10 +5,11 @@ import { User } from '../user/user.entity';
 import { JwtPayload } from './jwt-payload.interface';
 import { UserService } from '../user/user.service';
 import { Environment } from '../environment/environment';
+import { AuthGateway } from './auth.gateway';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private userService: UserService, private environment: Environment) {
+  constructor(private userService: UserService, private environment: Environment, private authGateway: AuthGateway) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: environment.get('JWT_SECRET'),
@@ -30,12 +31,12 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     } catch {
       throw new UnauthorizedException();
     }
-    if (!user.canLogin()) {
+    if (!user.canLogin() || user.password !== payload.password) {
       throw new UnauthorizedException();
     }
-    if (user.password !== payload.password) {
-      throw new UnauthorizedException();
-    }
+    user.lastOnline = new Date();
+    await this.userService.update(user.id, { lastOnline: user.lastOnline });
+    this.authGateway.sendUserOnline({ id: user.id, idPlayer: user.player.id, personaName: user.player.personaName });
     return user;
   }
 }

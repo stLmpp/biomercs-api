@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -13,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { ApiOkResponse, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
-import { AuthRegisterViewModel } from './auth.view-model';
+import { AuthRegisterViewModel, AuthSteamValidateNamesViewModel } from './auth.view-model';
 import {
   AuthChangeForgottenPasswordDto,
   AuthChangePasswordDto,
@@ -59,7 +60,7 @@ export class AuthController {
   @ApiOkResponse()
   @Post('login')
   async login(@Body() dto: AuthCredentialsDto): Promise<UserViewModel> {
-    return this.mapProfile.mapPromise(this.authService.login(dto));
+    return this.mapProfile.map(await this.authService.login(dto));
   }
 
   @ApiOkResponse()
@@ -87,12 +88,12 @@ export class AuthController {
     @Param(Params.idUser) idUser: number,
     @Param(Params.confirmationCode) confirmationCode: number
   ): Promise<UserViewModel> {
-    return this.mapProfile.mapPromise(this.authService.confirmCode(idUser, confirmationCode));
+    return this.mapProfile.map(await this.authService.confirmCode(idUser, confirmationCode));
   }
 
   @ApiQuery({ name: Params.email, required: false })
   @ApiQuery({ name: Params.username, required: false })
-  @Get(`user/exists`)
+  @Get('user/exists')
   async userExists(@Query(Params.email) email?: string, @Query(Params.username) username?: string): Promise<boolean> {
     return (
       (await this.userService.anyByEmailOrUsername(username, email)) ||
@@ -141,6 +142,23 @@ export class AuthController {
     return this.authService.validateSteamToken(steamid, token);
   }
 
+  @Get(`steam/:${Params.steamid}/validate-names`)
+  async validateSteamNames(@Param(Params.steamid) steamid: string): Promise<AuthSteamValidateNamesViewModel> {
+    return this.authService.validateSteamNames(steamid);
+  }
+
+  @Get('steam/register/name-exists')
+  async steamRegisterNameExists(@Query(Params.newName) newName?: string): Promise<boolean> {
+    if (!newName) {
+      throw new BadRequestException('newName is required');
+    }
+    const [userExists, playerExists] = await Promise.all([
+      this.userService.anyByEmailOrUsername(newName),
+      this.playerService.personaNameExists(newName),
+    ]);
+    return userExists || playerExists;
+  }
+
   @ApiOkResponse()
   @Post('forgot-password')
   async sendForgotPasswordConfirmationCode(@Query(Params.email) email: string): Promise<void> {
@@ -149,7 +167,7 @@ export class AuthController {
 
   @Post('forgot-password/change-password')
   async changeForgottenPassword(@Body() dto: AuthChangeForgottenPasswordDto): Promise<UserViewModel> {
-    return this.mapProfile.mapPromise(this.authService.changeForgottenPassword(dto));
+    return this.mapProfile.map(await this.authService.changeForgottenPassword(dto));
   }
 
   @ApiAuth()
@@ -161,7 +179,7 @@ export class AuthController {
   @ApiAuth()
   @Post('change-password/confirm')
   async confirmChangePassword(@AuthUser() user: User, @Body() dto: AuthChangePasswordDto): Promise<UserViewModel> {
-    return this.mapProfile.mapPromise(this.authService.confirmCodeAndChangePassword(user.id, dto));
+    return this.mapProfile.map(await this.authService.confirmCodeAndChangePassword(user.id, dto));
   }
 
   @ApiAuth()
@@ -169,5 +187,10 @@ export class AuthController {
   async validateChangePassword(@Param(Params.key) key: string, @AuthUser() user: User): Promise<boolean> {
     const payload = this.authService.validateChangePassword(key);
     return payload?.idUser === user.id;
+  }
+
+  @Get(`dev/get-token`)
+  async devGetToken(): Promise<string> {
+    return this.authService.devGetToken();
   }
 }

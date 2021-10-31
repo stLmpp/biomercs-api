@@ -18,6 +18,8 @@ import { ScoreGateway } from './score.gateway';
 import { MailModule } from '../mail/mail.module';
 import { ScoreStatusModule } from './score-status/score-status.module';
 import { EnvironmentModule } from '../environment/environment.module';
+import { NotificationModule } from '../notification/notification.module';
+import { UserModule } from '../user/user.module';
 
 @Module({
   imports: [
@@ -36,9 +38,18 @@ import { EnvironmentModule } from '../environment/environment.module';
     MailModule,
     ScoreStatusModule,
     EnvironmentModule,
+    forwardRef(() => NotificationModule),
+    UserModule,
   ],
   providers: [ScoreService, ScoreGateway],
   controllers: [ScoreController],
-  exports: [ScoreService, ScorePlayerModule, ScoreApprovalModule, ScoreApprovalMotiveModule, ScoreWorldRecordModule],
+  exports: [
+    ScoreService,
+    ScorePlayerModule,
+    ScoreApprovalModule,
+    ScoreApprovalMotiveModule,
+    ScoreWorldRecordModule,
+    ScoreGateway,
+  ],
 })
 export class ScoreModule {}

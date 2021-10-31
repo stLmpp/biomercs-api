@@ -50,7 +50,7 @@ export class Score extends BaseEntity {
   createdByIdPlayer!: number;
 
   @Property(() => Player)
-  @ManyToOne(() => Player)
+  @ManyToOne(() => Player, player => player.scores)
   @JoinColumn({ name: 'createdByIdPlayer' })
   createdByPlayer!: Player;
 

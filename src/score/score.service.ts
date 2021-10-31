@@ -30,6 +30,11 @@ import { ScoreStatusEnum } from './score-status/score-status.enum';
 import { ScoreStatusService } from './score-status/score-status.service';
 import { ScoreTableWorldRecord, ScoreTopTableWorldRecord } from './view-model/score-table-world-record.view-model';
 import { ScoreWorldRecordTypeEnum } from './score-world-record/score-world-record-type.enum';
+import { NotificationService } from '../notification/notification.service';
+import { NotificationTypeEnum } from '../notification/notification-type/notification-type.enum';
+import { UserService } from '../user/user.service';
+import { NotificationAddDto } from '../notification/notification.dto';
+import { PaginationMeta } from '../shared/view-model/pagination.view-model';
 
 @Injectable()
 export class ScoreService {
@@ -45,7 +50,9 @@ export class ScoreService {
     private scoreChangeRequestService: ScoreChangeRequestService,
     private scoreGateway: ScoreGateway,
     private mailService: MailService,
-    private scoreStatusService: ScoreStatusService
+    private scoreStatusService: ScoreStatusService,
+    @Inject(forwardRef(() => NotificationService)) private notificationService: NotificationService,
+    private userService: UserService
   ) {}
 
   private async _sendEmailScoreApproved(idScore: number): Promise<void> {
@@ -65,33 +72,15 @@ export class ScoreService {
         },
       } = score;
       await this.mailService.sendMailInfo(
-        {
-          to: playerCreated.user.email,
-          subject: 'Biomercs2 - Score approved',
-        },
+        { to: playerCreated.user.email, subject: 'Biomercs - Score approved' },
         {
           title: 'Score approved',
           info: [
-            {
-              title: 'Platform',
-              value: platform.name,
-            },
-            {
-              title: 'Game',
-              value: game.name,
-            },
-            {
-              title: 'Mini game',
-              value: miniGame.name,
-            },
-            {
-              title: 'Mode',
-              value: mode.name,
-            },
-            {
-              title: 'Stage',
-              value: stage.name,
-            },
+            { title: 'Platform', value: platform.name },
+            { title: 'Game', value: game.name },
+            { title: 'Mini game', value: miniGame.name },
+            { title: 'Mode', value: mode.name },
+            { title: 'Stage', value: stage.name },
             ...score.scorePlayers.reduce(
               (acc, { player, evidence, platformGameMiniGameModeCharacterCostume: { characterCostume } }, index) => [
                 ...acc,
@@ -99,10 +88,7 @@ export class ScoreService {
                   title: `Player ${index + 1}`,
                   value: `${player.personaName} (${characterCostume.character.name} ${characterCostume.name})`,
                 },
-                {
-                  title: 'Evidence',
-                  value: evidence,
-                },
+                { title: 'Evidence', value: evidence },
               ],
               [] as MailInfo[]
             ),
@@ -116,12 +102,15 @@ export class ScoreService {
   @Transactional()
   async add(
     { idPlatform, idGame, idMiniGame, idMode, idStage, scorePlayers, ...dto }: ScoreAddDto,
-    user: User
+    idPlayer: number
   ): Promise<Score> {
-    const [mode, createdByIdPlayer] = await Promise.all([
-      this.modeService.findById(idMode),
-      this.playerService.findIdByIdUser(user.id),
-    ]);
+    if (scorePlayers.length && scorePlayers[0].idPlayer !== idPlayer) {
+      const isAdmin = await this.userService.isAdminByPlayer(idPlayer);
+      if (!isAdmin) {
+        throw new BadRequestException(`You can only submit scores for yourself`);
+      }
+    }
+    const mode = await this.modeService.findById(idMode);
     if (mode.playerQuantity !== scorePlayers.length) {
       throw new BadRequestException(
         `This mode requires ${mode.playerQuantity} player(s), but we received ${scorePlayers.length}`
@@ -140,17 +129,30 @@ export class ScoreService {
         ...dto,
         idPlatformGameMiniGameModeStage,
         idScoreStatus: ScoreStatusEnum.AwaitingApproval,
-        createdByIdPlayer,
+        createdByIdPlayer: idPlayer,
       })
     );
     if (scorePlayers.every(scorePlayer => !scorePlayer.host)) {
-      const hostPlayer =
-        scorePlayers.find(scorePlayer => scorePlayer.idPlayer === createdByIdPlayer) ?? scorePlayers[0];
+      const hostPlayer = scorePlayers.find(scorePlayer => scorePlayer.idPlayer === idPlayer) ?? scorePlayers[0];
       scorePlayers = scorePlayers.map(
         scorePlayer => new ScorePlayerAddDto({ ...scorePlayer, host: hostPlayer.idPlayer === scorePlayer.idPlayer })
       );
     }
     await this.scorePlayerService.addMany(score.id, idPlatform, idGame, idMiniGame, idMode, scorePlayers);
+    if (mode.playerQuantity > 1) {
+      const idPlayersWithoutCreator = scorePlayers
+        .filter(scorePlayer => scorePlayer.idPlayer !== idPlayer)
+        .map(scorePlayer => scorePlayer.idPlayer);
+      const idUsers = await this.userService.findIdsByPlayers(idPlayersWithoutCreator);
+      if (idUsers.length) {
+        const dtos: NotificationAddDto[] = idUsers.map(idUser => ({
+          idUser,
+          idNotificationType: NotificationTypeEnum.ScoreSubmittedManyPlayers,
+          extra: { idScore: score.id, idScoreStatus: score.idScoreStatus },
+        }));
+        await this.notificationService.addAndSendMany(dtos);
+      }
+    }
     this.scoreGateway.updateCountApprovals();
     return this.scoreRepository.findByIdWithAllRelations(score.id);
   }
@@ -167,10 +169,12 @@ export class ScoreService {
       throw new BadRequestException(`Score is not awaiting for Admin approval`);
     }
     const approvalDate = new Date();
+    const idScoreStatus =
+      action === ScoreApprovalActionEnum.Approve ? ScoreStatusEnum.Approved : ScoreStatusEnum.Rejected;
     await Promise.all([
       this.scoreApprovalService.addAdmin({ ...dto, idUser: user.id, action, actionDate: approvalDate, idScore }),
       this.scoreRepository.update(idScore, {
-        idScoreStatus: action === ScoreApprovalActionEnum.Approve ? ScoreStatusEnum.Approved : ScoreStatusEnum.Rejected,
+        idScoreStatus,
         approvalDate,
       }),
     ]);
@@ -187,6 +191,19 @@ export class ScoreService {
         this._sendEmailScoreApproved(score.id),
       ]);
     }
+    const idUsers = await this.userService.findIdsByScore(idScore);
+    if (idUsers.length) {
+      const idNotificationType: NotificationTypeEnum =
+        action === ScoreApprovalActionEnum.Approve
+          ? NotificationTypeEnum.ScoreApproved
+          : NotificationTypeEnum.ScoreRejected;
+      const dtos: NotificationAddDto[] = idUsers.map(idUser => ({
+        idNotificationType,
+        extra: { idScore, idScoreStatus },
+        idUser,
+      }));
+      await this.notificationService.addAndSendMany(dtos);
+    }
     this.scoreGateway.updateCountApprovals();
   }
 
@@ -194,6 +211,14 @@ export class ScoreService {
   async requestChanges(idScore: number, dtos: string[]): Promise<ScoreChangeRequest[]> {
     await this.scoreRepository.update(idScore, { idScoreStatus: ScoreStatusEnum.ChangesRequested });
     const scoreChangeRequests = await this.scoreChangeRequestService.addMany(idScore, dtos);
+    const idUser = await this.userService.findIdByScore(idScore);
+    if (idUser) {
+      await this.notificationService.addAndSend({
+        idNotificationType: NotificationTypeEnum.ScoreRequestedChanges,
+        extra: { idScore, idScoreStatus: ScoreStatusEnum.ChangesRequested },
+        idUser,
+      });
+    }
     this.scoreGateway.updateCountApprovals();
     return scoreChangeRequests;
   }
@@ -214,6 +239,7 @@ export class ScoreService {
     }
     await this.scoreRepository.update(idScore, updateScore);
     this.scoreGateway.updateCountApprovals();
+    await this.notificationService.findNotificationsAndSendUpdate(idScore);
     return hasAnyRequestChanges;
   }
 
@@ -224,6 +250,10 @@ export class ScoreService {
 
   async findByIdWithAllRelations(idScore: number): Promise<Score> {
     return this.scoreRepository.findByIdWithAllRelations(idScore);
+  }
+
+  async findByIdsWithAllRelations(idScores: number[]): Promise<Score[]> {
+    return this.scoreRepository.findByIdsWithAllRelations(idScores);
   }
 
   async findLeaderboards(
@@ -368,8 +398,16 @@ export class ScoreService {
     );
   }
 
-  async findScoresWithChangeRequests(idPlayer: number, page: number, limit: number): Promise<Pagination<Score>> {
+  async findScoresWithChangeRequests(
+    idPlayer: number,
+    page: number,
+    limit: number
+  ): Promise<Pagination<Score, PaginationMeta>> {
     return this.scoreRepository.findScoresWithChangeRequests(idPlayer, page, limit);
+  }
+
+  async findScoreWithChangeRequests(idScore: number): Promise<Score> {
+    return this.scoreRepository.findScoreWithChangeRequests(idScore);
   }
 
   async findApprovalAdminCount(): Promise<number> {
@@ -411,5 +449,13 @@ export class ScoreService {
       throw new BadRequestException(`Can't cancel score because the status is not ${status.description}`);
     }
     await this.scoreRepository.update(idScore, { idScoreStatus: ScoreStatusEnum.Cancelled });
+  }
+
+  async findByIds(idScores: number[]): Promise<Score[]> {
+    return this.scoreRepository.findByIds(idScores);
+  }
+
+  async findById(idScore: number): Promise<Score | undefined> {
+    return this.scoreRepository.findOne(idScore);
   }
 }

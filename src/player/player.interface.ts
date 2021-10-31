@@ -7,4 +7,5 @@ export interface PlayerInterface {
   idSteamProfile?: number;
   noUser: boolean;
   idRegion: number;
+  avatar?: string | null;
 }

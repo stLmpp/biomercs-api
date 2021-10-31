@@ -11,6 +11,9 @@ export class AuthPlayerPipe implements PipeTransform {
     if (!user) {
       return null;
     }
+    if (user.player) {
+      return user.player;
+    }
     return this.playerService.findByIdUser(user.id).then(player => player ?? null);
   }
 }

@@ -8,6 +8,7 @@ import { ScorePlayer } from './score-player/score-player.entity';
 import { ScoreSearchDto } from './score.dto';
 import { ScoreWorldRecordTypeEnum } from './score-world-record/score-world-record-type.enum';
 import { ScoreStatusEnum } from './score-status/score-status.enum';
+import { includeAllScoresRelations } from './shared';
 
 @EntityRepository(Score)
 export class ScoreRepository extends Repository<Score> {
@@ -22,24 +23,7 @@ export class ScoreRepository extends Repository<Score> {
     idMode?: number,
     idStage?: number
   ): SelectQueryBuilder<Score> {
-    const queryBuilder = this.createQueryBuilder('score')
-      .innerJoinAndSelect('score.scoreStatus', 'ss')
-      .innerJoinAndSelect('score.platformGameMiniGameModeStage', 'pgmms')
-      .innerJoinAndSelect('pgmms.stage', 's')
-      .innerJoinAndSelect('pgmms.platformGameMiniGameMode', 'pgmm')
-      .innerJoinAndSelect('pgmm.mode', 'm')
-      .innerJoinAndSelect('pgmm.platformGameMiniGame', 'pgm')
-      .innerJoinAndSelect('pgm.gameMiniGame', 'gm')
-      .innerJoinAndSelect('gm.game', 'g')
-      .innerJoinAndSelect('gm.miniGame', 'mg')
-      .innerJoinAndSelect('pgm.platform', 'p')
-      .innerJoinAndSelect('score.scorePlayers', 'sp')
-      .innerJoinAndSelect('sp.platformGameMiniGameModeCharacterCostume', 'pgmmcc')
-      .innerJoinAndSelect('pgmmcc.characterCostume', 'cc')
-      .innerJoinAndSelect('cc.character', 'c')
-      .innerJoinAndSelect('sp.player', 'pl')
-      .leftJoinAndSelect('sp.platformInputType', 'pit')
-      .leftJoinAndSelect('pit.inputType', 'it');
+    const queryBuilder = includeAllScoresRelations(this.createQueryBuilder('score'));
     if (idPlatform) {
       queryBuilder.andWhere('p.id = :idPlatform', { idPlatform });
     }
@@ -186,11 +170,14 @@ export class ScoreRepository extends Repository<Score> {
     orderBy,
     orderByDirection,
     idStage,
-  }: ScoreApprovalParams): Promise<Pagination<Score>> {
-    return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode, idStage)
-      .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.AwaitingApproval })
-      .orderBy(this._resolveOrderByApproval(orderBy), orderByDirection.toUpperCase() as Uppercase<OrderByDirection>)
-      .paginate(page, limit);
+  }: ScoreApprovalParams): Promise<Pagination<Score, PaginationMeta>> {
+    return (
+      this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode, idStage)
+        .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.AwaitingApproval })
+        // .andWhereInIds(pagination.items.map(score => score.id))
+        .orderBy(this._resolveOrderByApproval(orderBy), orderByDirection.toUpperCase() as Uppercase<OrderByDirection>)
+        .paginate(page, limit, true)
+    );
   }
 
   async findTopScoreByIdPlatformGameMiniGameModeStage(
@@ -311,27 +298,25 @@ export class ScoreRepository extends Repository<Score> {
     return this.queryDifferentCharacters(qb, idPlatformGameMiniGameModeCharacterCostumes, 'score').getOne();
   }
 
-  async findScoresWithChangeRequests(idPlayer: number, page: number, limit: number): Promise<Pagination<Score>> {
-    let pagination = await this.createQueryBuilder('score')
-      .innerJoin('score.scorePlayers', 'sp')
-      .innerJoin('score.scoreChangeRequests', 'scr')
+  async findScoresWithChangeRequests(
+    idPlayer: number,
+    page: number,
+    limit: number
+  ): Promise<Pagination<Score, PaginationMeta>> {
+    return this._createQueryBuilderRelations()
+      .innerJoinAndSelect('score.scoreChangeRequests', 'scr')
       .andWhere('scr.dateFulfilled is null')
       .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.ChangesRequested })
-      .andWhere('sp.idPlayer = :idPlayer', { idPlayer })
-      .select('score.id')
-      .paginate(page, limit);
-    // There's no need to do the next query if there isn't any score
-    if (pagination.items.length) {
-      pagination = {
-        ...pagination,
-        items: await this._createQueryBuilderRelations()
-          .innerJoinAndSelect('score.scoreChangeRequests', 'scr')
-          .andWhere('scr.dateFulfilled is null')
-          .andWhere('score.id in (:...ids)', { ids: pagination.items.map(score => score.id) })
-          .getMany(),
-      };
-    }
-    return pagination;
+      .andWhere('score.createdByIdPlayer = :idPlayer', { idPlayer })
+      .paginate(page, limit, true);
+  }
+
+  async findScoreWithChangeRequests(idScore: number): Promise<Score> {
+    return this._createQueryBuilderRelations()
+      .innerJoinAndSelect('score.scoreChangeRequests', 'scr')
+      .andWhere('scr.dateFulfilled is null')
+      .andWhere('score.id = :idScore', { idScore })
+      .getOneOrFail();
   }
 
   async findApprovalAdminCount(): Promise<number> {
@@ -409,12 +394,12 @@ export class ScoreRepository extends Repository<Score> {
     if (dto.onlyMyScores && idPlayer) {
       queryBuilder.andWhere('pl.id = :idPlayer', { idPlayer });
     }
-    const { items, meta } = await queryBuilder.select('score.id').paginate(dto.page, dto.limit);
+    const { items, meta } = await queryBuilder.select('score.id').paginate(dto.page, dto.limit, true);
     const scores = await this.findByIdsWithAllRelations(items.map(raw => raw.id));
-    return {
-      items: items.map(raw => scores.find(_score => _score.id === raw.id)!),
-      meta,
-    };
+    return new Pagination(
+      items.map(raw => scores.find(_score => _score.id === raw.id)!),
+      meta
+    );
   }
 
   async findWorldRecordsTable(
@@ -441,11 +426,12 @@ export class ScoreRepository extends Repository<Score> {
   }
 
   async findRejectedAndPendingScoresByIdPlayer(idPlayer: number): Promise<Score[]> {
-    return this._includeScoreWorldRecord('score', this._createQueryBuilderRelations())
-      .andWhere('score.idScoreStatus in (:...idScoreStatus)', {
-        idScoreStatus: [ScoreStatusEnum.AwaitingApproval, ScoreStatusEnum.Rejected],
-      })
-      .andWhere('score.createdByIdPlayer = :idPlayer', { idPlayer })
-      .getMany();
+    const idScores = await this.createQueryBuilder('score')
+      .select('score.id')
+      .innerJoin('score.scorePlayers', 'sp')
+      .andWhere('sp.idPlayer = :idPlayer', { idPlayer })
+      .getMany()
+      .then(scores => scores.map(score => score.id));
+    return this.findByIdsWithAllRelations(idScores);
   }
 }

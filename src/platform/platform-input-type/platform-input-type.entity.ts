@@ -4,10 +4,11 @@ import { BaseEntity } from '../../shared/super/base-entity';
 import { Property } from '../../mapper/property.decorator';
 import { InputType } from '../../input-type/input-type.entity';
 import { Platform } from '../platform.entity';
+import { PlatformInputTypeInterface } from './platform-input-type.interface';
 
 @Unique(['idInputType', 'idPlatform'])
 @Entity({ schema: SchemaEnum.main })
-export class PlatformInputType extends BaseEntity {
+export class PlatformInputType extends BaseEntity implements PlatformInputTypeInterface {
   @Property()
   @Column()
   idInputType!: number;

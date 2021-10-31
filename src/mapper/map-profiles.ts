@@ -62,16 +62,41 @@ import {
   ScoreTopTableWorldRecordViewModel,
 } from '../score/view-model/score-table-world-record.view-model';
 import {
-  ScoresGroupedByStatusViewModel,
   ScoresGroupedByStatus,
+  ScoresGroupedByStatusViewModel,
 } from '../score/view-model/score-grouped-by-status.view-model';
 import { SteamPlayerLinkedSocket, SteamPlayerLinkedSocketViewModel } from '../steam/steam-player-linked.view-model';
 import { ErrorEntity } from '../error/error.entity';
 import { ErrorViewModel } from '../error/error.view-model';
 import { format } from 'sql-formatter';
-import { isString } from 'st-utils';
+import { isNotNil, isString } from 'st-utils';
 import { InputType } from '../input-type/input-type.entity';
 import { InputTypeViewModel } from '../input-type/input-type.view-model';
+import { Notification } from '../notification/notification.entity';
+import { NotificationViewModel } from '../notification/notification.view-model';
+import { Category } from '../forum/category/category.entity';
+import {
+  CategoryViewModel,
+  CategoryWithSubCategoriesAltViewModel,
+  CategoryWithSubCategoriesViewModel,
+} from '../forum/category/category.view-model';
+import { SubCategory } from '../forum/sub-category/sub-category.entity';
+import {
+  SubCategoryViewModel,
+  SubCategoryWithInfoViewModel,
+  SubCategoryWithInfoModeratorsViewModel,
+  SubCategoryWithInfoModeratorsTopicsViewModel,
+} from '../forum/sub-category/sub-category.view-model';
+import { Moderator } from '../forum/moderator/moderator.entity';
+import { ModeratorViewModel, ModeratorViewModelWithInfo } from '../forum/moderator/moderator.view-model';
+import { Topic } from '../forum/topic/topic.entity';
+import { TopicRecentViewModel, TopicViewModel } from '../forum/topic/topic.view-model';
+import { SubCategoryModeratorViewModel } from '../forum/sub-category-moderator/sub-category-moderator.view-model';
+import { SubCategoryModerator } from '../forum/sub-category-moderator/sub-category-moderator.entity';
+import { PostEntity } from '../forum/post/post.entity';
+import { PostViewModel } from '../forum/post/post.view-model';
+import { PlatformInputType } from '../platform/platform-input-type/platform-input-type.entity';
+import { PlatformInputTypeViewModel } from '../platform/platform-input-type/platform-input-type.view-model';
 
 const mapProfiles: MapProfile<any, any>[] = [
   mapperService.create(Game, GameViewModel),
@@ -82,7 +107,10 @@ const mapProfiles: MapProfile<any, any>[] = [
     dest => dest.inputTypeName,
     from => from.inputType?.name
   ),
-  mapperService.create(Player, PlayerWithRegionSteamProfileViewModel),
+  mapperService.create(Player, PlayerWithRegionSteamProfileViewModel).for(
+    dest => dest.inputTypeName,
+    from => from.inputType?.name
+  ),
   mapperService.create(Region, RegionViewModel),
   mapperService.create(Rule, RuleViewModel),
   mapperService.create(Stage, StageViewModel),
@@ -205,6 +233,90 @@ const mapProfiles: MapProfile<any, any>[] = [
       }
     ),
   mapperService.create(InputType, InputTypeViewModel),
+  mapperService.create(Notification, NotificationViewModel),
+  mapperService.create(Category, CategoryWithSubCategoriesViewModel),
+  mapperService.create(SubCategory, SubCategoryWithInfoModeratorsViewModel).for(
+    dest => dest.moderators,
+    from =>
+      mapperService.map(
+        Moderator,
+        ModeratorViewModel,
+        from.subCategoryModerators?.map(subCategoryModerator => subCategoryModerator.moderator).filter(isNotNil) ?? []
+      )
+  ),
+  mapperService.create(SubCategory, SubCategoryViewModel),
+  mapperService.create(SubCategory, SubCategoryWithInfoViewModel),
+  mapperService.create(Moderator, ModeratorViewModel).for(
+    dest => dest.playerPersonaName,
+    from => from.player?.personaName ?? ''
+  ),
+  mapperService
+    .create(Moderator, ModeratorViewModelWithInfo)
+    .for(
+      dest => dest.playerPersonaName,
+      from => from.player?.personaName ?? ''
+    )
+    .for(
+      dest => dest.deleteAllowed,
+      from => !from.subCategoryModerators?.length
+    ),
+  mapperService.create(Topic, TopicViewModel),
+  mapperService.create(SubCategory, SubCategoryWithInfoModeratorsTopicsViewModel).for(
+    dest => dest.moderators,
+    from =>
+      mapperService.map(
+        Moderator,
+        ModeratorViewModel,
+        from.subCategoryModerators?.map(subCategoryModerator => subCategoryModerator.moderator).filter(isNotNil) ?? []
+      )
+  ),
+  mapperService.create(Category, CategoryViewModel),
+  mapperService
+    .create(SubCategoryModerator, SubCategoryModeratorViewModel)
+    .for(
+      dest => dest.idPlayer,
+      from => from.moderator?.idPlayer ?? -1
+    )
+    .for(
+      dest => dest.playerPersonaName,
+      from => from.moderator?.player?.personaName ?? ''
+    ),
+  mapperService
+    .create(Topic, TopicRecentViewModel)
+    .for(
+      dest => dest.idCategory,
+      from => from.subCategory?.idCategory ?? -1
+    )
+    .for(
+      dest => dest.playerPersonaName,
+      from => from.posts?.[0]?.player?.personaName ?? ''
+    )
+    .for(
+      dest => dest.idPlayer,
+      from => from.posts?.[0]?.idPlayer ?? -1
+    )
+    .for(
+      dest => dest.idPost,
+      from => from.posts?.[0]?.id ?? -1
+    )
+    .for(
+      dest => dest.postName,
+      from => from.posts?.[0]?.name ?? ''
+    )
+    .for(
+      dest => dest.nameSubCategory,
+      from => from.subCategory?.name ?? ''
+    )
+    .for(
+      dest => dest.postDate,
+      from => from.posts?.[0]?.creationDate ?? new Date()
+    ),
+  mapperService.create(PostEntity, PostViewModel),
+  mapperService.create(Category, CategoryWithSubCategoriesAltViewModel),
+  mapperService.create(PlatformInputType, PlatformInputTypeViewModel).for(
+    dest => dest.nameInputType,
+    from => from.inputType?.name ?? ''
+  ),
 ];
 
 function createScoreViewModeMap<T extends ScoreViewModel>(type: Type<T>): MapProfile<Score, T> {

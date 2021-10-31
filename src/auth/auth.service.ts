@@ -18,8 +18,12 @@ import {
 } from './auth.dto';
 import { UserAddDto } from '../user/user.dto';
 import { genSalt, hash } from 'bcrypt';
-import { AuthRegisterViewModel, AuthSteamLoginSocketErrorType } from './auth.view-model';
-import { isNumber, random } from 'st-utils';
+import {
+  AuthRegisterViewModel,
+  AuthSteamLoginSocketErrorType,
+  AuthSteamValidateNamesViewModel,
+} from './auth.view-model';
+import { isNumber } from 'st-utils';
 import { AuthConfirmationService } from './auth-confirmation/auth-confirmation.service';
 import { User } from '../user/user.entity';
 import { Transactional } from 'typeorm-transactional-cls-hooked';
@@ -31,6 +35,7 @@ import { MailService } from '../mail/mail.service';
 import { MailPriorityEnum } from '../mail/mail-priority.enum';
 import { EncryptorService } from '../encryptor/encryptor.service';
 import { Environment } from '../environment/environment';
+import { v4 } from 'uuid';
 
 @Injectable()
 export class AuthService {
@@ -262,15 +267,27 @@ export class AuthService {
   }
 
   @Transactional()
-  async registerSteam({ email, steamid }: AuthRegisterSteamDto, auth: string): Promise<AuthRegisterViewModel> {
+  async registerSteam({ email, steamid, newName }: AuthRegisterSteamDto, auth: string): Promise<AuthRegisterViewModel> {
     const envSalt = await this.environment.envSalt();
     const hashed = await hash(steamid, envSalt);
     if (hashed !== auth) {
       throw new UnauthorizedException();
     }
-    const steamProfile = await this.steamService.createWithPlayer(steamid);
-    const password = '' + random(100_000_000_000, 999_999_999_999);
-    const user = await this._registerUser({ email, username: steamProfile.personaname.substr(0, 100), password });
+    const steamprofileRaw = await this.steamService.getPlayerSummary(steamid);
+    const [playerExists, userExists] = await Promise.all([
+      this.playerService.personaNameExists(steamprofileRaw.personaname),
+      this.userService.anyByEmailOrUsername(steamprofileRaw.personaname),
+    ]);
+    if ((playerExists || userExists) && !newName) {
+      throw new BadRequestException('newName is required');
+    }
+    const steamProfile = await this.steamService.createWithPlayer(steamid, false, playerExists ? newName : undefined);
+    const password = v4();
+    const user = await this._registerUser({
+      email,
+      username: userExists ? newName! : steamProfile.personaname.substr(0, 100),
+      password,
+    });
     await this.playerService.updateIdUser(steamProfile.player.id, user.id);
     return { email: user.email, message: 'User created! Please confirm your e-mail', idUser: user.id };
   }
@@ -316,10 +333,30 @@ export class AuthService {
     return await this.jwtService.signAsync({ id, password }, options);
   }
 
+  async devGetToken(): Promise<string> {
+    if (this.environment.production) {
+      throw new ForbiddenException('NOT');
+    }
+    const owner = await this.userService.findOwnerWithPasswordAndSalt();
+    return this.getToken(owner);
+  }
+
   async validateSteamToken(steamid: string, token: string): Promise<boolean> {
     const envSalt = await this.environment.envSalt();
     const hashed = await hash(steamid, envSalt);
     return hashed === token;
+  }
+
+  async validateSteamNames(steamid: string): Promise<AuthSteamValidateNamesViewModel> {
+    const steamprofile = await this.steamService.getPlayerSummary(steamid);
+    if (!steamprofile) {
+      throw new NotFoundException('Steam profile not found');
+    }
+    const [playerExists, userExists] = await Promise.all([
+      this.playerService.personaNameExists(steamprofile.personaname),
+      this.userService.anyByEmailOrUsername(steamprofile.personaname),
+    ]);
+    return { steamPersonaName: steamprofile.personaname, newName: playerExists || userExists };
   }
 
   validateChangePassword(key: string): AuthChangePasswordKey | null {

@@ -42,6 +42,10 @@ module.exports = class schemas1629118747810 {
     await queryRunner.query(`ALTER TABLE "public"."user" SET SCHEMA ${SchemaEnum.main}`);
     await queryRunner.query(`ALTER TABLE "public"."error" SET SCHEMA ${SchemaEnum.main}`);
     await queryRunner.query(`ALTER TABLE "public"."input_type" SET SCHEMA ${SchemaEnum.main}`);
+    await queryRunner.query(`ALTER TYPE "public"."mail_queue_textencoding_enum" SET SCHEMA ${SchemaEnum.main}`);
+    await queryRunner.query(`ALTER TYPE "public"."score_approval_action_enum" SET SCHEMA ${SchemaEnum.main}`);
+    await queryRunner.query(`ALTER TYPE "public"."score_approval_motive_action_enum" SET SCHEMA ${SchemaEnum.main}`);
+    await queryRunner.query(`ALTER TYPE "public"."score_world_record_type_enum" SET SCHEMA ${SchemaEnum.main}`);
   }
 
   /**
@@ -82,5 +86,9 @@ module.exports = class schemas1629118747810 {
     await queryRunner.query(`ALTER TABLE "${SchemaEnum.main}"."user" SET SCHEMA public`);
     await queryRunner.query(`ALTER TABLE "${SchemaEnum.main}"."error" SET SCHEMA public`);
     await queryRunner.query(`ALTER TABLE "${SchemaEnum.main}"."input_type" SET SCHEMA public`);
+    await queryRunner.query(`ALTER TYPE "${SchemaEnum.main}"."mail_queue_textencoding_enum" SET SCHEMA public`);
+    await queryRunner.query(`ALTER TYPE "${SchemaEnum.main}"."score_approval_action_enum" SET SCHEMA public`);
+    await queryRunner.query(`ALTER TYPE "${SchemaEnum.main}"."score_approval_motive_action_enum" SET SCHEMA public"`);
+    await queryRunner.query(`ALTER TYPE "${SchemaEnum.main}"."score_world_record_type_enum" SET SCHEMA public`);
   }
 };

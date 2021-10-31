@@ -24,7 +24,7 @@ export class CharacterController {
   @ApiAdmin()
   @Post()
   async add(@Body() dto: CharacterAddDto): Promise<CharacterViewModel> {
-    return this.mapProfile.mapPromise(this.characterService.add(dto));
+    return this.mapProfile.map(await this.characterService.add(dto));
   }
 
   @ApiAdmin()
@@ -33,7 +33,7 @@ export class CharacterController {
     @Param(Params.idCharacter) idCharacter: number,
     @Body() dto: CharacterUpdateDto
   ): Promise<CharacterViewModel> {
-    return this.mapProfile.mapPromise(this.characterService.update(idCharacter, dto));
+    return this.mapProfile.map(await this.characterService.update(idCharacter, dto));
   }
 
   @Get(`platform/:${Params.idPlatform}/game/:${Params.idGame}/mini-game/:${Params.idMiniGame}/mode/:${Params.idMode}`)
@@ -43,8 +43,8 @@ export class CharacterController {
     @Param(Params.idMiniGame) idMiniGame: number,
     @Param(Params.idMode) idMode: number
   ): Promise<CharacterViewModelWithCharacterCostumes[]> {
-    return this.mapProfileWithCharacterCostumes.mapPromise(
-      this.characterService.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode)
+    return this.mapProfileWithCharacterCostumes.map(
+      await this.characterService.findByIdPlatformGameMiniGameMode(idPlatform, idGame, idMiniGame, idMode)
     );
   }
 
@@ -52,13 +52,13 @@ export class CharacterController {
   async findByIdPlatformsGamesMiniGamesModes(
     @Query() dto: CharacterPlatformsGamesMiniGamesModesDto
   ): Promise<CharacterViewModelWithCharacterCostumes[]> {
-    return this.mapProfileWithCharacterCostumes.mapPromise(
-      this.characterService.findByIdPlatformsGamesMiniGamesModes(dto)
+    return this.mapProfileWithCharacterCostumes.map(
+      await this.characterService.findByIdPlatformsGamesMiniGamesModes(dto)
     );
   }
 
   @Get(`:${Params.idCharacter}`)
   async findById(@Param(Params.idCharacter) idCharacter: number): Promise<CharacterViewModel> {
-    return this.mapProfile.mapPromise(this.characterService.findById(idCharacter));
+    return this.mapProfile.map(await this.characterService.findById(idCharacter));
   }
 }

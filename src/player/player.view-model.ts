@@ -15,6 +15,7 @@ export class PlayerViewModel implements PlayerInterface {
   @Property() lastUpdatedPersonaNameDate?: Date;
   @Property() idInputType?: number;
   @Property() inputTypeName?: string;
+  @Property() avatar?: string | null;
 }
 
 export class PlayerWithRegionSteamProfileViewModel extends PlayerViewModel {

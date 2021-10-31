@@ -13,6 +13,7 @@ import { AuthCredentialsDto } from '../auth/auth.dto';
 import { FindConditions, ILike } from 'typeorm';
 import { isAfter, subDays } from 'date-fns';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { UserOnlineViewModel } from './user.view-model';
 
 @Injectable()
 export class UserService {
@@ -147,5 +148,35 @@ export class UserService {
 
   async lockUser(idUser: number): Promise<void> {
     await this.userRepository.update(idUser, { lockedDate: new Date() });
+  }
+
+  async findIdByScore(idScore: number): Promise<number | undefined> {
+    return this.userRepository.findIdByScore(idScore);
+  }
+
+  async findIdsByScore(idScore: number): Promise<number[]> {
+    return this.userRepository.findIdsByScore(idScore);
+  }
+
+  async findIdsByPlayers(idPlayers: number[]): Promise<number[]> {
+    return this.userRepository.findIdsByPlayers(idPlayers);
+  }
+
+  async findIdByPlayer(idPlayer: number): Promise<number> {
+    return this.userRepository
+      .findOneOrFail({ where: { player: { id: idPlayer } }, select: ['id'] })
+      .then(user => user.id);
+  }
+
+  async findOwnerWithPasswordAndSalt(): Promise<User> {
+    return this.userRepository.findOwnerWithPasswordAndSalt();
+  }
+
+  async isAdminByPlayer(idPlayer: number): Promise<boolean> {
+    return this.userRepository.isAdminByPlayer(idPlayer);
+  }
+
+  findOnline(): Promise<UserOnlineViewModel[]> {
+    return this.userRepository.findOnline();
   }
 }

@@ -6,7 +6,11 @@ import { InputType } from './input-type.entity';
 export class InputTypeService {
   constructor(private inputTypeRepository: InputTypeRepository) {}
 
-  async findByPlatform(idPlatform: number): Promise<InputType[]> {
-    return this.inputTypeRepository.findByPlatform(idPlatform);
+  async findAll(): Promise<InputType[]> {
+    return this.inputTypeRepository.find();
+  }
+
+  async findById(idInputType: number): Promise<InputType> {
+    return this.inputTypeRepository.findOneOrFail(idInputType);
   }
 }

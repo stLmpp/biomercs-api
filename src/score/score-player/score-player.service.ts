@@ -23,7 +23,7 @@ export class ScorePlayerService {
     dto: ScorePlayerAddDto[]
   ): Promise<ScorePlayer[]> {
     const scorePlayersDto = await Promise.all(
-      dto.map(async ({ idInputType, idPlatformInputType, idCharacterCostume, ...scorePlayer }) => {
+      dto.map(async ({ idPlatformInputType, idCharacterCostume, ...scorePlayer }) => {
         const idPlatformGameMiniGameModeCharacterCostume =
           await this.platformGameMiniGameModeCharacterCostumeService.findIdByPlatformGameMiniGameModeCharacterCostume(
             idPlatform,
@@ -32,10 +32,7 @@ export class ScorePlayerService {
             idMode,
             idCharacterCostume
           );
-        if (idInputType && !idPlatformInputType) {
-          idPlatformInputType = await this.platformInputTypeService.findIdByPlatformInputType(idPlatform, idInputType);
-        }
-        if (!idInputType && !idPlatformInputType) {
+        if (!idPlatformInputType) {
           idPlatformInputType = await this.platformInputTypeService.findIdByPlatformPlayer(
             idPlatform,
             scorePlayer.idPlayer

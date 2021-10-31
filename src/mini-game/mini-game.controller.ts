@@ -23,7 +23,7 @@ export class MiniGameController {
   @ApiAdmin()
   @Post()
   async add(@Body() dto: MiniGameAddDto): Promise<MiniGameViewModel> {
-    return this.mapProfile.mapPromise(this.miniGameService.add(dto));
+    return this.mapProfile.map(await this.miniGameService.add(dto));
   }
 
   @ApiAdmin()
@@ -32,7 +32,7 @@ export class MiniGameController {
     @Param(Params.idMiniGame) idMiniGame: number,
     @Body() dto: MiniGameUpdateDto
   ): Promise<MiniGameViewModel> {
-    return this.mapProfile.mapPromise(this.miniGameService.update(idMiniGame, dto));
+    return this.mapProfile.map(await this.miniGameService.update(idMiniGame, dto));
   }
 
   @Get(`platform/:${Params.idPlatform}/game/:${Params.idGame}`)
@@ -40,12 +40,12 @@ export class MiniGameController {
     @Param(Params.idPlatform) idPlatform: number,
     @Param(Params.idGame) idGame: number
   ): Promise<MiniGameViewModel[]> {
-    return this.mapProfile.mapPromise(this.miniGameService.findByIdPlatformGame(idPlatform, idGame));
+    return this.mapProfile.map(await this.miniGameService.findByIdPlatformGame(idPlatform, idGame));
   }
 
   @Get(`platforms/games`)
   async findByIdPlatformsGames(@Query() dto: MiniGamePlatformsGamesDto): Promise<MiniGameViewModel[]> {
-    return this.mapProfile.mapPromise(this.miniGameService.findByIdPlatformsGames(dto));
+    return this.mapProfile.map(await this.miniGameService.findByIdPlatformsGames(dto));
   }
 
   @ApiAdmin()
@@ -54,13 +54,13 @@ export class MiniGameController {
     @Param(Params.idPlatform) idPlatform: number,
     @Param(Params.idGame) idGame: number
   ): Promise<MiniGameViewModel[]> {
-    return this.mapProfile.mapPromise(
-      this.miniGameService.findApprovalByIdPlatformGame(ScoreStatusEnum.AwaitingApproval, idPlatform, idGame)
+    return this.mapProfile.map(
+      await this.miniGameService.findApprovalByIdPlatformGame(ScoreStatusEnum.AwaitingApproval, idPlatform, idGame)
     );
   }
 
   @Get(`:${Params.idMiniGame}`)
   async findById(@Param(Params.idMiniGame) idMiniGame: number): Promise<MiniGameViewModel> {
-    return this.mapProfile.mapPromise(this.miniGameService.findById(idMiniGame));
+    return this.mapProfile.map(await this.miniGameService.findById(idMiniGame));
   }
 }

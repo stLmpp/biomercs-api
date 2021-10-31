@@ -57,8 +57,8 @@ export class ScoreController {
   ) {}
 
   @Post()
-  async add(@Body() dto: ScoreAddDto, @AuthUser() user: User): Promise<ScoreViewModel> {
-    return this.mapProfile.mapPromise(this.scoreService.add(dto, user));
+  async add(@Body() dto: ScoreAddDto, @AuthUser(AuthPlayerPipe) player: Player): Promise<ScoreViewModel> {
+    return this.mapProfile.map(await this.scoreService.add(dto, player.id));
   }
 
   @ApiQuery({ name: Params.limit, required: false })
@@ -73,8 +73,8 @@ export class ScoreController {
     @Query(Params.page) page: number,
     @Query(Params.limit, OptionalQueryPipe) limit?: number
   ): Promise<ScoreTopTableViewModel> {
-    return this.mapProfileScoreTopTable.mapPromise(
-      this.scoreService.findLeaderboards(idPlatform, idGame, idMiniGame, idMode, page, limit ?? 10)
+    return this.mapProfileScoreTopTable.map(
+      await this.scoreService.findLeaderboards(idPlatform, idGame, idMiniGame, idMode, page, limit ?? 10)
     );
   }
 
@@ -87,8 +87,8 @@ export class ScoreController {
     @Param(Params.idMiniGame) idMiniGame: number,
     @Param(Params.idMode) idMode: number
   ): Promise<ScoreTopTableWorldRecordViewModel> {
-    return this.mapProfileScoreTopTableWorldRecord.mapPromise(
-      this.scoreService.findWorldRecordsTable(idPlatform, idGame, idMiniGame, idMode)
+    return this.mapProfileScoreTopTableWorldRecord.map(
+      await this.scoreService.findWorldRecordsTable(idPlatform, idGame, idMiniGame, idMode)
     );
   }
 
@@ -112,8 +112,8 @@ export class ScoreController {
     @Query(Params.orderBy, OptionalQueryPipe) orderBy?: string,
     @Query(Params.orderByDirection, OptionalQueryPipe) orderByDirection?: OrderByDirection
   ): Promise<ScoreApprovalPaginationViewModel> {
-    return this.mapProfileScoreApprovalPagination.mapPromise(
-      this.scoreService.findApprovalListAdmin({
+    return this.mapProfileScoreApprovalPagination.map(
+      await this.scoreService.findApprovalListAdmin({
         idMiniGame,
         idMode,
         idPlatform,
@@ -156,8 +156,8 @@ export class ScoreController {
   async findRejectedAndPendingScoresByIdPlayer(
     @AuthUser(AuthPlayerPipe) player: Player
   ): Promise<ScoresGroupedByStatusViewModel[]> {
-    return this.mapProfileScoresGroupedByStatus.mapPromise(
-      this.scoreService.findRejectedAndPendingScoresByIdPlayer(player.id)
+    return this.mapProfileScoresGroupedByStatus.map(
+      await this.scoreService.findRejectedAndPendingScoresByIdPlayer(player.id)
     );
   }
 
@@ -206,7 +206,7 @@ export class ScoreController {
     @Param(Params.idScore) idScore: number,
     @Body() dtos: string[]
   ): Promise<ScoreChangeRequestViewModel[]> {
-    return this.mapProfileScoreChangeRequest.mapPromise(this.scoreService.requestChanges(idScore, dtos));
+    return this.mapProfileScoreChangeRequest.map(await this.scoreService.requestChanges(idScore, dtos));
   }
 
   @Patch(`:${Params.idScore}/fulfil-change-requests`)
@@ -224,6 +224,15 @@ export class ScoreController {
 
   @Get(`:${Params.idScore}`)
   async findByIdMapped(@Param(Params.idScore) idScore: number): Promise<ScoreViewModel> {
-    return this.mapProfile.mapPromise(this.scoreService.findByIdWithAllRelations(idScore));
+    return this.mapProfile.map(await this.scoreService.findByIdWithAllRelations(idScore));
+  }
+
+  @Get(`:${Params.idScore}/with-change-requests`)
+  async findByIdWithChangeRequests(
+    @Param(Params.idScore) idScore: number
+  ): Promise<ScoreWithScoreChangeRequestsViewModel> {
+    return this.mapProfileScoreWithScoreChangeRequests.map(
+      await this.scoreService.findScoreWithChangeRequests(idScore)
+    );
   }
 }

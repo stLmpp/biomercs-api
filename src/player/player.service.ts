@@ -1,7 +1,7 @@
 import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { PlayerRepository } from './player.repository';
 import { Player } from './player.entity';
-import { PlayerAddDto, PlayerSearchDto, PlayerUpdateDto } from './player.dto';
+import { PlayerAddDto, PlayerSearchDto, PlayerSearchPaginatedDto, PlayerUpdateDto } from './player.dto';
 import { SteamService } from '../steam/steam.service';
 import { RegionService } from '../region/region.service';
 import { NotOrNull } from '../util/find-operator';
@@ -9,13 +9,21 @@ import { Transactional } from 'typeorm-transactional-cls-hooked';
 import { FindConditions, ILike, In, Not } from 'typeorm';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { isAfter, subDays } from 'date-fns';
+import sharp from 'sharp';
+import { FileType } from '../file-upload/file.type';
+import { FileUploadService } from '../file-upload/file-upload.service';
+import { Environment } from '../environment/environment';
+import { InputTypeService } from '../input-type/input-type.service';
 
 @Injectable()
 export class PlayerService {
   constructor(
     private playerRepository: PlayerRepository,
     @Inject(forwardRef(() => SteamService)) private steamService: SteamService,
-    private regionService: RegionService
+    private regionService: RegionService,
+    private fileUploadService: FileUploadService,
+    private environment: Environment,
+    private inputTypeService: InputTypeService
   ) {}
 
   @Transactional()
@@ -77,6 +85,9 @@ export class PlayerService {
     if (dto.idRegion && player.idRegion !== dto.idRegion) {
       player.region = await this.regionService.findById(dto.idRegion);
     }
+    if (dto.idInputType && player.idInputType !== dto.idInputType) {
+      player.inputType = await this.inputTypeService.findById(dto.idInputType);
+    }
     return new Player().extendDto({ ...player, ...dto });
   }
 
@@ -108,14 +119,14 @@ export class PlayerService {
     return this.playerRepository.findOneOrFail({ select: ['id'], where: { idUser } }).then(player => player.id);
   }
 
-  async findBySearch({
+  async findBySearchPaginated({
     personaName,
     page,
     limit,
     isAdmin,
     idUser,
     idPlayersSelected,
-  }: PlayerSearchDto): Promise<Pagination<Player>> {
+  }: PlayerSearchPaginatedDto): Promise<Pagination<Player>> {
     const where: FindConditions<Player> = { personaName: ILike(`%${personaName}%`) };
     if (!isAdmin) {
       where.idUser = NotOrNull(idUser);
@@ -123,7 +134,18 @@ export class PlayerService {
     if (idPlayersSelected.length) {
       where.id = Not(In(idPlayersSelected));
     }
-    return this.playerRepository.paginate({ page, limit }, { where });
+    return this.playerRepository.paginate({ page, limit }, { where, order: { personaName: 'ASC' } });
+  }
+
+  async findBySearch({ personaName, isAdmin, idUser, idPlayersSelected }: PlayerSearchDto): Promise<Player[]> {
+    const where: FindConditions<Player> = { personaName: ILike(`%${personaName}%`) };
+    if (!isAdmin) {
+      where.idUser = NotOrNull(idUser);
+    }
+    if (idPlayersSelected.length) {
+      where.id = Not(In(idPlayersSelected));
+    }
+    return this.playerRepository.find({ where, order: { personaName: 'ASC' }, take: 150 });
   }
 
   async personaNameExists(personaName: string): Promise<boolean> {
@@ -148,5 +170,27 @@ export class PlayerService {
     const lastUpdatedPersonaNameDate = new Date();
     await this.playerRepository.update(idPlayer, { personaName, lastUpdatedPersonaNameDate });
     return lastUpdatedPersonaNameDate.toISOString();
+  }
+
+  async avatar(idPlayer: number, file: FileType): Promise<string> {
+    const buffer = await sharp(file.buffer).resize({ height: 300, width: 300 }).png().toBuffer();
+    const avatar = `${idPlayer}.png`;
+    await this.fileUploadService.send(
+      { ...file, buffer },
+      { path: this.environment.get('AWS_S3_BUCKET_IMAGE_AVATAR'), name: avatar }
+    );
+    await this.playerRepository.update(idPlayer, { avatar });
+    return avatar;
+  }
+
+  async removeAvatar(idPlayer: number): Promise<void> {
+    const { avatar } = await this.playerRepository.findOneOrFail(idPlayer, { select: ['avatar'] });
+    if (!avatar) {
+      return;
+    }
+    await Promise.all([
+      this.fileUploadService.delete(this.environment.get('AWS_S3_BUCKET_IMAGE_AVATAR') + avatar),
+      this.playerRepository.update(idPlayer, { avatar: null }),
+    ]);
   }
 }
