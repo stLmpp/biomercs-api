@@ -53,6 +53,5 @@ export async function resolvePrettierrc(): Promise<Options> {
 }
 
 export function setDefaultVariables(): void {
-  config({ path: resolve(process.cwd() + '/.env-default') });
   config({ path: resolve(process.cwd() + '/.env-dev') });
 }
