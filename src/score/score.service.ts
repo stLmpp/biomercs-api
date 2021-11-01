@@ -183,7 +183,7 @@ export class ScoreService {
       await Promise.all([
         this.scoreWorldRecordService.checkForWorldRecord({
           idPlatformGameMiniGameModeStage: score.idPlatformGameMiniGameModeStage,
-          fromDate: addSeconds(approvalDate, -5),
+          date: addSeconds(approvalDate, -5),
           idPlatformGameMiniGameModeCharacterCostumes: orderBy(
             score.scorePlayers.map(scorePlayer => scorePlayer.idPlatformGameMiniGameModeCharacterCostume)
           ),
@@ -365,36 +365,28 @@ export class ScoreService {
   }
 
   async findTopScoreByIdPlatformGameMiniGameModeStage(
-    idPlatformGameMiniGameModeStage: number,
-    fromDate: Date
+    idPlatformGameMiniGameModeStage: number
   ): Promise<Score | undefined> {
-    return this.scoreRepository.findTopScoreByIdPlatformGameMiniGameModeStage(
-      idPlatformGameMiniGameModeStage,
-      fromDate
-    );
+    return this.scoreRepository.findTopScoreByIdPlatformGameMiniGameModeStage(idPlatformGameMiniGameModeStage);
   }
 
   async findTopScoreByIdPlatformGameMiniGameModeStageAndCharacterCostume(
     idPlatformGameMiniGameModeStage: number,
-    idPlatformGameMiniGameModeCharacterCostume: number,
-    fromDate: Date
+    idPlatformGameMiniGameModeCharacterCostume: number
   ): Promise<Score | undefined> {
     return this.scoreRepository.findTopScoreByIdPlatformGameMiniGameModeStageAndCharacterCostume(
       idPlatformGameMiniGameModeStage,
-      idPlatformGameMiniGameModeCharacterCostume,
-      fromDate
+      idPlatformGameMiniGameModeCharacterCostume
     );
   }
 
   async findTopCombinationScoreByIdPlatformGameMiniGameModeStageAndCharacterCostumes(
     idPlatformGameMiniGameModeStage: number,
-    idPlatformGameMiniGameModeCharacterCostumes: number[],
-    fromDate: Date
+    idPlatformGameMiniGameModeCharacterCostumes: number[]
   ): Promise<Score | undefined> {
     return this.scoreRepository.findTopCombinationScoreByIdPlatformGameMiniGameModeStageAndCharacterCostumes(
       idPlatformGameMiniGameModeStage,
-      idPlatformGameMiniGameModeCharacterCostumes,
-      fromDate
+      idPlatformGameMiniGameModeCharacterCostumes
     );
   }
 

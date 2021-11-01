@@ -171,25 +171,20 @@ export class ScoreRepository extends Repository<Score> {
     orderByDirection,
     idStage,
   }: ScoreApprovalParams): Promise<Pagination<Score, PaginationMeta>> {
-    return (
-      this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode, idStage)
-        .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.AwaitingApproval })
-        // .andWhereInIds(pagination.items.map(score => score.id))
-        .orderBy(this._resolveOrderByApproval(orderBy), orderByDirection.toUpperCase() as Uppercase<OrderByDirection>)
-        .paginate(page, limit, true)
-    );
+    return this._createQueryBuilderRelations(idPlatform, idGame, idMiniGame, idMode, idStage)
+      .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.AwaitingApproval })
+      .orderBy(this._resolveOrderByApproval(orderBy), orderByDirection.toUpperCase() as Uppercase<OrderByDirection>)
+      .paginate(page, limit, true);
   }
 
   async findTopScoreByIdPlatformGameMiniGameModeStage(
-    idPlatformGameMiniGameModeStage: number,
-    fromDate: Date
+    idPlatformGameMiniGameModeStage: number
   ): Promise<Score | undefined> {
     return this.createQueryBuilder('score')
       .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.Approved })
       .andWhere('score.idPlatformGameMiniGameModeStage = :idPlatformGameMiniGameModeStage', {
         idPlatformGameMiniGameModeStage,
       })
-      .andWhere('score.approvalDate >= :fromDate', { fromDate })
       .andWhere(
         sb =>
           `${sb
@@ -199,7 +194,6 @@ export class ScoreRepository extends Repository<Score> {
             .andWhere('s.idPlatformGameMiniGameModeStage = :idPlatformGameMiniGameModeStage', {
               idPlatformGameMiniGameModeStage,
             })
-            .andWhere('s.approvalDate >= :fromDate', { fromDate })
             .select('max(s.score)', 'max_score')
             .getQuery()} = score.score`
       )
@@ -208,8 +202,7 @@ export class ScoreRepository extends Repository<Score> {
 
   async findTopScoreByIdPlatformGameMiniGameModeStageAndCharacterCostume(
     idPlatformGameMiniGameModeStage: number,
-    idPlatformGameMiniGameModeCharacterCostume: number,
-    fromDate: Date
+    idPlatformGameMiniGameModeCharacterCostume: number
   ): Promise<Score | undefined> {
     return this.createQueryBuilder('score')
       .innerJoin('score.scorePlayers', 'scorePlayer')
@@ -221,7 +214,6 @@ export class ScoreRepository extends Repository<Score> {
       .andWhere('score.idPlatformGameMiniGameModeStage = :idPlatformGameMiniGameModeStage', {
         idPlatformGameMiniGameModeStage,
       })
-      .andWhere('score.approvalDate >= :fromDate', { fromDate })
       .andWhere(
         sb =>
           `${sb
@@ -235,7 +227,6 @@ export class ScoreRepository extends Repository<Score> {
             .andWhere('s.idPlatformGameMiniGameModeStage = :idPlatformGameMiniGameModeStage', {
               idPlatformGameMiniGameModeStage,
             })
-            .andWhere('s.approvalDate >= :fromDate', { fromDate })
             .select('max(s.score)', 'max_score')
             .getQuery()} = score.score`
       )
@@ -270,15 +261,13 @@ export class ScoreRepository extends Repository<Score> {
 
   async findTopCombinationScoreByIdPlatformGameMiniGameModeStageAndCharacterCostumes(
     idPlatformGameMiniGameModeStage: number,
-    idPlatformGameMiniGameModeCharacterCostumes: number[],
-    fromDate: Date
+    idPlatformGameMiniGameModeCharacterCostumes: number[]
   ): Promise<Score | undefined> {
     const qb = this.createQueryBuilder('score')
       .andWhere('score.idScoreStatus = :idScoreStatus', { idScoreStatus: ScoreStatusEnum.Approved })
       .andWhere('score.idPlatformGameMiniGameModeStage = :idPlatformGameMiniGameModeStage', {
         idPlatformGameMiniGameModeStage,
       })
-      .andWhere('score.approvalDate >= :fromDate', { fromDate })
       .andWhere(sb => {
         const subQuery = sb
           .subQuery()
@@ -287,7 +276,6 @@ export class ScoreRepository extends Repository<Score> {
           .andWhere('s.idPlatformGameMiniGameModeStage = :idPlatformGameMiniGameModeStage', {
             idPlatformGameMiniGameModeStage,
           })
-          .andWhere('s.approvalDate >= :fromDate', { fromDate })
           .select('max(s.score)', 'max_score');
         return `${this.queryDifferentCharacters(
           subQuery,

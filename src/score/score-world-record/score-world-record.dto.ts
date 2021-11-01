@@ -15,5 +15,5 @@ export class ScoreWorldRecordCheckDto {
 
   @IsDefined()
   @IsDate()
-  fromDate!: Date;
+  date!: Date;
 }
