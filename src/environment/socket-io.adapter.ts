@@ -8,6 +8,9 @@ export class SocketIoAdapter extends IoAdapter {
     super(app);
   }
 
+  // TODO check this error
+
+  // @ts-ignore
   override create(port: number, options?: ServerOptions & { namespace?: string; server?: any }): Server {
     if (options) {
       options = {
@@ -16,6 +19,7 @@ export class SocketIoAdapter extends IoAdapter {
         transports: this.environment.get('WEBSOCKET_TRANSPORTS'),
       };
     }
+    // @ts-ignore
     return super.create(port, options);
   }
 }
