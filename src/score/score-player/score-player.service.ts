@@ -51,15 +51,29 @@ export class ScorePlayerService {
     return this.scorePlayerRepository.save(scorePlayersDto);
   }
 
-  async updateMany(dtos: ScorePlayerUpdateDto[]): Promise<void> {
-    await this.scorePlayerRepository.save(
-      dtos.map(dto => {
-        if (dto.evidence) {
-          dto.evidence = normalizeUrl(dto.evidence);
-        }
-        return dto;
-      })
-    );
+  async updateMany(
+    idPlatform: number,
+    idGame: number,
+    idMiniGame: number,
+    idMode: number,
+    dtos: ScorePlayerUpdateDto[]
+  ): Promise<void> {
+    for (const dto of dtos) {
+      if (dto.evidence) {
+        dto.evidence = normalizeUrl(dto.evidence);
+      }
+      if (dto.idCharacterCostume && !dto.idPlatformGameMiniGameModeCharacterCostume) {
+        dto.idPlatformGameMiniGameModeCharacterCostume =
+          await this.platformGameMiniGameModeCharacterCostumeService.findIdByPlatformGameMiniGameModeCharacterCostume(
+            idPlatform,
+            idGame,
+            idMiniGame,
+            idMode,
+            dto.idCharacterCostume
+          );
+      }
+    }
+    await this.scorePlayerRepository.save(dtos);
   }
 
   async transferScores(oldIdPlayer: number, newIdPlayer: number): Promise<void> {

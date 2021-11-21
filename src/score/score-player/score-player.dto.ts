@@ -60,4 +60,16 @@ export class ScorePlayerUpdateDto {
   @IsString()
   @IsNotEmpty()
   evidence?: string;
+
+  @IsOptional()
+  @IsNumber()
+  idCharacterCostume?: number;
+
+  @IsOptional()
+  @IsNumber()
+  idPlatformInputType?: number;
+
+  @IsOptional()
+  @IsNumber()
+  idPlatformGameMiniGameModeCharacterCostume?: number;
 }

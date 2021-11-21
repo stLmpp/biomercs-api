@@ -234,8 +234,15 @@ export class ScoreService {
     if (!hasAnyRequestChanges) {
       updateScore.idScoreStatus = ScoreStatusEnum.AwaitingApproval;
     }
+    const score = await this.scoreRepository.findByIdWithAllRelations(idScore);
+    const idPlatform = score.platformGameMiniGameModeStage.platformGameMiniGameMode.platformGameMiniGame.idPlatform;
+    const idGame =
+      score.platformGameMiniGameModeStage.platformGameMiniGameMode.platformGameMiniGame.gameMiniGame.idGame;
+    const idMiniGame =
+      score.platformGameMiniGameModeStage.platformGameMiniGameMode.platformGameMiniGame.gameMiniGame.idMiniGame;
+    const idMode = score.platformGameMiniGameModeStage.platformGameMiniGameMode.idMode;
     if (scorePlayers?.length) {
-      await this.scorePlayerService.updateMany(scorePlayers);
+      await this.scorePlayerService.updateMany(idPlatform, idGame, idMiniGame, idMode, scorePlayers);
     }
     await this.scoreRepository.update(idScore, updateScore);
     this.scoreGateway.updateCountApprovals();
