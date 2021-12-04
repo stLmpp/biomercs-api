@@ -28,4 +28,11 @@ export class ErrorAddDto {
   @IsOptional()
   @IsArray()
   sqlParameters?: any[];
+
+  @IsOptional()
+  @IsString()
+  url?: string;
+
+  @IsOptional()
+  body?: any;
 }

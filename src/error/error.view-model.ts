@@ -14,4 +14,6 @@ export class ErrorViewModel implements ErrorInterface {
   @Property() createdBy!: number;
   @Property() createdByUsername?: string;
   @Property() creationDate!: Date;
+  @Property() url?: string;
+  @Property() body?: any;
 }

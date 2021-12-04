@@ -9,7 +9,9 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 
 @Injectable()
 export class ErrorService {
-  constructor(private errorRepository: ErrorRepository) {}
+  constructor(private errorRepository: ErrorRepository) {
+    this.deleteOldErrors().then();
+  }
 
   @Cron(CronExpression.EVERY_WEEK)
   async deleteOldErrors(): Promise<void> {

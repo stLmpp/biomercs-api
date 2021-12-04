@@ -39,4 +39,12 @@ export class ErrorEntity extends BaseEntity implements ErrorInterface {
   @ManyToOne(() => User, { createForeignKeyConstraints: false })
   @JoinColumn({ name: 'createdBy' })
   createdByUser?: User;
+
+  @Property()
+  @Column({ nullable: true })
+  url?: string;
+
+  @Property()
+  @Column({ type: 'json', nullable: true })
+  body?: any;
 }

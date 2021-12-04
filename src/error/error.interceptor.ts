@@ -3,6 +3,7 @@ import { catchError, from, map, Observable } from 'rxjs';
 import { ErrorAddDto } from './error.dto';
 import { isFunction, isNil, isObject } from 'st-utils';
 import { ErrorService } from './error.service';
+import { Request } from 'express';
 
 @Injectable()
 export class ErrorInterceptor implements NestInterceptor {
@@ -12,6 +13,9 @@ export class ErrorInterceptor implements NestInterceptor {
     return next.handle().pipe(
       catchError(error => {
         const payload = new ErrorAddDto();
+        const request = context.switchToHttp().getRequest<Request>();
+        payload.url = request.url;
+        payload.body = request.body;
         if (isNil(error)) {
           // This should never happen, and will be very hard to debug if happens
           payload.name = 'Unknown error';
